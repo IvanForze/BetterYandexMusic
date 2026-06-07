@@ -91,7 +91,7 @@ jobs:
         run: |
           cd yandex-sync-installer
           npm install
-          npx electron-builder --mac
+          CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac
           mkdir -p ../dist
           cp dist/*.dmg ../dist/ || true
           cd ..

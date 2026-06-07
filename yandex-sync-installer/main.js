@@ -18,7 +18,8 @@ function createWindow() {
     },
     titleBarStyle: 'hiddenInset',
     backgroundColor: '#111',
-    resizable: false
+    resizable: false,
+    icon: path.join(__dirname, 'public', process.platform === 'darwin' ? 'Icon-iOS-Default-1024x1024@1x.png' : 'Icon.png')
   });
 
   mainWindow.loadFile('index.html');

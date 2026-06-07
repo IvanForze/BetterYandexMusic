@@ -48,3 +48,7 @@ yandex-sync-extension/main.js
 yandex-sync-extension/soundcloud-bridge.js
 cf.log
 tunnel.log
+
+# Установщик
+yandex-sync-installer/dist/
+yandex-sync-installer/node_modules/
