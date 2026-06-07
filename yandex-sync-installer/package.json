@@ -1,0 +1,46 @@
+{
+  "name": "yandex-sync-installer",
+  "version": "1.0.0",
+  "description": "BetterYandexMusic Installer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "author": "IvanForze",
+  "license": "ISC",
+  "dependencies": {
+    "@electron/asar": "^3.2.14",
+    "@electron/fuses": "^1.8.0"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.better.yandexmusic.installer",
+    "productName": "BetterYandexMusic Installer",
+    "directories": {
+      "output": "dist"
+    },
+    "extraResources": [
+      {
+        "from": "../yandex-sync-electron",
+        "to": "assets",
+        "filter": ["socket.io.js", "desktop-sync.js"]
+      }
+    ],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "tar.gz"]
+    }
+  }
+}
