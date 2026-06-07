@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yandex Music Sync — Слушайте вместе с друзьями</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #080313;
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.65);
+            --accent-color: #ffdb4d;
+            --accent-glow: rgba(255, 219, 77, 0.15);
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --card-border-hover: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(255, 0, 127, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 85% 85%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(255, 219, 77, 0.03) 0%, transparent 60%);
+        }
+
+        header {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ff007f 0%, #00ffff 50%, #ffdb4d 100%);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo-icon svg {
+            width: 18px;
+            height: 18px;
+            color: #000000;
+        }
+
+        .hero {
+            max-width: 900px;
+            margin: 80px auto 100px auto;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: rgba(255, 219, 77, 0.08);
+            border: 1px solid rgba(255, 219, 77, 0.15);
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--accent-color);
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 58px;
+            font-weight: 800;
+            line-height: 1.1;
+            margin: 0 0 24px 0;
+            letter-spacing: -2px;
+            background: linear-gradient(180deg, #ffffff 30%, rgba(255, 255, 255, 0.7) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #ff007f 0%, #00ffff 50%, #ffdb4d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 40px auto;
+        }
+
+        .cta-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 60px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 28px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--accent-color);
+            color: #000000;
+            border: none;
+            box-shadow: 0 4px 20px rgba(255, 219, 77, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: #ffea75;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px rgba(255, 219, 77, 0.35);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.04);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .features {
+            max-width: 1000px;
+            margin: 0 auto 120px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 32px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--card-border-hover);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            color: var(--accent-color);
+        }
+
+        .feature-card h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+
+        .feature-card p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        footer a:hover {
+            color: var(--accent-color);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+            </div>
+            Yandex Music Sync
+        </div>
+        <a href="https://github.com/IvanForze/BetterYandexMusic" target="_blank" class="btn btn-secondary" style="padding: 10px 20px; font-size: 14px;">GitHub</a>
+    </header>
+
+    <div class="hero">
+        <div class="badge">
+            <span style="width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+            Версия 1.1 уже доступна
+        </div>
+        <h1>Слушайте любимую музыку <span>вместе</span></h1>
+        <p>Синхронизируйте воспроизведение треков в Яндекс.Музыке с друзьями в реальном времени. В веб-версии или десктопном приложении.</p>
+        
+        <div class="cta-group">
+            <a href="https://github.com/IvanForze/YandexMusicSync" target="_blank" class="btn btn-primary">
+                Скачать расширение и патч
+            </a>
+            <a href="https://github.com/IvanForze/YandexMusicSync#readme" target="_blank" class="btn btn-secondary">
+                Инструкция по установке
+            </a>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a10 10 0 0 0-10 10c0 5.525 4.475 10 10 10s10-4.475 10-10A10 10 0 0 0 12 2zm1 14h-2v-4h2v4zm0-6h-2V8h2v2z"/>
+                </svg>
+            </div>
+            <h3>Мгновенный Sync</h3>
+            <p>Перемотка, пауза и смена треков синхронизируются за миллисекунды по протоколу WebSocket. Все слушают одну секунду.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19C5.35249 19.5 5.21553 20.3546 4.73752 20.803C4.26943 21.2421 3.59374 21.464 3.01828 21.2801C2.5188 21.1205 2.08722 20.8122 1.83401 20.3551"/>
+                    <circle cx="7.5" cy="10.5" r="1.5" fill="currentColor"/>
+                    <circle cx="11.5" cy="7.5" r="1.5" fill="currentColor"/>
+                    <circle cx="16.5" cy="9.5" r="1.5" fill="currentColor"/>
+                    <circle cx="15.5" cy="14.5" r="1.5" fill="currentColor"/>
+                </svg>
+            </div>
+            <h3>Кастомные Темы</h3>
+            <p>Превратите интерфейс плеера в OLED Black, Cyberpunk, Nord или создайте полностью свою цветовую палитру.</p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">
+                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+            </div>
+            <h3>Discord Rich Presence</h3>
+            <p>Транслируйте то, что вы слушаете в реальном времени, прямо в ваш Discord профиль со шкалой времени и кнопкой приглашения.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 <a href="https://github.com/IvanForze" target="_blank">IvanForze</a>. Открытый проект под лицензией PolyForm Noncommercial.</p>
+    </footer>
+</body>
+</html>

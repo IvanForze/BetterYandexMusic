@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "BetterYandexMusic",
+  "version": "1.0",
+  "description": "Синхронное прослушивание Яндекс Музыки",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [
+    "*://music.yandex.ru/*",
+    "http://localhost:3000/*",
+    "https://lrclib.net/*",
+    "https://soundcloud.com/*",
+    "https://api-v2.soundcloud.com/*",
+    "https://*.sndcdn.com/*",
+    "https://translate.googleapis.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://music.yandex.ru/*"],
+      "js": ["socket.io.js", "isolated.js", "soundcloud-bridge.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["*://music.yandex.ru/*"],
+      "js": ["main.js"],
+      "run_at": "document_idle",
+      "world": "MAIN"
+    }
+  ]
+}

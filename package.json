@@ -1,0 +1,30 @@
+{
+  "name": "betteryandexmusic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:tunnel": "node server-tunnel.js",
+    "build": "node build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "PolyForm-Noncommercial-1.0.0",
+  "type": "commonjs",
+  "dependencies": {
+    "cloudflared": "^0.7.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "@babel/generator": "^7.29.7",
+    "@babel/parser": "^7.29.7",
+    "@babel/traverse": "^7.29.7"
+  },
+  "overrides": {
+    "axios": "^1.7.4"
+  }
+}

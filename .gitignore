@@ -1,0 +1,50 @@
+# Зависимости
+node_modules/
+jspm_packages/
+web_modules/
+
+# Логи и отладка
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Системные файлы и временные файлы ОС
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Конфигурации редакторов и IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Локальные переменные окружения
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Архивы
+*.zip
+*.tar.gz
+*.rar
+
+# Сборка и зависимости
+package-lock.json
+yandex-sync-electron/desktop-sync.js
+yandex-sync-extension/isolated.js
+yandex-sync-extension/main.js
+yandex-sync-extension/soundcloud-bridge.js
+cf.log
+tunnel.log

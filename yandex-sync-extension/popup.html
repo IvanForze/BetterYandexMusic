@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <title>Yandex Music Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-color: #121214;
+        --card-bg: #1a1a1e;
+        --text-primary: #ffffff;
+        --text-secondary: #a0a0a5;
+        --accent: linear-gradient(135deg, #8a2be2, #4a00e0);
+        --accent-hover: linear-gradient(135deg, #9b3cf3, #5a10f1);
+        --input-bg: #26262b;
+        --input-border: #3a3a42;
+        --input-focus: #8a2be2;
+        --border-radius: 12px;
+      }
+
+      body {
+        width: 260px;
+        margin: 0;
+        padding: 20px;
+        background-color: var(--bg-color);
+        color: var(--text-primary);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        background: linear-gradient(90deg, #ff007f, #8a2be2);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.5px;
+      }
+
+      .description {
+        font-size: 12px;
+        color: var(--text-secondary);
+        text-align: center;
+        margin: -8px 0 4px 0;
+        line-height: 1.4;
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      label {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 12px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--input-border);
+        background-color: var(--input-bg);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      input:focus {
+        border-color: var(--input-focus);
+        box-shadow: 0 0 0 3px rgba(138, 43, 226, 0.25);
+      }
+
+      button {
+        width: 100%;
+        padding: 11px;
+        border: none;
+        border-radius: var(--border-radius);
+        background: var(--accent);
+        color: #ffffff;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 12px rgba(138, 43, 226, 0.3);
+      }
+
+      button:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 6px 16px rgba(138, 43, 226, 0.4);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        margin-top: 8px;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+        box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+      }
+
+      .status-container {
+        font-size: 12px;
+        text-align: center;
+        padding: 8px;
+        border-radius: 8px;
+        background-color: var(--card-bg);
+        border: 1px solid var(--input-border);
+        display: none;
+      }
+
+      .status-active {
+        color: #10b981;
+        font-weight: 500;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Яндекс.Музыка Sync</h3>
+    <div class="description">Слушайте любимые треки синхронно со своими друзьями</div>
+    
+    <div class="input-group">
+      <label for="serverUrl">Адрес сервера</label>
+      <input type="text" id="serverUrl" placeholder="Например: http://localhost:3000" />
+    </div>
+
+    <div class="input-group">
+      <label for="roomId">Идентификатор комнаты</label>
+      <input type="text" id="roomId" placeholder="Например: room-404" />
+    </div>
+
+    <button id="connectBtn">Подключиться</button>
+    <button id="disconnectBtn" class="btn-danger" style="display: none;">Отключиться</button>
+    
+    <div id="statusContainer" class="status-container">
+      Подключено к комнате: <span id="activeRoomId" class="status-active">-</span>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

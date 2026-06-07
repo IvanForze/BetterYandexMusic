@@ -1,0 +1,8 @@
+node_modules
+yandex-sync-extension
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
+README.md

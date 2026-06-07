@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  sync-server:
+    build: .
+    container_name: yandex-music-sync-server
+    ports:
+      - "3030:3000"
+    restart: always

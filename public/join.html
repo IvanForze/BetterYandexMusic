@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yandex Music Sync — Подключение</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f081d;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --accent-color: #ffdb4d;
+            --accent-hover: #ffea75;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 0, 127, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(0, 255, 255, 0.08) 0%, transparent 40%);
+        }
+
+        .container {
+            text-align: center;
+            max-width: 420px;
+            padding: 40px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo-wrapper {
+            margin-bottom: 24px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #ff007f 0%, #00ffff 50%, #ffdb4d 100%);
+            border-radius: 18px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(255, 219, 77, 0.25);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .logo-icon svg {
+            color: #000;
+            width: 32px;
+            height: 32px;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0 0 30px 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            box-shadow: 0 0 8px var(--accent-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: #000000;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 219, 77, 0.2);
+            margin-bottom: 12px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo-wrapper">
+            <div class="logo-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="status-badge">
+            <span class="pulse-dot"></span>
+            <span id="status-text">Инициализация...</span>
+        </div>
+
+        <h1 id="title-text">Подключение к комнате</h1>
+        <p id="desc-text">Пытаемся передать команду в десктопное приложение Яндекс.Музыка...</p>
+
+        <button id="main-btn" class="btn btn-primary" style="display: none;">Открыть в веб-версии</button>
+        <a id="secondary-btn" href="https://github.com/IvanForze/BetterYandexMusic" target="_blank" class="btn btn-secondary">Подробнее о проекте</a>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const room = params.get('room');
+        const server = params.get('server') || window.location.origin;
+
+        const statusText = document.getElementById('status-text');
+        const titleText = document.getElementById('title-text');
+        const descText = document.getElementById('desc-text');
+        const mainBtn = document.getElementById('main-btn');
+
+        if (!room) {
+            statusText.textContent = 'Ошибка';
+            document.querySelector('.pulse-dot').style.backgroundColor = '#ef4444';
+            document.querySelector('.pulse-dot').style.boxShadow = '0 0 8px #ef4444';
+            titleText.textContent = 'Комната не найдена';
+            descText.textContent = 'Не передан идентификатор комнаты в ссылке. Пожалуйста, скопируйте корректную ссылку-приглашение.';
+        } else {
+            statusText.textContent = `Комната: ${room}`;
+            
+            // 1. Пытаемся отправить запрос на локальный HTTP-сервер десктопного приложения
+            const localApiUrl = `http://127.0.0.1:19090/join?room=${encodeURIComponent(room)}&server=${encodeURIComponent(server)}`;
+            
+            let requestTimeout = setTimeout(() => {
+                handleFail();
+            }, 2000);
+
+            fetch(localApiUrl)
+                .then(res => res.json())
+                .then(data => {
+                    clearTimeout(requestTimeout);
+                    if (data.success) {
+                        handleSuccess();
+                    } else {
+                        handleFail();
+                    }
+                })
+                .catch(() => {
+                    clearTimeout(requestTimeout);
+                    handleFail();
+                });
+        }
+
+        function handleSuccess() {
+            statusText.textContent = 'Успешно подключено';
+            document.querySelector('.pulse-dot').style.backgroundColor = '#10b981';
+            document.querySelector('.pulse-dot').style.boxShadow = '0 0 8px #10b981';
+            titleText.textContent = 'Соединение установлено!';
+            descText.textContent = 'Десктопное приложение Яндекс.Музыка получило команду и подключилось к комнате. Вы можете закрыть эту вкладку.';
+            mainBtn.style.display = 'none';
+        }
+
+        function handleFail() {
+            statusText.textContent = 'Десктоп не найден';
+            document.querySelector('.pulse-dot').style.backgroundColor = '#f59e0b';
+            document.querySelector('.pulse-dot').style.boxShadow = '0 0 8px #f59e0b';
+            titleText.textContent = 'Десктопное приложение закрыто';
+            descText.textContent = 'Не удалось связаться с локальным приложением Яндекс.Музыка. Вы можете продолжить прослушивание в веб-версии браузера.';
+            
+            mainBtn.textContent = 'Перейти в веб-версию';
+            mainBtn.style.display = 'block';
+            mainBtn.onclick = () => {
+                window.location.href = `https://music.yandex.ru/?sync_code=${encodeURIComponent(room)}`;
+            };
+        }
+    </script>
+</body>
+</html>
