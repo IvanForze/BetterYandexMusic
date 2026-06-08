@@ -4,7 +4,7 @@
   "description": "BetterYandexMusic Installer",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
+    "start": "chcp 65001 >NUL & electron .",
     "pack": "electron-builder --dir",
     "dist": "electron-builder"
   },
@@ -12,10 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "@electron/asar": "^3.2.14",
-    "@electron/fuses": "^1.8.0"
+    "@electron/fuses": "^1.8.0",
+    "electron": "^42.3.3"
   },
   "devDependencies": {
-    "electron": "^31.0.0",
     "electron-builder": "^24.13.3"
   },
   "build": {
@@ -28,19 +28,31 @@
       {
         "from": "../yandex-sync-electron",
         "to": "assets",
-        "filter": ["socket.io.js", "desktop-sync.js"]
+        "filter": [
+          "socket.io.js",
+          "desktop-sync.js"
+        ]
       }
     ],
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "icon": "public/Icon-iOS-Default-1024x1024@1x.png"
     },
     "win": {
-      "target": ["nsis", "portable"],
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "public/Icon.png"
     },
     "linux": {
-      "target": ["AppImage", "tar.gz"],
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ],
       "icon": "public/Icon.png"
     }
   }

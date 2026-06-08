@@ -16,7 +16,8 @@ function createWindow() {
       nodeIntegration: false,
       contextIsolation: true
     },
-    titleBarStyle: 'hiddenInset',
+    frame: false,
+    autoHideMenuBar: true,
     backgroundColor: '#111',
     resizable: false,
     icon: path.join(__dirname, 'public', process.platform === 'darwin' ? 'Icon-iOS-Default-1024x1024@1x.png' : 'Icon.png')
@@ -80,6 +81,14 @@ ipcMain.handle('open-url', (event, url) => {
   shell.openExternal(url);
 });
 
+ipcMain.handle('get-version', () => {
+  return app.getVersion();
+});
+
+ipcMain.on('close-app', () => {
+  app.quit();
+});
+
 ipcMain.handle('install-mod', async (event) => {
   const log = (msg) => { console.log(msg); event.sender.send('install-log', msg); };
   
@@ -96,6 +105,8 @@ ipcMain.handle('install-mod', async (event) => {
     } else if (process.platform === 'win32') {
       try { execSync('taskkill /F /IM "YandexMusic.exe" /T', { stdio: 'ignore' }); } catch(e) {}
       try { execSync('taskkill /F /IM "yandex-music-app.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('taskkill /F /IM "Яндекс Музыка.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('taskkill /F /IM "Yandex Music.exe" /T', { stdio: 'ignore' }); } catch(e) {}
     }
     
     // Ждем полторы секунды, чтобы ОС успела завершить процесс и снять блокировку с app.asar
@@ -224,6 +235,8 @@ ipcMain.handle('uninstall-mod', async (event) => {
     } else if (process.platform === 'win32') {
       try { execSync('taskkill /F /IM "YandexMusic.exe" /T', { stdio: 'ignore' }); } catch(e) {}
       try { execSync('taskkill /F /IM "yandex-music-app.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('taskkill /F /IM "Яндекс Музыка.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+      try { execSync('taskkill /F /IM "Yandex Music.exe" /T', { stdio: 'ignore' }); } catch(e) {}
     }
     await new Promise(resolve => setTimeout(resolve, 1500));
 

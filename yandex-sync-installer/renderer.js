@@ -10,6 +10,20 @@ function logToTerminal(msg) {
 
 const uninstallBtn = document.getElementById('uninstallBtn');
 const githubLink = document.getElementById('githubLink');
+const closeBtn = document.getElementById('closeBtn');
+const appVersion = document.getElementById('appVersion');
+
+if (appVersion && window.api && window.api.getVersion) {
+  window.api.getVersion().then(version => {
+    appVersion.textContent = `v${version}`;
+  });
+}
+
+if (closeBtn) {
+  closeBtn.addEventListener('click', () => {
+    window.api.closeApp();
+  });
+}
 
 // EULA Logic
 const eulaView = document.getElementById('eulaView');

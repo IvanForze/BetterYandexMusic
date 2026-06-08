@@ -30,10 +30,9 @@ body {
   left: 0;
 }
 
-.github-icon {
+.github-icon, .close-icon {
   position: absolute;
   top: 15px;
-  right: 15px;
   -webkit-app-region: no-drag;
   cursor: pointer;
   color: var(--text-muted);
@@ -41,13 +40,25 @@ body {
   display: flex;
 }
 
-.github-icon:hover {
+.github-icon {
+  right: 45px;
+}
+
+.close-icon {
+  right: 15px;
+}
+
+.github-icon:hover, .close-icon:hover {
   color: var(--text-main);
   transform: scale(1.1);
 }
 
+.close-icon:hover {
+  color: #ff4d4d;
+}
+
 .container {
-  padding: 40px 30px 20px;
+  padding: 40px 30px 35px;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -198,4 +209,24 @@ body {
 .terminal {
   white-space: pre-wrap;
   word-wrap: break-word;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }
