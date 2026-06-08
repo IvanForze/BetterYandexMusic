@@ -36,7 +36,7 @@
     ],
     "mac": {
       "target": [
-        "zip"
+        "dmg"
       ],
       "icon": "public/Icon-iOS-Default-1024x1024@1x.png"
     },
