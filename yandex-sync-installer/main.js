@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const asar = require('@electron/asar');
 const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
-const { execSync } = require('child_process');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 let mainWindow;
 
@@ -98,20 +99,6 @@ ipcMain.handle('install-mod', async (event) => {
   process.noAsar = true;
 
   try {
-    log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
-    if (process.platform === 'darwin') {
-      try { execSync('pkill -f "Yandex Music"'); } catch(e) {}
-      try { execSync('pkill -f "Яндекс Музыка"'); } catch(e) {}
-    } else if (process.platform === 'win32') {
-      try { execSync('taskkill /F /IM "YandexMusic.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "yandex-music-app.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "Яндекс Музыка.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "Yandex Music.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-    }
-    
-    // Ждем полторы секунды, чтобы ОС успела завершить процесс и снять блокировку с app.asar
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     log("Ищем установленную Яндекс Музыку...");
     const resourcesDir = findResourcesDir();
     if (!resourcesDir) throw new Error("Папка с приложением Яндекс Музыки не найдена.");
@@ -119,12 +106,38 @@ ipcMain.handle('install-mod', async (event) => {
     const asarPath = path.join(resourcesDir, 'app.asar');
     if (!fs.existsSync(asarPath)) throw new Error("Файл app.asar не найден.");
 
-    try { fs.accessSync(asarPath, fs.constants.W_OK); } 
-    catch (err) { throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку!"); }
+    log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
+    if (process.platform === 'darwin') {
+      try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+    } else if (process.platform === 'win32') {
+      try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "Яндекс Музыка.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "Yandex Music.exe" /T'); } catch(e) {}
+    }
+    
+    log("Ожидаем снятия блокировки с файлов...");
+    let isLocked = true;
+    for (let i = 0; i < 25; i++) {
+      try { 
+        const fd = fs.openSync(asarPath, 'r+');
+        fs.closeSync(fd);
+        isLocked = false;
+        break; 
+      } catch (err) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    if (isLocked) {
+      throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+    }
 
     const unpackedDir = path.join(resourcesDir, 'app-unpacked');
     
     log("Распаковываем ресурсы приложения...");
+    asar.uncacheAll();
     asar.extractAll(asarPath, unpackedDir);
 
     // Удаляем DevTools из index.js
@@ -181,6 +194,7 @@ ipcMain.handle('install-mod', async (event) => {
 
     log("Упаковываем ресурсы обратно...");
     await asar.createPackage(unpackedDir, asarPath);
+    asar.uncacheAll();
 
     log("Отключаем проверку целостности (asar integrity)...");
     let exePath = null;
@@ -204,7 +218,7 @@ ipcMain.handle('install-mod', async (event) => {
     if (process.platform === 'darwin') {
       log("Переподписываем приложение (macOS)...");
       try {
-        execSync(`codesign --force --deep --sign - "${path.dirname(path.dirname(resourcesDir))}"`);
+        await exec(`codesign --force --deep --sign - "${path.dirname(path.dirname(resourcesDir))}"`);
       } catch (e) { log("Внимание: ошибка авто-подписи macOS, может потребоваться sudo codesign."); }
     }
 
@@ -228,28 +242,44 @@ ipcMain.handle('uninstall-mod', async (event) => {
   process.noAsar = true;
 
   try {
-    log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
-    if (process.platform === 'darwin') {
-      try { execSync('pkill -f "Yandex Music"'); } catch(e) {}
-      try { execSync('pkill -f "Яндекс Музыка"'); } catch(e) {}
-    } else if (process.platform === 'win32') {
-      try { execSync('taskkill /F /IM "YandexMusic.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "yandex-music-app.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "Яндекс Музыка.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-      try { execSync('taskkill /F /IM "Yandex Music.exe" /T', { stdio: 'ignore' }); } catch(e) {}
-    }
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     log("Ищем установленную Яндекс Музыку...");
     const resourcesDir = findResourcesDir();
-    if (!resourcesDir) throw new Error("Папка с приложением не найдена.");
+    if (!resourcesDir) throw new Error("Папка с приложением Яндекс Музыки не найдена.");
 
     const asarPath = path.join(resourcesDir, 'app.asar');
     if (!fs.existsSync(asarPath)) throw new Error("Файл app.asar не найден.");
-    try { fs.accessSync(asarPath, fs.constants.W_OK); } catch(e) { throw new Error("Файл app.asar заблокирован."); }
+
+    log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
+    if (process.platform === 'darwin') {
+      try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+    } else if (process.platform === 'win32') {
+      try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "Яндекс Музыка.exe" /T'); } catch(e) {}
+      try { await exec('taskkill /F /IM "Yandex Music.exe" /T'); } catch(e) {}
+    }
+    
+    log("Ожидаем снятия блокировки с файлов...");
+    let isLocked = true;
+    for (let i = 0; i < 25; i++) {
+      try { 
+        const fd = fs.openSync(asarPath, 'r+');
+        fs.closeSync(fd);
+        isLocked = false;
+        break; 
+      } catch (err) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+
+    if (isLocked) {
+      throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+    }
 
     const unpackedDir = path.join(resourcesDir, 'app-unpacked');
     log("Распаковываем архив...");
+    asar.uncacheAll();
     asar.extractAll(asarPath, unpackedDir);
 
     const preloadPath = findPreloadScript(unpackedDir);
@@ -268,10 +298,11 @@ ipcMain.handle('uninstall-mod', async (event) => {
 
     log("Упаковываем чистый архив обратно...");
     await asar.createPackage(unpackedDir, asarPath);
+    asar.uncacheAll();
 
     if (process.platform === 'darwin') {
       log("Переподписываем приложение (macOS)...");
-      try { execSync(`codesign --force --deep --sign - "${path.dirname(path.dirname(resourcesDir))}"`); } catch (e) {}
+      try { await exec(`codesign --force --deep --sign - "${path.dirname(path.dirname(resourcesDir))}"`); } catch (e) {}
     }
 
     log("Очищаем временные файлы...");
