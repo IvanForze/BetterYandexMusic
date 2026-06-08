@@ -36,22 +36,19 @@
     ],
     "mac": {
       "target": [
-        "dmg",
         "zip"
       ],
       "icon": "public/Icon-iOS-Default-1024x1024@1x.png"
     },
     "win": {
       "target": [
-        "nsis",
         "portable"
       ],
       "icon": "public/Icon.png"
     },
     "linux": {
       "target": [
-        "AppImage",
-        "tar.gz"
+        "AppImage"
       ],
       "icon": "public/Icon.png"
     }

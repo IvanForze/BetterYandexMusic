@@ -93,7 +93,7 @@ jobs:
           npm install
           CSC_IDENTITY_AUTO_DISCOVERY=false npx electron-builder --mac
           mkdir -p ../dist
-          cp dist/*.dmg ../dist/ || true
+          cp dist/*.zip ../dist/ || true
           cd ..
 
       - name: Upload Mac Artifacts
@@ -122,7 +122,7 @@ jobs:
             dist-merged/yandex-music-sync-desktop.zip
             dist-merged/*.exe
             dist-merged/*.AppImage
-            dist-merged/*.dmg
+            dist-merged/*.zip
           draft: false
           prerelease: false
         env:
