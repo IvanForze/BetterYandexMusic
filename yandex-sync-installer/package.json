@@ -12,10 +12,10 @@
   "license": "ISC",
   "dependencies": {
     "@electron/asar": "^3.2.14",
-    "@electron/fuses": "^1.8.0",
-    "electron": "^42.3.3"
+    "@electron/fuses": "^1.8.0"
   },
   "devDependencies": {
+    "electron": "^42.3.3",
     "electron-builder": "^24.13.3"
   },
   "build": {
