@@ -86,7 +86,13 @@
             window.__ymSyncJoinRoomCallback = callback;
           },
           fetchLyrics: (url) => fetchLyricsNode(url),
-          translateText: (text, targetLang) => translateTextNode(text, targetLang)
+          translateText: (text, targetLang) => translateTextNode(text, targetLang),
+          lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+          lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+          listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+          sendScrobblerSettings: (settings) => {
+            if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+          }
         });
       } else if (typeof window !== 'undefined') {
         window.__ymSyncBridge = {
@@ -100,7 +106,13 @@
             window.__ymSyncJoinRoomCallback = callback;
           },
           fetchLyrics: (url) => fetchLyricsNode(url),
-          translateText: (text, targetLang) => translateTextNode(text, targetLang)
+          translateText: (text, targetLang) => translateTextNode(text, targetLang),
+          lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+          lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+          listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+          sendScrobblerSettings: (settings) => {
+            if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+          }
         };
       }
     } catch (e) {
@@ -168,7 +180,13 @@
                 });
               });
             },
-            translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang)
+            translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang),
+            lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+            lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+            listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+            sendScrobblerSettings: (settings) => {
+              if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+            }
           };
         }
       } catch (e2) {}
@@ -507,6 +525,397 @@
     }
     
     
+    // --- Component: preload/scrobbler.js ---
+    const crypto = require('crypto');
+    const https = require('https');
+    
+    // Дефолтные ключи Last.fm (могут быть переопределены пользователем в настройках)
+    const LASTFM_DEFAULT_API_KEY = '4d12b2b376510476bfdae3e2c62c96c4';
+    const LASTFM_DEFAULT_SECRET = '78e24c2a5e985b67484df24cd76bf349';
+    
+    function md5(str) {
+      return crypto.createHash('md5').update(str, 'utf8').digest('hex');
+    }
+    
+    function makeHttpRequest(url, options = {}, body = null) {
+      return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const reqOptions = {
+          hostname: parsedUrl.hostname,
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: options.method || 'GET',
+          headers: options.headers || {}
+        };
+    
+        if (body) {
+          reqOptions.headers['Content-Length'] = Buffer.byteLength(body);
+        }
+    
+        const req = https.request(reqOptions, (res) => {
+          let data = '';
+          res.on('data', (chunk) => { data += chunk; });
+          res.on('end', () => {
+            if (res.statusCode >= 200 && res.statusCode < 300) {
+              try {
+                resolve(JSON.parse(data));
+              } catch (e) {
+                resolve(data);
+              }
+            } else {
+              reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+            }
+          });
+        });
+    
+        req.on('error', (err) => reject(err));
+        if (body) {
+          req.write(body);
+        }
+        req.end();
+      });
+    }
+    
+    // Генерирует подпись api_sig для Last.fm
+    function generateLastFmSignature(params, secret) {
+      const sortedKeys = Object.keys(params).sort();
+      let signatureStr = '';
+      for (const key of sortedKeys) {
+        if (key !== 'format') {
+          signatureStr += key + params[key];
+        }
+      }
+      signatureStr += secret;
+      return md5(signatureStr);
+    }
+    
+    class ScrobblerService {
+      static getSettings() {
+        let settings = {
+          lastfmEnabled: false,
+          lastfmApiKey: '',
+          lastfmSecret: '',
+          lastfmSessionKey: '',
+          lastfmUsername: '',
+          listenbrainzEnabled: false,
+          listenbrainzToken: '',
+          listenbrainzUsername: ''
+        };
+        return settings;
+      }
+    
+      // Получить авторизационный токен Last.fm
+      static async lastFmGetToken(customApiKey, customSecret) {
+        const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = customSecret || LASTFM_DEFAULT_SECRET;
+    
+        const params = {
+          api_key: apiKey,
+          method: 'auth.getToken'
+        };
+        const apiSig = generateLastFmSignature(params, secret);
+        const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key=${apiKey}&api_sig=${apiSig}&format=json`;
+        const data = await makeHttpRequest(url);
+        return data.token;
+      }
+    
+      // Получить Session Key по токену Last.fm
+      static async lastFmGetSession(token, customApiKey, customSecret) {
+        const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = customSecret || LASTFM_DEFAULT_SECRET;
+        
+        const params = {
+          api_key: apiKey,
+          method: 'auth.getSession',
+          token: token
+        };
+        const apiSig = generateLastFmSignature(params, secret);
+        
+        const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${apiKey}&token=${token}&api_sig=${apiSig}&format=json`;
+        const data = await makeHttpRequest(url);
+        if (data.session) {
+          return {
+            sessionKey: data.session.key,
+            username: data.session.name
+          };
+        }
+        throw new Error('Не удалось получить сессию Last.fm');
+      }
+    
+      // Обновить "Now Playing" в Last.fm
+      static async lastFmNowPlaying(trackData, config) {
+        if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+        
+        const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+    
+        const params = {
+          api_key: apiKey,
+          artist: trackData.artist,
+          track: trackData.title,
+          method: 'track.updateNowPlaying',
+          sk: config.lastfmSessionKey
+        };
+        if (trackData.album) params.album = trackData.album;
+        if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+    
+        const apiSig = generateLastFmSignature(params, secret);
+        params.api_sig = apiSig;
+        params.format = 'json';
+    
+        const body = new URLSearchParams(params).toString();
+        const url = 'https://ws.audioscrobbler.com/2.0/';
+        
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }, body);
+      }
+    
+      // Заскроблить в Last.fm
+      static async lastFmScrobble(trackData, config) {
+        if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+    
+        const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+        const timestamp = Math.floor(Date.now() / 1000);
+    
+        const params = {
+          api_key: apiKey,
+          artist: trackData.artist,
+          track: trackData.title,
+          timestamp: timestamp,
+          method: 'track.scrobble',
+          sk: config.lastfmSessionKey
+        };
+        if (trackData.album) params.album = trackData.album;
+        if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+    
+        const apiSig = generateLastFmSignature(params, secret);
+        params.api_sig = apiSig;
+        params.format = 'json';
+    
+        const body = new URLSearchParams(params).toString();
+        const url = 'https://ws.audioscrobbler.com/2.0/';
+    
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }, body);
+      }
+    
+      // Отправка Now Playing / Scrobble в ListenBrainz
+      static async listenBrainzSubmit(trackData, config, listenType) {
+        if (!config.listenbrainzEnabled || !config.listenbrainzToken) return;
+    
+        const timestamp = Math.floor(Date.now() / 1000);
+        const payload = [
+          {
+            listened_at: listenType === 'scrobble' ? timestamp : undefined,
+            track_metadata: {
+              artist_name: trackData.artist,
+              track_name: trackData.title,
+              release_name: trackData.album || undefined,
+              additional_info: {
+                media_player: 'Yandex Music Sync Client',
+                duration_ms: trackData.durationMs || undefined
+              }
+            }
+          }
+        ];
+    
+        const body = JSON.stringify({
+          listen_type: listenType, // 'playing_now' или 'single' (для скроблинга)
+          payload: payload
+        });
+    
+        const url = 'https://api.listenbrainz.org/1/submit-listens';
+        
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${config.listenbrainzToken}`,
+            'Content-Type': 'application/json'
+          }
+        }, body);
+      }
+    
+      // Проверить токен ListenBrainz и получить имя пользователя
+      static async listenBrainzValidateToken(token) {
+        const url = 'https://api.listenbrainz.org/1/validate-token';
+        const data = await makeHttpRequest(url, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+        if (data.valid === true) {
+          return data.user_name;
+        }
+        throw new Error('Недействительный токен ListenBrainz');
+      }
+    }
+    
+    // Экспортируем в preload контекст
+    global.ScrobblerService = ScrobblerService;
+    
+    class ScrobbleManager {
+      constructor() {
+        this.currentTrackId = null;
+        this.currentTrack = null;
+        this.isPlaying = false;
+        this.playtimeMs = 0;
+        this.lastTimestamp = 0;
+        this.nowPlayingSent = false;
+        this.scrobbled = false;
+        
+        // Дефолтные настройки
+        this.config = {
+          lastfmEnabled: false,
+          lastfmApiKey: '',
+          lastfmSecret: '',
+          lastfmSessionKey: '',
+          lastfmUsername: '',
+          listenbrainzEnabled: false,
+          listenbrainzToken: '',
+          listenbrainzUsername: ''
+        };
+      }
+    
+      updateConfig(newConfig) {
+        this.config = { ...this.config, ...newConfig };
+        console.log('[SCROBBLER] Конфигурация обновлена:', {
+          lastfmEnabled: this.config.lastfmEnabled,
+          lastfmUsername: this.config.lastfmUsername,
+          listenbrainzEnabled: this.config.listenbrainzEnabled,
+          listenbrainzUsername: this.config.listenbrainzUsername
+        });
+      }
+    
+      onStateChange(trackId, isPause, position, metadata) {
+        if (!trackId || !metadata) {
+          this.reset();
+          return;
+        }
+    
+        const trackChanged = trackId !== this.currentTrackId;
+    
+        if (trackChanged) {
+          // Пытаемся заскроблить предыдущий трек перед переключением, если порог был достигнут
+          this.checkAndScrobble();
+    
+          console.log('[SCROBBLER] Обнаружена смена трека:', metadata.artist, '-', metadata.title);
+          this.currentTrackId = trackId;
+          this.currentTrack = {
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album || '',
+            durationMs: metadata.durationMs || 0
+          };
+          this.isPlaying = !isPause;
+          this.playtimeMs = 0;
+          this.lastTimestamp = Date.now();
+          this.nowPlayingSent = false;
+          this.scrobbled = false;
+        } else {
+          const now = Date.now();
+          if (this.isPlaying) {
+            const delta = now - this.lastTimestamp;
+            // Предохранитель от больших скачков во времени
+            if (delta > 0 && delta < 5000) {
+              this.playtimeMs += delta;
+            }
+          }
+          this.isPlaying = !isPause;
+          this.lastTimestamp = now;
+        }
+    
+        // Отправляем "Слушает сейчас" после 2 секунд чистого воспроизведения
+        if (!this.nowPlayingSent && this.playtimeMs > 2000) {
+          this.sendNowPlaying();
+        }
+    
+        // Проверяем условия для скроблинга
+        this.checkAndScrobble();
+      }
+    
+      reset() {
+        this.checkAndScrobble();
+        this.currentTrackId = null;
+        this.currentTrack = null;
+        this.isPlaying = false;
+        this.playtimeMs = 0;
+        this.lastTimestamp = 0;
+        this.nowPlayingSent = false;
+        this.scrobbled = false;
+      }
+    
+      sendNowPlaying() {
+        if (!this.currentTrack) return;
+        this.nowPlayingSent = true;
+    
+        console.log('[SCROBBLER] Отправка статуса Now Playing для:', this.currentTrack.artist, '-', this.currentTrack.title);
+    
+        if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+          ScrobblerService.lastFmNowPlaying(this.currentTrack, this.config).catch(err => {
+            console.error('[SCROBBLER] Ошибка Last.fm Now Playing:', err.message);
+          });
+        }
+    
+        if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+          ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'playing_now').catch(err => {
+            console.error('[SCROBBLER] Ошибка ListenBrainz Now Playing:', err.message);
+          });
+        }
+      }
+    
+      checkAndScrobble() {
+        if (!this.currentTrack || this.scrobbled) return;
+    
+        // Условия скробблинга Last.fm / ListenBrainz:
+        // 1. Трек играл не менее 30 секунд.
+        // 2. Прослушано 50% длины трека ИЛИ 4 минуты (240 секунд).
+        const durationMs = this.currentTrack.durationMs || 180000; // По умолчанию 3 минуты, если неизвестно
+        const playtimeSec = this.playtimeMs / 1000;
+        const durationSec = durationMs / 1000;
+        const thresholdSec = Math.min(durationSec / 2, 240);
+    
+        if (playtimeSec >= 30 && playtimeSec >= thresholdSec) {
+          this.scrobbled = true;
+          console.log(`[SCROBBLER] Условия скроблинга выполнены (время: ${Math.round(playtimeSec)}с, порог: ${Math.round(thresholdSec)}с). Отправляем скробл.`);
+    
+          if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+            ScrobblerService.lastFmScrobble(this.currentTrack, this.config).then(() => {
+              console.log('[SCROBBLER] Last.fm Scrobble выполнен успешно');
+            }).catch(err => {
+              console.error('[SCROBBLER] Ошибка Last.fm Scrobble:', err.message);
+            });
+          }
+    
+          if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+            ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'scrobble').then(() => {
+              console.log('[SCROBBLER] ListenBrainz Scrobble выполнен успешно');
+            }).catch(err => {
+              console.error('[SCROBBLER] Ошибка ListenBrainz Scrobble:', err.message);
+            });
+          }
+        }
+      }
+    }
+    
+    global.ScrobbleManager = new ScrobbleManager();
+    
+    if (typeof module !== 'undefined') {
+      module.exports = {
+        ScrobblerService,
+        ScrobbleManager: global.ScrobbleManager
+      };
+    }
+    
+    
+    
     // --- Component: preload/api-server.js ---
     function startLocalApiServer() {
       if (localApiServer) return;
@@ -701,6 +1110,9 @@
       currentRoom = currentRoomId;
       currentServerUrl = serverUrl;
       updateDiscordPresencePreload(trackId, isPause, position, metadata);
+      if (global.ScrobbleManager) {
+        global.ScrobbleManager.onStateChange(trackId, isPause, position, metadata);
+      }
     };
     
     settingsChangeListener = (settings) => {
@@ -726,6 +1138,12 @@
         
         if (event.data && event.data.type === 'YM_SYNC_SETTINGS_CHANGED') {
           settingsChangeListener({ enabled: event.data.enabled });
+        }
+    
+        if (event.data && event.data.type === 'YM_SCROBBLER_SETTINGS_CHANGED') {
+          if (global.ScrobbleManager) {
+            global.ScrobbleManager.updateConfig(event.data.settings);
+          }
         }
     
         if (event.data && event.data.__ym_sc_bridge === true) {
@@ -3013,6 +3431,446 @@ function updateThemePopoverUI(themeName) {
     }
   }
 }
+
+// --- Component: shared/settings-injector.js ---
+// ==========================================
+// SCROBBLER SETTINGS UI INJECTOR (Polished & Resilient)
+// ==========================================
+
+let lastFmPendingToken = null;
+
+function syncSettingsToPreload() {
+  const settings = {
+    lastfmEnabled: localStorage.getItem('ymScrobblerLastfmEnabled') === 'true',
+    lastfmSessionKey: localStorage.getItem('ymScrobblerLastfmSessionKey') || '',
+    lastfmUsername: localStorage.getItem('ymScrobblerLastfmUsername') || '',
+    lastfmApiKey: localStorage.getItem('ymScrobblerLastfmApiKey') || '',
+    lastfmSecret: localStorage.getItem('ymScrobblerLastfmSecret') || '',
+    listenbrainzEnabled: localStorage.getItem('ymScrobblerListenbrainzEnabled') === 'true',
+    listenbrainzToken: localStorage.getItem('ymScrobblerListenbrainzToken') || '',
+    listenbrainzUsername: localStorage.getItem('ymScrobblerListenbrainzUsername') || ''
+  };
+  
+  if (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendScrobblerSettings === 'function') {
+    window.__ymSyncBridge.sendScrobblerSettings(settings);
+  } else {
+    window.postMessage({
+      type: 'YM_SCROBBLER_SETTINGS_CHANGED',
+      settings: settings
+    }, '*');
+  }
+}
+
+// Первичная синхронизация при загрузке
+setTimeout(syncSettingsToPreload, 2000);
+
+function checkAndInjectSettings() {
+  if (!window.location.pathname.includes('/settings')) {
+    window.ymScrobblerSettingsInjected = false;
+    return;
+  }
+  
+  if (window.ymScrobblerSettingsInjected) return;
+  
+  // Ищем элемент "Офлайн-режим" или "О приложении", чтобы найти список настроек
+  const divs = Array.from(document.querySelectorAll('div, span, p, h2, h3'));
+  const targetTextElement = divs.find(el => {
+    if (el.children.length > 0) return false; // Ищем самый глубокий текстовый узел
+    const text = el.textContent || '';
+    return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении');
+  });
+
+  if (!targetTextElement) return;
+
+  // Ищем родительский элемент ряда настроек (Settings Item), который является непосредственным потомком списка
+  let itemNode = targetTextElement;
+  while (itemNode && itemNode.parentElement && itemNode.parentElement.children.length < 3) {
+    itemNode = itemNode.parentElement;
+  }
+
+  const listContainer = itemNode ? itemNode.parentElement : null;
+  if (!listContainer) return;
+
+  // Проверяем, не внедрено ли уже
+  if (document.getElementById('ym-scrobbler-settings-block')) {
+    window.ymScrobblerSettingsInjected = true;
+    return;
+  }
+
+  // Создаем блок настроек скроблинга
+  const block = document.createElement('div');
+  block.id = 'ym-scrobbler-settings-block';
+  block.className = 'ym-settings-section';
+  block.style.width = '100%';
+  block.style.boxSizing = 'border-box';
+  block.style.fontFamily = 'Yandex Sans Text, Arial, sans-serif';
+
+  // Загружаем сохраненные значения
+  const lastfmEnabled = localStorage.getItem('ymScrobblerLastfmEnabled') === 'true';
+  const lastfmUsername = localStorage.getItem('ymScrobblerLastfmUsername') || '';
+  const lastfmSessionKey = localStorage.getItem('ymScrobblerLastfmSessionKey') || '';
+  const lastfmApiKey = localStorage.getItem('ymScrobblerLastfmApiKey') || '';
+  const lastfmSecret = localStorage.getItem('ymScrobblerLastfmSecret') || '';
+  
+  const listenbrainzEnabled = localStorage.getItem('ymScrobblerListenbrainzEnabled') === 'true';
+  const listenbrainzToken = localStorage.getItem('ymScrobblerListenbrainzToken') || '';
+  const listenbrainzUsername = localStorage.getItem('ymScrobblerListenbrainzUsername') || '';
+
+  block.innerHTML = `
+    <!-- Заголовок секции, оформленный как нативный -->
+    <div style="font-size: 17px; font-weight: 700; color: #fff; padding: 24px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
+    
+    <!-- Секция Last.fm -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">Last.fm</div>
+        <div id="ym-lastfm-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
+          ${lastfmSessionKey ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${lastfmUsername}</strong>` : 'Не авторизован'}
+        </div>
+        
+        <!-- Поля ввода собственных ключей Last.fm -->
+        <div id="ym-lastfm-keys-container" style="max-width: 420px; margin-bottom: 12px; display: ${lastfmSessionKey ? 'none' : 'block'};">
+          <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom: 6px;">
+            Создайте приложение на <a href="https://www.last.fm/api/account/create" target="_blank" style="color: #ffdb4d; text-decoration: underline;">last.fm/api/account/create</a> и укажите ключи ниже:
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="ym-lastfm-apikey" value="${lastfmApiKey}" placeholder="API Key" class="ym-input" style="flex: 1; min-width: 0;">
+            <input type="password" id="ym-lastfm-secret" value="${lastfmSecret}" placeholder="Shared Secret" class="ym-input" style="flex: 1; min-width: 0;">
+          </div>
+        </div>
+
+        <div id="ym-lastfm-actions">
+          ${lastfmSessionKey ? 
+            `<button id="ym-lastfm-logout-btn" class="ym-btn-secondary">Выйти</button>` :
+            `<button id="ym-lastfm-login-btn" class="ym-btn-primary">Войти через Last.fm</button>
+             <button id="ym-lastfm-confirm-btn" class="ym-btn-secondary" style="display:none; margin-left: 8px;">Я подтвердил авторизацию</button>`
+          }
+        </div>
+      </div>
+      <div style="padding-top: 2px;">
+        <label class="ym-switch">
+          <input type="checkbox" id="ym-lastfm-toggle" ${lastfmEnabled ? 'checked' : ''}>
+          <span class="ym-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Секция ListenBrainz -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">ListenBrainz</div>
+        <div id="ym-listenbrainz-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
+          ${listenbrainzUsername ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${listenbrainzUsername}</strong>` : 'Не подключено'}
+        </div>
+        
+        <div style="max-width: 420px; margin-top: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="password" id="ym-listenbrainz-token" value="${listenbrainzToken}" placeholder="Токен пользователя (User Token)" class="ym-input" style="flex: 1; min-width: 0;">
+            <button id="ym-listenbrainz-save-btn" class="ym-btn-secondary">Сохранить</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top: 2px;">
+        <label class="ym-switch">
+          <input type="checkbox" id="ym-listenbrainz-toggle" ${listenbrainzEnabled ? 'checked' : ''}>
+          <span class="ym-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Тонкий разделитель в конце нашей секции -->
+    <div style="height: 1px; background: rgba(255, 255, 255, 0.06); margin-top: 14px; margin-bottom: 14px;"></div>
+
+    <style>
+      /* Кнопки в стиле Яндекс Музыки */
+      .ym-btn-primary {
+        background: #ffdb4d;
+        color: #000;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.15s;
+        font-family: inherit;
+      }
+      .ym-btn-primary:hover {
+        opacity: 0.9;
+      }
+      .ym-btn-primary:active {
+        transform: scale(0.97);
+      }
+      
+      .ym-btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.15s;
+        font-family: inherit;
+      }
+      .ym-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .ym-btn-secondary:active {
+        transform: scale(0.97);
+      }
+
+      /* Инпуты */
+      .ym-input {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+      .ym-input:focus {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.09);
+      }
+      .ym-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      /* Свичи (Тумблеры) в стиле Яндекс Музыки (Желтые при включении) */
+      .ym-switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+      }
+      .ym-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .ym-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255, 255, 255, 0.16);
+        transition: background-color 0.2s;
+        border-radius: 20px;
+      }
+      .ym-slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #fff;
+        transition: transform 0.2s, background-color 0.2s;
+        border-radius: 50%;
+      }
+      .ym-switch input:checked + .ym-slider {
+        background-color: #ffdb4d;
+      }
+      .ym-switch input:checked + .ym-slider:before {
+        transform: translateX(18px);
+        background-color: #000;
+      }
+    </style>
+  `;
+
+  // Находим самый первый элемент настроек в списке (обычно это ряд содержащий "Офлайн-режим" или первый дочерний элемент списка)
+  // Вставляем НАШ блок строго ПЕРЕД первым элементом настроек, но ПОСЛЕ заголовка/хедера.
+  // Это гарантирует, что блок попадет в прокручиваемый список настроек, не налезая на шапку "Настройки".
+  const firstSettingsItem = listContainer.querySelector('div, li');
+  if (firstSettingsItem) {
+    listContainer.insertBefore(block, firstSettingsItem);
+  } else {
+    listContainer.appendChild(block);
+  }
+
+  // Настройка слушателей Last.fm
+  const lastfmToggle = document.getElementById('ym-lastfm-toggle');
+  if (lastfmToggle) {
+    lastfmToggle.addEventListener('change', (e) => {
+      localStorage.setItem('ymScrobblerLastfmEnabled', e.target.checked ? 'true' : 'false');
+      syncSettingsToPreload();
+    });
+  }
+
+  const setupLastFmEvents = () => {
+    const loginBtn = document.getElementById('ym-lastfm-login-btn');
+    const confirmBtn = document.getElementById('ym-lastfm-confirm-btn');
+    const logoutBtn = document.getElementById('ym-lastfm-logout-btn');
+
+    if (loginBtn) {
+      loginBtn.addEventListener('click', async () => {
+        try {
+          const userApiKey = document.getElementById('ym-lastfm-apikey').value.trim();
+          const userSecret = document.getElementById('ym-lastfm-secret').value.trim();
+          
+          if (!userApiKey || !userSecret) {
+            alert('Пожалуйста, введите API Key и Shared Secret от Last.fm перед авторизацией.');
+            return;
+          }
+
+          loginBtn.textContent = 'Получение ссылки...';
+          loginBtn.disabled = true;
+
+          // Сохраняем ключи в localStorage
+          localStorage.setItem('ymScrobblerLastfmApiKey', userApiKey);
+          localStorage.setItem('ymScrobblerLastfmSecret', userSecret);
+          syncSettingsToPreload();
+
+          const bridge = window.__ymSyncBridge;
+          if (!bridge || typeof bridge.lastFmGetToken !== 'function') {
+            throw new Error('Функции моста недоступны');
+          }
+
+          const token = await bridge.lastFmGetToken(userApiKey, userSecret);
+          lastFmPendingToken = token;
+
+          // Открываем браузер на страницу авторизации с валидным ключом
+          window.open(`https://www.last.fm/api/auth/?api_key=${userApiKey}&token=${token}`);
+
+          loginBtn.style.display = 'none';
+          confirmBtn.style.display = 'inline-block';
+        } catch (err) {
+          console.error(err);
+          alert('Ошибка авторизации Last.fm: ' + err.message);
+          loginBtn.textContent = 'Войти через Last.fm';
+          loginBtn.disabled = false;
+        }
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', async () => {
+        try {
+          confirmBtn.textContent = 'Проверка...';
+          confirmBtn.disabled = true;
+
+          const bridge = window.__ymSyncBridge;
+          const userApiKey = localStorage.getItem('ymScrobblerLastfmApiKey');
+          const userSecret = localStorage.getItem('ymScrobblerLastfmSecret');
+          const session = await bridge.lastFmGetSession(lastFmPendingToken, userApiKey, userSecret);
+
+          localStorage.setItem('ymScrobblerLastfmSessionKey', session.sessionKey);
+          localStorage.setItem('ymScrobblerLastfmUsername', session.username);
+          localStorage.setItem('ymScrobblerLastfmEnabled', 'true');
+
+          // Обновляем UI
+          document.getElementById('ym-lastfm-status').innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${session.username}</strong>`;
+          document.getElementById('ym-lastfm-actions').innerHTML = `<button id="ym-lastfm-logout-btn" class="ym-btn-secondary">Выйти</button>`;
+          const keysContainer = document.getElementById('ym-lastfm-keys-container');
+          if (keysContainer) keysContainer.style.display = 'none';
+          if (lastfmToggle) lastfmToggle.checked = true;
+
+          syncSettingsToPreload();
+          setupLastFmEvents();
+        } catch (err) {
+          console.error(err);
+          alert('Не удалось подтвердить авторизацию. Убедитесь, что вы нажали "Разрешить доступ" на открывшейся веб-странице Last.fm.');
+          confirmBtn.textContent = 'Я подтвердил авторизацию';
+          confirmBtn.disabled = false;
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('ymScrobblerLastfmSessionKey');
+        localStorage.removeItem('ymScrobblerLastfmUsername');
+        localStorage.removeItem('ymScrobblerLastfmApiKey');
+        localStorage.removeItem('ymScrobblerLastfmSecret');
+        localStorage.setItem('ymScrobblerLastfmEnabled', 'false');
+
+        document.getElementById('ym-lastfm-status').textContent = 'Не авторизован';
+        document.getElementById('ym-lastfm-actions').innerHTML = `<button id="ym-lastfm-login-btn" class="ym-btn-primary">Войти через Last.fm</button>
+           <button id="ym-lastfm-confirm-btn" class="ym-btn-secondary" style="display:none;">Я подтвердил авторизацию</button>`;
+        
+        const keysContainer = document.getElementById('ym-lastfm-keys-container');
+        if (keysContainer) keysContainer.style.display = 'block';
+        
+        const keyInput = document.getElementById('ym-lastfm-apikey');
+        const secInput = document.getElementById('ym-lastfm-secret');
+        if (keyInput) keyInput.value = '';
+        if (secInput) secInput.value = '';
+
+        if (lastfmToggle) lastfmToggle.checked = false;
+
+        syncSettingsToPreload();
+        setupLastFmEvents();
+      });
+    }
+  };
+
+  setupLastFmEvents();
+
+  // Настройка слушателей ListenBrainz
+  const listenbrainzToggle = document.getElementById('ym-listenbrainz-toggle');
+  if (listenbrainzToggle) {
+    listenbrainzToggle.addEventListener('change', (e) => {
+      localStorage.setItem('ymScrobblerListenbrainzEnabled', e.target.checked ? 'true' : 'false');
+      syncSettingsToPreload();
+    });
+  }
+
+  const saveBtn = document.getElementById('ym-listenbrainz-save-btn');
+  const tokenInput = document.getElementById('ym-listenbrainz-token');
+  const lbStatus = document.getElementById('ym-listenbrainz-status');
+
+  if (saveBtn && tokenInput) {
+    saveBtn.addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        localStorage.removeItem('ymScrobblerListenbrainzToken');
+        localStorage.removeItem('ymScrobblerListenbrainzUsername');
+        localStorage.setItem('ymScrobblerListenbrainzEnabled', 'false');
+        lbStatus.textContent = 'Не подключено';
+        if (listenbrainzToggle) listenbrainzToggle.checked = false;
+        syncSettingsToPreload();
+        return;
+      }
+
+      try {
+        saveBtn.textContent = 'Проверка...';
+        saveBtn.disabled = true;
+
+        const bridge = window.__ymSyncBridge;
+        if (!bridge || typeof bridge.listenBrainzValidateToken !== 'function') {
+          throw new Error('Функции моста недоступны');
+        }
+
+        const username = await bridge.listenBrainzValidateToken(token);
+        
+        localStorage.setItem('ymScrobblerListenbrainzToken', token);
+        localStorage.setItem('ymScrobblerListenbrainzUsername', username);
+        localStorage.setItem('ymScrobblerListenbrainzEnabled', 'true');
+
+        lbStatus.innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${username}</strong>`;
+        if (listenbrainzToggle) listenbrainzToggle.checked = true;
+
+        syncSettingsToPreload();
+        alert('Токен ListenBrainz успешно сохранен и проверен!');
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка валидации токена ListenBrainz: ' + err.message);
+      } finally {
+        saveBtn.textContent = 'Сохранить';
+        saveBtn.disabled = false;
+      }
+    });
+  }
+}
+
+// Регулярно сканируем DOM на предмет нахождения на странице настроек
+setInterval(checkAndInjectSettings, 1000);
+
 
 // --- Component: shared/quality-indicator.js ---
 function updateTrackUI(metadata) {
