@@ -42,13 +42,25 @@
     },
     "win": {
       "target": [
-        "portable"
+        {
+          "target": "portable",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "public/Icon.png"
     },
     "linux": {
       "target": [
-        "AppImage"
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
       ],
       "icon": "public/Icon.png"
     }

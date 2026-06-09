@@ -56,7 +56,7 @@ jobs:
         run: |
           cd yandex-sync-installer
           npm install
-          npx electron-builder --linux
+          npx electron-builder --linux --x64 --arm64
           cp dist/*.AppImage ../dist/ || true
           cd ..
 
@@ -90,7 +90,7 @@ jobs:
         run: |
           cd yandex-sync-installer
           npm install
-          npx electron-builder --win
+          npx electron-builder --win --x64 --arm64
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
