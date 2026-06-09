@@ -78,7 +78,13 @@ try {
         window.__ymSyncJoinRoomCallback = callback;
       },
       fetchLyrics: (url) => fetchLyricsNode(url),
-      translateText: (text, targetLang) => translateTextNode(text, targetLang)
+      translateText: (text, targetLang) => translateTextNode(text, targetLang),
+      lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+      lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+      listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+      sendScrobblerSettings: (settings) => {
+        if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+      }
     });
   } else if (typeof window !== 'undefined') {
     window.__ymSyncBridge = {
@@ -92,7 +98,13 @@ try {
         window.__ymSyncJoinRoomCallback = callback;
       },
       fetchLyrics: (url) => fetchLyricsNode(url),
-      translateText: (text, targetLang) => translateTextNode(text, targetLang)
+      translateText: (text, targetLang) => translateTextNode(text, targetLang),
+      lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+      lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+      listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+      sendScrobblerSettings: (settings) => {
+        if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+      }
     };
   }
 } catch (e) {
@@ -160,7 +172,13 @@ try {
             });
           });
         },
-        translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang)
+        translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang),
+        lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+        lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+        listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+        sendScrobblerSettings: (settings) => {
+          if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+        }
       };
     }
   } catch (e2) {}

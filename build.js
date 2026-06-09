@@ -16,6 +16,7 @@ function buildElectron() {
   const preloadFiles = [
     'preload/variables.js',
     'preload/discord.js',
+    'preload/scrobbler.js',
     'preload/api-server.js',
     'preload/bridge.js'
   ];
@@ -28,6 +29,7 @@ function buildElectron() {
     'shared/navbar-sync.js',
     'shared/sync-popover.js',
     'shared/theme-popover.js',
+    'shared/settings-injector.js',
     'shared/quality-indicator.js',
     'shared/lyrics/lrclib-client.js',
     'shared/lyrics/lyrics-sidebar.js',

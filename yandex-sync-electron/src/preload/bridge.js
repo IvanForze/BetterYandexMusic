@@ -126,6 +126,9 @@ stateChangeListener = (state) => {
   currentRoom = currentRoomId;
   currentServerUrl = serverUrl;
   updateDiscordPresencePreload(trackId, isPause, position, metadata);
+  if (global.ScrobbleManager) {
+    global.ScrobbleManager.onStateChange(trackId, isPause, position, metadata);
+  }
 };
 
 settingsChangeListener = (settings) => {
@@ -151,6 +154,12 @@ if (typeof window !== 'undefined') {
     
     if (event.data && event.data.type === 'YM_SYNC_SETTINGS_CHANGED') {
       settingsChangeListener({ enabled: event.data.enabled });
+    }
+
+    if (event.data && event.data.type === 'YM_SCROBBLER_SETTINGS_CHANGED') {
+      if (global.ScrobbleManager) {
+        global.ScrobbleManager.updateConfig(event.data.settings);
+      }
     }
 
     if (event.data && event.data.__ym_sc_bridge === true) {
