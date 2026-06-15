@@ -127,9 +127,14 @@ function getTrackMetadata(activePlayer) {
     const version = dataObj.version ? ` (${dataObj.version})` : '';
     const fullTitle = title + version;
 
+    const ugcArtist = entityData?.meta?.ugcArtistName || entityData?.ugcArtistName || dataObj.ugcArtistName;
     let artistsStr = 'Неизвестный исполнитель';
-    if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
-      artistsStr = dataObj.artists.map(a => a.name).join(', ');
+    if (ugcArtist) {
+      artistsStr = ugcArtist;
+    } else if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
+      artistsStr = dataObj.artists.map(a => typeof a === 'object' && a !== null ? (a.name || '') : String(a)).filter(Boolean).join(', ') || 'Неизвестный исполнитель';
+    } else if (dataObj.artist) {
+      artistsStr = dataObj.artist;
     }
 
     let durationMs = 0;
@@ -345,8 +350,9 @@ function checkAndSendState() {
     const entityData = currentEntity?.entity?.data;
     
     const rawTrackId = playerStateTrack?.id || entityData?.meta?.id || entityData?.id;
-    if (!rawTrackId || isNaN(Number(rawTrackId))) return;
+    if (!rawTrackId) return;
     const trackId = String(rawTrackId);
+    if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;

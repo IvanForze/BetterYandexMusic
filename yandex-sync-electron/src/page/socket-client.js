@@ -55,9 +55,9 @@ function connectToServer(serverUrl) {
       startSyncSafetyTimeout();
 
       const isServerTrackValid = serverState.trackId &&
-        serverState.trackId !== "undefined" &&
-        serverState.trackId !== "null" &&
-        (!isNaN(Number(serverState.trackId)) || String(serverState.trackId).startsWith("soundcloud:"));
+        String(serverState.trackId).trim() !== "" &&
+        String(serverState.trackId) !== "undefined" &&
+        String(serverState.trackId) !== "null";
 
       const activePlayer = getActivePlayer();
 

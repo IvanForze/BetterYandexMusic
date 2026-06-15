@@ -33,13 +33,13 @@ const SoundCloudAPI = {
       const requestId = `sc_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       this._pendingRequests[requestId] = { resolve, reject };
 
-      // Timeout safety
+      // Timeout safety (increased to 60s for media transfer & upload retries)
       setTimeout(() => {
         if (this._pendingRequests[requestId]) {
           delete this._pendingRequests[requestId];
           reject(new Error('Bridge request timed out'));
         }
-      }, 15000);
+      }, 60000);
 
       window.postMessage({
         __ym_sc_bridge: true,

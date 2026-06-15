@@ -2371,7 +2371,11 @@ function parseLrc(lrcText) {
 
 function fetchLyrics(title, artist, durationMs) {
   const requestTrackId = currentLyricsTrackId;
-  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) return;
+  console.log('[LRCLIB] fetchLyrics called:', { title, artist, durationMs, requestTrackId });
+  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) {
+    console.log('[LRCLIB] Lyrics already loading for this track, skipping invocation');
+    return;
+  }
   
   isLyricsLoading = true;
   window.ymTrackIdLoadingLyrics = requestTrackId;
@@ -2395,13 +2399,17 @@ function fetchLyrics(title, artist, durationMs) {
   if (durationSec > 0) {
     url += `&duration=${durationSec}`;
   }
+  console.log('[LRCLIB] Search URL:', url);
+
   const handleResponseData = data => {
+    console.log('[LRCLIB] Successfully loaded lyrics:', data);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
     displayLyricsData(data);
   };
   const handleFailure = err => {
+    console.warn('[LRCLIB] Failed to load lyrics:', err);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
@@ -2411,12 +2419,14 @@ function fetchLyrics(title, artist, durationMs) {
   if (window.__ymSyncBridge && typeof window.__ymSyncBridge.fetchLyrics === 'function') {
     window.__ymSyncBridge.fetchLyrics(url).catch(err => {
       let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+      console.log('[LRCLIB] Primary fetch failed, trying fallback URL:', fallbackUrl);
       return window.__ymSyncBridge.fetchLyrics(fallbackUrl);
     }).then(handleResponseData).catch(handleFailure);
   } else {
     fetch(url).then(res => {
       if (res.status === 404) {
         let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+        console.log('[LRCLIB] Primary fetch returned 404, trying fallback URL:', fallbackUrl);
         return fetch(fallbackUrl);
       }
       return res;
