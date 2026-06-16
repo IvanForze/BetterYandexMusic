@@ -53,6 +53,7 @@ function syncSettingsToPreload() {
 // Первичная синхронизация при загрузке
 setTimeout(syncSettingsToPreload, 2000);
 
+
 function checkAndInjectSettings() {
   if (!window.location.pathname.includes('/settings')) {
     return;
@@ -103,19 +104,19 @@ function checkAndInjectSettings() {
 
   block.innerHTML = `
     <!-- Заголовок секции, оформленный как нативный -->
-    <div style="font-size: 17px; font-weight: 700; color: #fff; padding: 24px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
+    <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
     
     <!-- Секция Last.fm -->
-    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
       <div style="flex: 1; padding-right: 16px;">
-        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">Last.fm</div>
-        <div id="ym-lastfm-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
-          ${lastfmSessionKey ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${lastfmUsername}</strong>` : 'Не авторизован'}
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Last.fm</div>
+        <div id="ym-lastfm-status" class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          ${lastfmSessionKey ? `Подключено как: <strong class="ym-settings-strong">${lastfmUsername}</strong>` : 'Не авторизован'}
         </div>
         
         <!-- Поля ввода собственных ключей Last.fm -->
         <div id="ym-lastfm-keys-container" style="max-width: 420px; margin-bottom: 12px; display: ${lastfmSessionKey ? 'none' : 'block'};">
-          <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom: 6px;">
+          <div class="ym-settings-item-subtext" style="font-size:11px; margin-bottom: 6px;">
             Создайте приложение на <a href="https://www.last.fm/api/account/create" target="_blank" style="color: #ffdb4d; text-decoration: underline;">last.fm/api/account/create</a> и укажите ключи ниже:
           </div>
           <div style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -141,11 +142,11 @@ function checkAndInjectSettings() {
     </div>
 
     <!-- Секция ListenBrainz -->
-    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
       <div style="flex: 1; padding-right: 16px;">
-        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">ListenBrainz</div>
-        <div id="ym-listenbrainz-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
-          ${listenbrainzUsername ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${listenbrainzUsername}</strong>` : 'Не подключено'}
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">ListenBrainz</div>
+        <div id="ym-listenbrainz-status" class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          ${listenbrainzUsername ? `Подключено как: <strong class="ym-settings-strong">${listenbrainzUsername}</strong>` : 'Не подключено'}
         </div>
         
         <div style="max-width: 420px; margin-top: 8px;">
@@ -164,13 +165,37 @@ function checkAndInjectSettings() {
     </div>
 
     <!-- Тонкий разделитель в конце нашей секции -->
-    <div style="height: 1px; background: rgba(255, 255, 255, 0.06); margin-top: 14px; margin-bottom: 14px;"></div>
+    <div class="ym-settings-divider" style="height: 1px; margin-top: 14px; margin-bottom: 14px;"></div>
 
     <style>
+      /* Использование CSS-переменных Яндекс Музыки для автоматической адаптации к любой теме (темной, светлой, кастомным) */
+      .ym-settings-section-title {
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
+      }
+      .ym-settings-item-title {
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
+      }
+      .ym-settings-item-status {
+        color: var(--yp-color-text-secondary, rgba(255, 255, 255, 0.45)) !important;
+      }
+      .ym-settings-strong {
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
+        font-weight: 600;
+      }
+      .ym-settings-item-subtext {
+        color: var(--yp-color-text-tertiary, rgba(255, 255, 255, 0.4)) !important;
+      }
+      .ym-settings-item {
+        border-bottom: 1px solid var(--yp-color-border-primary, rgba(255, 255, 255, 0.06)) !important;
+      }
+      .ym-settings-divider {
+        background: var(--yp-color-border-primary, rgba(255, 255, 255, 0.06)) !important;
+      }
+
       /* Кнопки в стиле Яндекс Музыки */
       .ym-btn-primary {
-        background: #ffdb4d;
-        color: #000;
+        background: var(--yp-color-brand, #ffdb4d) !important;
+        color: #000000 !important;
         border: none;
         padding: 6px 16px;
         border-radius: 20px;
@@ -188,9 +213,9 @@ function checkAndInjectSettings() {
       }
       
       .ym-btn-secondary {
-        background: rgba(255, 255, 255, 0.08);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: var(--yp-color-bg-secondary, rgba(255, 255, 255, 0.08)) !important;
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
+        border: 1px solid var(--yp-color-border-primary, rgba(255, 255, 255, 0.12)) !important;
         padding: 6px 16px;
         border-radius: 20px;
         font-weight: 600;
@@ -200,7 +225,7 @@ function checkAndInjectSettings() {
         font-family: inherit;
       }
       .ym-btn-secondary:hover {
-        background: rgba(255, 255, 255, 0.14);
+        background: var(--yp-color-bg-tertiary, rgba(255, 255, 255, 0.14)) !important;
       }
       .ym-btn-secondary:active {
         transform: scale(0.97);
@@ -208,9 +233,9 @@ function checkAndInjectSettings() {
 
       /* Инпуты */
       .ym-input {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        color: #fff;
+        background: var(--yp-color-bg-secondary, rgba(255, 255, 255, 0.06)) !important;
+        border: 1px solid var(--yp-color-border-primary, rgba(255, 255, 255, 0.12)) !important;
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
         padding: 7px 14px;
         border-radius: 20px;
         font-size: 13px;
@@ -218,13 +243,14 @@ function checkAndInjectSettings() {
         transition: border-color 0.2s, background 0.2s;
         font-family: inherit;
         box-sizing: border-box;
+        width: 100%;
       }
       .ym-input:focus {
-        border-color: rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.09);
+        border-color: var(--yp-color-brand, #ffdb4d) !important;
+        background: var(--yp-color-bg-tertiary, rgba(255, 255, 255, 0.09)) !important;
       }
       .ym-input::placeholder {
-        color: rgba(255, 255, 255, 0.3);
+        color: var(--yp-color-text-tertiary, rgba(255, 255, 255, 0.3)) !important;
       }
 
       /* Свичи (Тумблеры) в стиле Яндекс Музыки (Желтые при включении) */
@@ -243,7 +269,7 @@ function checkAndInjectSettings() {
         position: absolute;
         cursor: pointer;
         top: 0; left: 0; right: 0; bottom: 0;
-        background-color: rgba(255, 255, 255, 0.16);
+        background-color: rgba(128, 128, 128, 0.25) !important;
         transition: background-color 0.2s;
         border-radius: 20px;
       }
@@ -254,23 +280,69 @@ function checkAndInjectSettings() {
         width: 14px;
         left: 3px;
         bottom: 3px;
-        background-color: #fff;
+        background-color: #ffffff;
         transition: transform 0.2s, background-color 0.2s;
         border-radius: 50%;
       }
       .ym-switch input:checked + .ym-slider {
-        background-color: #ffdb4d;
+        background-color: var(--yp-color-brand, #ffdb4d) !important;
       }
       .ym-switch input:checked + .ym-slider:before {
         transform: translateX(18px);
-        background-color: #000;
+        background-color: #000000;
+      }
+
+      /* Светлая тема Яндекс Музыки (класс .ym-light-theme, как в themes.js) */
+      .ym-light-theme .ym-settings-section-title {
+        color: #000000 !important;
+      }
+      .ym-light-theme .ym-settings-item-title {
+        color: #000000 !important;
+      }
+      .ym-light-theme .ym-settings-item-status {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+      .ym-light-theme .ym-settings-strong {
+        color: #000000 !important;
+      }
+      .ym-light-theme .ym-settings-item-subtext {
+        color: rgba(0, 0, 0, 0.5) !important;
+      }
+      .ym-light-theme .ym-settings-item {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+      }
+      .ym-light-theme .ym-settings-divider {
+        background: rgba(0, 0, 0, 0.08) !important;
+      }
+      .ym-light-theme .ym-btn-secondary {
+        background: rgba(0, 0, 0, 0.04) !important;
+        color: #000000 !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+      }
+      .ym-light-theme .ym-btn-secondary:hover {
+        background: rgba(0, 0, 0, 0.09) !important;
+      }
+      .ym-light-theme .ym-input {
+        background: rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        color: #000000 !important;
+      }
+      .ym-light-theme .ym-input:focus {
+        border-color: rgba(0, 0, 0, 0.4) !important;
+        background: rgba(0, 0, 0, 0.07) !important;
+      }
+      .ym-light-theme .ym-input::placeholder {
+        color: rgba(0, 0, 0, 0.4) !important;
+      }
+      .ym-light-theme .ym-slider {
+        background-color: rgba(0, 0, 0, 0.15) !important;
       }
     </style>
   `;
 
   // Находим самый первый элемент настроек в списке (обычно это ряд содержащий "Офлайн-режим" или первый дочерний элемент списка)
   // Вставляем НАШ блок строго ПЕРЕД первым элементом настроек, но ПОСЛЕ заголовка/хедера.
-  // Это гарантирует, что блок попадет в прокручиваемый список настроек, не налезая на шапку "Настройки".
+  // Это гарантирует, что блок попадет в прокручиваемый список настроек, не налезая на шапку «Настройки».
   const firstSettingsItem = listContainer.querySelector('div, li');
   if (firstSettingsItem) {
     listContainer.insertBefore(block, firstSettingsItem);
@@ -280,6 +352,7 @@ function checkAndInjectSettings() {
 
   // Настройка слушателей Last.fm
   const lastfmToggle = document.getElementById('ym-lastfm-toggle');
+
   if (lastfmToggle) {
     lastfmToggle.addEventListener('change', (e) => {
       localStorage.setItem('ymScrobblerLastfmEnabled', e.target.checked ? 'true' : 'false');
@@ -349,7 +422,7 @@ function checkAndInjectSettings() {
           localStorage.setItem('ymScrobblerLastfmEnabled', 'true');
 
           // Обновляем UI
-          document.getElementById('ym-lastfm-status').innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${session.username}</strong>`;
+          document.getElementById('ym-lastfm-status').innerHTML = `Подключено как: <strong class="ym-settings-strong">${session.username}</strong>`;
           document.getElementById('ym-lastfm-actions').innerHTML = `<button id="ym-lastfm-logout-btn" class="ym-btn-secondary">Выйти</button>`;
           const keysContainer = document.getElementById('ym-lastfm-keys-container');
           if (keysContainer) keysContainer.style.display = 'none';
@@ -437,7 +510,7 @@ function checkAndInjectSettings() {
         localStorage.setItem('ymScrobblerListenbrainzUsername', username);
         localStorage.setItem('ymScrobblerListenbrainzEnabled', 'true');
 
-        lbStatus.innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${username}</strong>`;
+        lbStatus.innerHTML = `Подключено как: <strong class="ym-settings-strong">${username}</strong>`;
         if (listenbrainzToggle) listenbrainzToggle.checked = true;
 
         syncSettingsToPreload();

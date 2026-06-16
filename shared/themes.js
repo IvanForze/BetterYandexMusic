@@ -12,6 +12,10 @@ const THEME_CSS = {
       --background-secondary: #0a0a0a !important;
       --color-border-primary: #151515 !important;
       --yp-color-border-primary: #151515 !important;
+      --color-text-primary: #ffffff !important;
+      --yp-color-text-primary: #ffffff !important;
+      --yp-color-text-secondary: rgba(255, 255, 255, 0.65) !important;
+      --yp-color-text-tertiary: rgba(255, 255, 255, 0.4) !important;
       --player-average-color-background: #000000 !important;
       --ym-background-color-primary-enabled-basic: #000000 !important;
       --ym-background-color-primary-enabled-content: #000000 !important;
@@ -455,6 +459,44 @@ function applyThemeCSS(themeName, customColors) {
       background: revert !important;
       border-color: revert !important;
       box-shadow: revert !important;
+    }
+
+    /* Fix: нативный градиент-фейд SyncLyrics использует цвет фона из темы.
+       Переопределяем ::before/::after чтобы он всегда совпадал с нашей темой. */
+    [class*="SyncLyrics_content"] {
+      position: relative;
+    }
+    [class*="SyncLyrics_content"]::before,
+    [class*="SyncLyrics_content"]::after {
+      background: none !important;
+    }
+    [class*="SyncLyrics_content"]::before {
+      content: "" !important;
+      display: block !important;
+      position: absolute !important;
+      left: 0; right: 0; top: 0;
+      height: 120px !important;
+      background: linear-gradient(
+        to bottom,
+        var(--yp-color-bg-primary) 0%,
+        transparent 100%
+      ) !important;
+      pointer-events: none !important;
+      z-index: 10 !important;
+    }
+    [class*="SyncLyrics_content"]::after {
+      content: "" !important;
+      display: block !important;
+      position: absolute !important;
+      left: 0; right: 0; bottom: 0;
+      height: 120px !important;
+      background: linear-gradient(
+        to top,
+        var(--yp-color-bg-primary) 0%,
+        transparent 100%
+      ) !important;
+      pointer-events: none !important;
+      z-index: 10 !important;
     }
   `;
 

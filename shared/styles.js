@@ -912,24 +912,25 @@ function injectStyles() {
     /* RZT Ratings Container and Circles */
     .ym-fullscreen-rzt-ratings {
       position: absolute !important;
-      top: 34px !important;
-      left: 92px !important;
+      top: 30px !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
       display: flex !important;
       flex-direction: row !important;
-      gap: 10px !important;
+      gap: 12px !important;
       z-index: 100000 !important;
       pointer-events: auto !important;
     }
 
     .ym-rzt-rating-circle {
-      width: 28px !important;
-      height: 28px !important;
+      width: 36px !important;
+      height: 36px !important;
       border-radius: 50% !important;
       display: flex !important;
       align-items: center !important;
       justify-content: center !important;
       font-family: "YSMusic Headline", "YS Text", "Yandex Sans", sans-serif !important;
-      font-size: 13px !important;
+      font-size: 15px !important;
       font-weight: 700 !important;
       color: #ffffff !important;
       position: relative !important;
