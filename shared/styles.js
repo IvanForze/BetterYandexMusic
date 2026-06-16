@@ -909,6 +909,82 @@ function injectStyles() {
       box-shadow: 0 0 12px rgba(255, 219, 77, 0.4) !important;
     }
 
+    /* RZT Ratings Container and Circles */
+    .ym-fullscreen-rzt-ratings {
+      position: absolute !important;
+      top: 34px !important;
+      left: 92px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 10px !important;
+      z-index: 100000 !important;
+      pointer-events: auto !important;
+    }
+
+    .ym-rzt-rating-circle {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-family: "YSMusic Headline", "YS Text", "Yandex Sans", sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      position: relative !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: transform 0.2s ease, opacity 0.2s ease !important;
+    }
+
+    .ym-rzt-rating-circle:hover {
+      transform: scale(1.1) !important;
+    }
+
+    /* Tooltip styling */
+    .ym-rzt-rating-circle::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: rgba(28, 28, 32, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-family: "YS Text", "Yandex Sans", sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100002;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .ym-rzt-rating-circle:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-solid {
+      background-color: #2563eb !important;
+      border: none !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-outline {
+      background-color: transparent !important;
+      border: 2px solid #2563eb !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-grey-solid {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border: none !important;
+    }
+
     /* --- Light Theme Support --- */
     html.theme-light .ym-sync-popover,
     body.theme-light .ym-sync-popover,

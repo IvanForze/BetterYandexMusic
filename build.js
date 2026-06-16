@@ -27,6 +27,7 @@ function buildElectron() {
   // Page Context Files
   const pageFiles = [
     'shared/styles.js',
+    'shared/rzt-api.js',
     'page/variables.js',
     'shared/themes.js',
     'shared/navbar-sync.js',
