@@ -5631,7 +5631,17 @@ function connectToServer(serverUrl) {
         const activePlayer = getActivePlayer();
         const currentEntity = activePlayer?.queueController?.queue?.state?.currentEntity?.value;
         const entityData = currentEntity?.entity?.data;
-        localTrackId = entityData?.meta?.id || entityData?.id;
+        const rawId = entityData?.meta?.id || entityData?.id;
+        if (rawId) {
+          localTrackId = String(rawId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              localTrackId = `soundcloud:${match[1]}`;
+            }
+          }
+        }
       }
 
       isSyncingFromServer = true;
@@ -5691,7 +5701,16 @@ function connectToServer(serverUrl) {
               const trackIndex = list.findIndex(wrapper => {
                 const data = wrapper?.entity?.data || wrapper?.entity?.entityData;
                 const id = data?.meta?.id || data?.id;
-                return String(id) === String(serverState.trackId);
+                
+                let queueTrackId = String(id);
+                const filename = data?.meta?.filename || data?.filename || '';
+                if ((data?.meta?.trackSource === 'UGC' || data?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+                  const match = filename.match(/soundcloud_(\d+)\.mp3/);
+                  if (match) {
+                    queueTrackId = `soundcloud:${match[1]}`;
+                  }
+                }
+                return String(queueTrackId) === String(serverState.trackId);
               });
 
               if (trackIndex !== -1) {
@@ -5757,7 +5776,7 @@ function connectToServer(serverUrl) {
       }
       // 2. Трек тот же, синхронизируем время/паузу
       else if (isServerTrackValid) {
-        if (String(serverState.trackId).startsWith("soundcloud:")) {
+        if (String(serverState.trackId).startsWith("soundcloud:") && window.isCustomAudioActive) {
           window.CustomAudioController.syncPlay(serverState.trackId, serverState)
             .then(() => {
               clearSyncSafetyTimeout();
@@ -6036,6 +6055,13 @@ function sendStateToPreload() {
         const entityData = currentEntity?.entity?.data;
         if (rawTrackId && String(rawTrackId).trim() !== '' && String(rawTrackId) !== 'undefined' && String(rawTrackId) !== 'null') {
           trackId = String(rawTrackId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              trackId = `soundcloud:${match[1]}`;
+            }
+          }
           const isPlaying = activePlayer.playbackState.playerState.status.value === 'playing';
           isPause = !isPlaying;
           const progress = activePlayer.playbackState.playerState.progress.value;
@@ -6197,8 +6223,17 @@ function checkAndSendState() {
 
     const rawTrackId = entityData?.meta?.id || entityData?.id;
     if (!rawTrackId) return;
-    const trackId = String(rawTrackId);
+    let trackId = String(rawTrackId);
     if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
+
+    // Map UGC SoundCloud tracks to a universal soundcloud: ID for shared session sync
+    const filename = entityData?.meta?.filename || entityData?.filename || '';
+    if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+      const match = filename.match(/soundcloud_(\d+)\.mp3/);
+      if (match) {
+        trackId = `soundcloud:${match[1]}`;
+      }
+    }
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;
@@ -6385,6 +6420,133 @@ window.SoundCloudAPI = SoundCloudAPI;
 // CUSTOM AUDIO CONTROLLER
 // ==========================================
 
+// Global logger to print volume states from all places
+window.logAllVolumes = function(contextMessage = "") {
+    let nativeSlider = null;
+    let nativeExponent = null;
+    let nativeAudioVol = null;
+    let customAudioVol = null;
+    let customSlider = null;
+
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState) {
+            nativeSlider = activePlayer.playbackState.playerState.volume?.value;
+            nativeExponent = activePlayer.playbackState.playerState.exponentVolume?.value;
+        }
+    } catch(e) {}
+
+    try {
+        const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+        if (nativeAudio) {
+            nativeAudioVol = nativeAudio.volume;
+        }
+    } catch(e) {}
+
+    try {
+        if (window.CustomAudioController && window.CustomAudioController.audioElement) {
+            customAudioVol = window.CustomAudioController.audioElement.volume;
+        }
+    } catch(e) {}
+
+    try {
+        const slider = document.getElementById('sc-ov-volume-slider');
+        if (slider) {
+            customSlider = parseFloat(slider.value);
+        }
+    } catch(e) {}
+
+    console.log(
+        `%c[VOLUME-SYNC-DEBUG] ${contextMessage}\n` +
+        `  -> Наш ползунок (Custom Slider): ${customSlider !== null ? customSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Наш аудио-элемент (Custom Audio volume): ${customAudioVol !== null ? customAudioVol.toFixed(4) : 'не инициализирован'}\n` +
+        `  -> Оригинальный Sonata volume: ${nativeSlider !== null ? nativeSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный Sonata exponentVolume: ${nativeExponent !== null ? nativeExponent.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный аудио-элемент (DOM volume): ${nativeAudioVol !== null ? nativeAudioVol.toFixed(4) : 'не найден'}`,
+        "color: #ff9900; font-weight: bold;"
+    );
+};
+
+// Helper to get native Yandex Music player volume (returns exponent volume which aligns with the UI slider)
+window.getNativeVolume = function() {
+    // 1. Try Sonata player exponent volume state (UI slider position)
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState?.exponentVolume) {
+            const vol = activePlayer.playbackState.playerState.exponentVolume.value;
+            if (typeof vol === 'number') return vol;
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] getNativeVolume error:", e);
+    }
+
+    // 2. Try native audio element volume
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        return nativeAudio.volume;
+    }
+    
+    // 3. Fallback to localStorage
+    try {
+        const stored = localStorage.getItem('volume') || localStorage.getItem('player-volume');
+        if (stored !== null) {
+            const parsed = parseFloat(stored);
+            if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+                // If it was stored as linear volume, convert back to exponent
+                if (parsed === 0) return 0;
+                return Math.max(0, Math.min(1, 1 + Math.log10(parsed) / 2));
+            }
+        }
+    } catch (e) {}
+
+    return 0.7;
+};
+
+// Helper to get native Yandex Music player exponent volume (actual audio output scale)
+window.getNativeExponentVolume = function() {
+    return window.getNativeVolume();
+};
+
+// Helper to set native Yandex Music player volume
+window.setNativeVolume = function(vol) {
+    if (window.logAllVolumes) {
+        window.logAllVolumes(`setNativeVolume вызвана с vol = ${vol}`);
+    }
+    
+    // Translate the desired exponent volume (vol) to Yandex's linear volume
+    // volume = 10^(2 * (exponentVolume - 1))
+    const translatedVol = vol === 0 ? 0 : Math.max(0, Math.min(1, Math.pow(10, 2 * (vol - 1))));
+
+    // 1. Try Sonata active player API
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && typeof activePlayer.setVolume === 'function') {
+            activePlayer.setVolume(translatedVol);
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] setNativeVolume error:", e);
+    }
+
+    // 2. Set on native audio element
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        nativeAudio.volume = vol;
+    }
+
+    // 3. Set localStorage keys (store linear volume so Yandex's internal code reads it correctly)
+    try {
+        localStorage.setItem('volume', String(translatedVol));
+        localStorage.setItem('player-volume', String(translatedVol));
+    } catch (e) {}
+
+    // Log after short timeout to let MobX or other handlers apply changes
+    setTimeout(() => {
+        if (window.logAllVolumes) {
+            window.logAllVolumes("setNativeVolume: Применилось (100мс)");
+        }
+    }, 100);
+};
+
 const CustomAudioController = {
     audioElement: null,
     isPlaying: false,
@@ -6413,8 +6575,8 @@ const CustomAudioController = {
                 // Optionally play next track if we implement a custom queue
             });
             
-            // Set volume to match native player on init, default to 0.7
-            this.audioElement.volume = 0.7;
+            // Set volume to match native player on init (use exponent volume for correct loudness)
+            this.audioElement.volume = window.getNativeExponentVolume ? window.getNativeExponentVolume() : 0.7;
         }
     },
 
@@ -6431,6 +6593,11 @@ const CustomAudioController = {
 
     async playTrack(track, streamUrl) {
         this.init();
+        
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
         
         // 1. Pause native player
         const activePlayer = window.getActivePlayer && window.getActivePlayer();
@@ -6492,6 +6659,11 @@ const CustomAudioController = {
 
     async syncPlay(scTrackId, serverState) {
         this.init();
+
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
 
         const numericId = String(scTrackId).replace('soundcloud:', '');
 
@@ -6917,7 +7089,7 @@ const PlayerFaker = {
             }
         };
 
-        const currentVol = window.CustomAudioController.audioElement ? window.CustomAudioController.audioElement.volume : 0.7;
+        const currentVol = window.getNativeVolume ? window.getNativeVolume() : 0.7;
         volumeSlider.value = currentVol;
         updateSliderStyle(currentVol);
         updateVolumeIcon(currentVol);
@@ -6925,7 +7097,16 @@ const PlayerFaker = {
         volumeSlider.addEventListener('input', (e) => {
             e.stopPropagation();
             const vol = parseFloat(volumeSlider.value);
+            if (window.logAllVolumes) {
+                window.logAllVolumes(`Драг ползунка: Новое значение = ${vol}`);
+            }
+            // 1. Set volume on native Yandex player (translating slider to native linear scale)
+            if (window.setNativeVolume) {
+                window.setNativeVolume(vol);
+            }
+            // 2. Set volume on custom audio element (same as slider)
             window.CustomAudioController.setVolume(vol);
+
             updateSliderStyle(vol);
             updateVolumeIcon(vol);
         });
@@ -6936,12 +7117,21 @@ const PlayerFaker = {
             const audio = window.CustomAudioController.audioElement;
             if (audio) {
                 if (audio.volume > 0) {
-                    lastVolume = audio.volume;
+                    // Store current linear volume from slider before muting
+                    lastVolume = parseFloat(volumeSlider.value) || 0.7;
+                    console.log("[VOLUME-DEBUG] Mute clicked. Saving lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(0);
+                    }
                     window.CustomAudioController.setVolume(0);
                     volumeSlider.value = 0;
                     updateSliderStyle(0);
                     updateVolumeIcon(0);
                 } else {
+                    console.log("[VOLUME-DEBUG] Unmute clicked. Restoring lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(lastVolume);
+                    }
                     window.CustomAudioController.setVolume(lastVolume);
                     volumeSlider.value = lastVolume;
                     updateSliderStyle(lastVolume);
@@ -6976,6 +7166,16 @@ const PlayerFaker = {
 
     _tick() {
         if (!this.overlayActive) return;
+
+        // Log volumes every 8 ticks (~2 seconds)
+        if (!this._tickCount) this._tickCount = 0;
+        this._tickCount++;
+        if (this._tickCount % 8 === 0) {
+            if (window.logAllVolumes) {
+                window.logAllVolumes("Периодический тик (2с)");
+            }
+        }
+
         const ac = window.CustomAudioController;
         if (!ac || !ac.audioElement) return;
 
@@ -7069,7 +7269,7 @@ const SoundCloudSearchInjector = {
                 const old = document.getElementById('ym-sync-soundcloud-results');
                 if (old) old.remove();
                 this.lastQuery = '';
-                this.checkSearchPage();
+                this.checkSearchPage(true);
             }
         }).observe(document, { subtree: true, childList: true });
 
@@ -7083,23 +7283,32 @@ const SoundCloudSearchInjector = {
                 if (query !== this.lastQuery) {
                     this.lastQuery = query;
                     clearTimeout(this.searchTimeout);
-                    this.searchTimeout = setTimeout(() => {
-                        this.performSearch(query);
-                    }, 800);
+                    if (!query || query.trim() === '') {
+                        // Clear results immediately if query is cleared
+                        const old = document.getElementById('ym-sync-soundcloud-results');
+                        if (old) old.remove();
+                    } else {
+                        this.searchTimeout = setTimeout(() => {
+                            this.performSearch(query);
+                        }, 800);
+                    }
                 }
             }
         });
     },
 
-    checkSearchPage() {
+    checkSearchPage(fromUrlChange = false) {
         if (location.pathname.startsWith('/search')) {
             const searchInput = document.querySelector('input[type="search"]');
             const urlQuery = new URLSearchParams(location.search).get('text') || '';
-            const query = (searchInput && searchInput.value) || urlQuery;
-            if (query && query !== this.lastQuery) {
+            const query = fromUrlChange ? urlQuery : (searchInput ? searchInput.value : urlQuery);
+            if (query !== this.lastQuery) {
                 this.lastQuery = query;
                 this.performSearch(query);
             }
+        } else {
+            const old = document.getElementById('ym-sync-soundcloud-results');
+            if (old) old.remove();
         }
     },
 
@@ -7124,7 +7333,11 @@ const SoundCloudSearchInjector = {
     },
 
     async performSearch(query) {
-        if (!query || query.trim() === '') return;
+        if (!query || query.trim() === '') {
+            const old = document.getElementById('ym-sync-soundcloud-results');
+            if (old) old.remove();
+            return;
+        }
         console.log('[SOUNDCLOUD] Searching for:', query);
         this.injectLoadingState();
         try {
@@ -7253,10 +7466,18 @@ const SoundCloudSearchInjector = {
                         width:40px; height:40px; border-radius:4px; overflow:hidden;
                         flex-shrink:0; background:rgba(255,255,255,0.1);
                         display:flex; align-items:center; justify-content:center;
+                        position:relative;
                     ">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.3">
+                        <svg class="ym-sync-sc-placeholder-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.3">
                             <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/>
                         </svg>
+                        <div class="ym-sync-sc-play-overlay" style="
+                            position:absolute; top:0; left:0; width:100%; height:100%;
+                            background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+                            opacity:0; transition:opacity 0.15s; pointer-events:none;
+                        ">
+                            <svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>
+                        </div>
                     </div>
                     <div style="flex:1; overflow:hidden; min-width:0;">
                         <div style="font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4;">${track.title}</div>
@@ -7279,14 +7500,6 @@ const SoundCloudSearchInjector = {
                             <line x1="5" y1="12" x2="19" y2="12"></line>
                         </svg>
                     </button>
-
-                    <div class="ym-sync-sc-play-btn" style="
-                        width:32px; height:32px; border-radius:50%; background:#ff5500;
-                        display:flex; align-items:center; justify-content:center;
-                        flex-shrink:0; opacity:0; transition:opacity 0.15s; pointer-events:none;
-                    ">
-                        <svg width="10" height="12" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>
-                    </div>
                 </div>
             `;
         }).join('');
@@ -7307,14 +7520,15 @@ const SoundCloudSearchInjector = {
         // === Hover effects (NO inline handlers) ===
         const trackEls = container.querySelectorAll('.ym-sync-sc-track');
         trackEls.forEach((el) => {
-            const btn = el.querySelector('.ym-sync-sc-play-btn');
             el.addEventListener('mouseenter', () => {
                 el.style.background = 'rgba(255,255,255,0.07)';
-                if (btn) btn.style.opacity = '1';
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) overlay.style.opacity = '1';
             });
             el.addEventListener('mouseleave', () => {
                 el.style.background = 'transparent';
-                if (btn) btn.style.opacity = '0';
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) overlay.style.opacity = '0';
             });
         });
 
@@ -7334,6 +7548,17 @@ const SoundCloudSearchInjector = {
                     img.src = result.url;
                     artEl.innerHTML = '';
                     artEl.appendChild(img);
+
+                    // Re-append play overlay since we cleared innerHTML
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ym-sync-sc-play-overlay';
+                    overlay.style.cssText = `
+                        position:absolute; top:0; left:0; width:100%; height:100%;
+                        background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+                        opacity:0; transition:opacity 0.15s; pointer-events:none;
+                    `;
+                    overlay.innerHTML = `<svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
+                    artEl.appendChild(overlay);
                 })
                 .catch(() => { /* placeholder stays */ });
         });
@@ -7347,10 +7572,10 @@ const SoundCloudSearchInjector = {
 
                 console.log('[SOUNDCLOUD] Playing track:', track.title);
 
-                const btn = el.querySelector('.ym-sync-sc-play-btn');
-                if (btn) {
-                    btn.style.opacity = '1';
-                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="white" stroke-width="2" fill="none" stroke-dasharray="10 20" stroke-linecap="round"/></svg>`;
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '1';
+                    overlay.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" style="animation: ym-sync-spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" stroke-dasharray="32 10" fill="none" stroke-linecap="round"></circle></svg>`;
                 }
 
                 const streamUrl = await window.SoundCloudAPI.getStreamUrl(track);
@@ -7358,8 +7583,9 @@ const SoundCloudSearchInjector = {
                     await window.CustomAudioController.playTrack(track, streamUrl);
                 } else {
                     console.error('[SOUNDCLOUD] Could not get stream URL for track');
-                    if (btn) {
-                        btn.innerHTML = `<svg width="10" height="12" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
+                    const currentOverlay = el.querySelector('.ym-sync-sc-play-overlay');
+                    if (currentOverlay) {
+                        currentOverlay.innerHTML = `<svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
                     }
                 }
             });

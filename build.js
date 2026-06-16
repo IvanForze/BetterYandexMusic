@@ -87,6 +87,14 @@ ${pageCode}
   const destPath = path.join(rootDir, 'yandex-sync-electron', 'desktop-sync.js');
   fs.writeFileSync(destPath, combinedCode, 'utf8');
   console.log(`Successfully built Electron desktop-sync.js -> ${destPath}`);
+
+  // Also copy to installer assets
+  const installerAssetsDir = path.join(rootDir, 'yandex-sync-installer', 'assets');
+  if (fs.existsSync(installerAssetsDir)) {
+    const installerDestPath = path.join(installerAssetsDir, 'desktop-sync.js');
+    fs.writeFileSync(installerDestPath, combinedCode, 'utf8');
+    console.log(`Successfully copied desktop-sync.js -> ${installerDestPath}`);
+  }
   return true;
 }
 

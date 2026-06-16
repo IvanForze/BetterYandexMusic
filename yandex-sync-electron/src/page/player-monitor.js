@@ -234,6 +234,13 @@ function sendStateToPreload() {
         const entityData = currentEntity?.entity?.data;
         if (rawTrackId && String(rawTrackId).trim() !== '' && String(rawTrackId) !== 'undefined' && String(rawTrackId) !== 'null') {
           trackId = String(rawTrackId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              trackId = `soundcloud:${match[1]}`;
+            }
+          }
           const isPlaying = activePlayer.playbackState.playerState.status.value === 'playing';
           isPause = !isPlaying;
           const progress = activePlayer.playbackState.playerState.progress.value;
@@ -395,8 +402,17 @@ function checkAndSendState() {
 
     const rawTrackId = entityData?.meta?.id || entityData?.id;
     if (!rawTrackId) return;
-    const trackId = String(rawTrackId);
+    let trackId = String(rawTrackId);
     if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
+
+    // Map UGC SoundCloud tracks to a universal soundcloud: ID for shared session sync
+    const filename = entityData?.meta?.filename || entityData?.filename || '';
+    if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+      const match = filename.match(/soundcloud_(\d+)\.mp3/);
+      if (match) {
+        trackId = `soundcloud:${match[1]}`;
+      }
+    }
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;

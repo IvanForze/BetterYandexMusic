@@ -2,6 +2,133 @@
 // CUSTOM AUDIO CONTROLLER
 // ==========================================
 
+// Global logger to print volume states from all places
+window.logAllVolumes = function(contextMessage = "") {
+    let nativeSlider = null;
+    let nativeExponent = null;
+    let nativeAudioVol = null;
+    let customAudioVol = null;
+    let customSlider = null;
+
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState) {
+            nativeSlider = activePlayer.playbackState.playerState.volume?.value;
+            nativeExponent = activePlayer.playbackState.playerState.exponentVolume?.value;
+        }
+    } catch(e) {}
+
+    try {
+        const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+        if (nativeAudio) {
+            nativeAudioVol = nativeAudio.volume;
+        }
+    } catch(e) {}
+
+    try {
+        if (window.CustomAudioController && window.CustomAudioController.audioElement) {
+            customAudioVol = window.CustomAudioController.audioElement.volume;
+        }
+    } catch(e) {}
+
+    try {
+        const slider = document.getElementById('sc-ov-volume-slider');
+        if (slider) {
+            customSlider = parseFloat(slider.value);
+        }
+    } catch(e) {}
+
+    console.log(
+        `%c[VOLUME-SYNC-DEBUG] ${contextMessage}\n` +
+        `  -> Наш ползунок (Custom Slider): ${customSlider !== null ? customSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Наш аудио-элемент (Custom Audio volume): ${customAudioVol !== null ? customAudioVol.toFixed(4) : 'не инициализирован'}\n` +
+        `  -> Оригинальный Sonata volume: ${nativeSlider !== null ? nativeSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный Sonata exponentVolume: ${nativeExponent !== null ? nativeExponent.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный аудио-элемент (DOM volume): ${nativeAudioVol !== null ? nativeAudioVol.toFixed(4) : 'не найден'}`,
+        "color: #ff9900; font-weight: bold;"
+    );
+};
+
+// Helper to get native Yandex Music player volume (returns exponent volume which aligns with the UI slider)
+window.getNativeVolume = function() {
+    // 1. Try Sonata player exponent volume state (UI slider position)
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState?.exponentVolume) {
+            const vol = activePlayer.playbackState.playerState.exponentVolume.value;
+            if (typeof vol === 'number') return vol;
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] getNativeVolume error:", e);
+    }
+
+    // 2. Try native audio element volume
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        return nativeAudio.volume;
+    }
+    
+    // 3. Fallback to localStorage
+    try {
+        const stored = localStorage.getItem('volume') || localStorage.getItem('player-volume');
+        if (stored !== null) {
+            const parsed = parseFloat(stored);
+            if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+                // If it was stored as linear volume, convert back to exponent
+                if (parsed === 0) return 0;
+                return Math.max(0, Math.min(1, 1 + Math.log10(parsed) / 2));
+            }
+        }
+    } catch (e) {}
+
+    return 0.7;
+};
+
+// Helper to get native Yandex Music player exponent volume (actual audio output scale)
+window.getNativeExponentVolume = function() {
+    return window.getNativeVolume();
+};
+
+// Helper to set native Yandex Music player volume
+window.setNativeVolume = function(vol) {
+    if (window.logAllVolumes) {
+        window.logAllVolumes(`setNativeVolume вызвана с vol = ${vol}`);
+    }
+    
+    // Translate the desired exponent volume (vol) to Yandex's linear volume
+    // volume = 10^(2 * (exponentVolume - 1))
+    const translatedVol = vol === 0 ? 0 : Math.max(0, Math.min(1, Math.pow(10, 2 * (vol - 1))));
+
+    // 1. Try Sonata active player API
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && typeof activePlayer.setVolume === 'function') {
+            activePlayer.setVolume(translatedVol);
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] setNativeVolume error:", e);
+    }
+
+    // 2. Set on native audio element
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        nativeAudio.volume = vol;
+    }
+
+    // 3. Set localStorage keys (store linear volume so Yandex's internal code reads it correctly)
+    try {
+        localStorage.setItem('volume', String(translatedVol));
+        localStorage.setItem('player-volume', String(translatedVol));
+    } catch (e) {}
+
+    // Log after short timeout to let MobX or other handlers apply changes
+    setTimeout(() => {
+        if (window.logAllVolumes) {
+            window.logAllVolumes("setNativeVolume: Применилось (100мс)");
+        }
+    }, 100);
+};
+
 const CustomAudioController = {
     audioElement: null,
     isPlaying: false,
@@ -30,8 +157,8 @@ const CustomAudioController = {
                 // Optionally play next track if we implement a custom queue
             });
             
-            // Set volume to match native player on init, default to 0.7
-            this.audioElement.volume = 0.7;
+            // Set volume to match native player on init (use exponent volume for correct loudness)
+            this.audioElement.volume = window.getNativeExponentVolume ? window.getNativeExponentVolume() : 0.7;
         }
     },
 
@@ -48,6 +175,11 @@ const CustomAudioController = {
 
     async playTrack(track, streamUrl) {
         this.init();
+        
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
         
         // 1. Pause native player
         const activePlayer = window.getActivePlayer && window.getActivePlayer();
@@ -109,6 +241,11 @@ const CustomAudioController = {
 
     async syncPlay(scTrackId, serverState) {
         this.init();
+
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
 
         const numericId = String(scTrackId).replace('soundcloud:', '');
 
