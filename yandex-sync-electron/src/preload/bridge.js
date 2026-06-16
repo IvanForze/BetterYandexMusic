@@ -229,6 +229,23 @@ if (typeof window !== 'undefined') {
               response: { ok: false, error: err.message }
             }, '*');
           });
+      } else if (type === 'YM_UPLOAD_TRACK') {
+        handleSoundCloudUpload(payload)
+          .then(result => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, result }
+            }, '*');
+          })
+          .catch(err => {
+            console.error('[PRELOAD-SC] Yandex upload error:', err);
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
       }
     }
   });

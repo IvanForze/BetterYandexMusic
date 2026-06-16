@@ -18,6 +18,7 @@ function buildElectron() {
     'preload/discord.js',
     'preload/scrobbler.js',
     'preload/api-server.js',
+    'shared/soundcloud-import.js',
     'preload/bridge.js'
   ];
 
@@ -48,7 +49,7 @@ function buildElectron() {
 
   let preloadCode = '';
   for (const file of preloadFiles) {
-    const filePath = path.join(electronSrcDir, file);
+    const filePath = file.startsWith('shared/') ? path.join(rootDir, file) : path.join(electronSrcDir, file);
     if (!fs.existsSync(filePath)) {
       console.error(`Error: Preload component file ${file} not found at ${filePath}`);
       return false;
@@ -161,12 +162,14 @@ function buildExtension() {
   fs.writeFileSync(destIsolated, isolatedCode, 'utf8');
   console.log(`Successfully built Extension isolated.js -> ${destIsolated}`);
 
-  // Copy soundcloud-bridge.js as standalone isolated script
+  // Bundle soundcloud-bridge.js as standalone isolated script with shared/soundcloud-import.js
   const bridgeSrc = path.join(extSrcDir, 'isolated', 'soundcloud-bridge.js');
+  const sharedImport = path.join(rootDir, 'shared', 'soundcloud-import.js');
   const bridgeDest = path.join(rootDir, 'yandex-sync-extension', 'soundcloud-bridge.js');
-  if (fs.existsSync(bridgeSrc)) {
-    fs.copyFileSync(bridgeSrc, bridgeDest);
-    console.log(`Successfully copied soundcloud-bridge.js -> ${bridgeDest}`);
+  if (fs.existsSync(bridgeSrc) && fs.existsSync(sharedImport)) {
+    const combined = fs.readFileSync(sharedImport, 'utf8') + '\n\n' + fs.readFileSync(bridgeSrc, 'utf8');
+    fs.writeFileSync(bridgeDest, combined, 'utf8');
+    console.log(`Successfully built bundled soundcloud-bridge.js -> ${bridgeDest}`);
   }
 
   const destMain = path.join(rootDir, 'yandex-sync-extension', 'main.js');
