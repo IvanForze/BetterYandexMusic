@@ -17,6 +17,7 @@ function buildElectron() {
     'preload/variables.js',
     'preload/discord.js',
     'shared/md5.js',
+    'shared/rzt-api.js',
     'shared/scrobbler.js',
     'preload/api-server.js',
     'shared/soundcloud-import.js',
@@ -113,6 +114,7 @@ function buildExtension() {
   const isolatedFiles = [
     'shared/styles.js',
     'shared/md5.js',
+    'shared/rzt-api.js',
     'shared/scrobbler.js',
     'isolated/scrobbler-init.js',
     'isolated/variables.js',

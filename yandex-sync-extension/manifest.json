@@ -15,7 +15,8 @@
     "https://*.sndcdn.com/*",
     "https://translate.googleapis.com/*",
     "https://ws.audioscrobbler.com/*",
-    "https://api.listenbrainz.org/*"
+    "https://api.listenbrainz.org/*",
+    "https://risazatvorchestvo.com/*"
   ],
   "background": {
     "service_worker": "background.js"

@@ -269,6 +269,26 @@ class ScrobbleManager {
       this.checkAndScrobble();
 
       console.log('[SCROBBLER] Обнаружена смена трека:', metadata.artist, '-', metadata.title);
+      
+      const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (typeof window !== 'undefined' ? window.RztAPI : null);
+      if (apiObj) {
+        apiObj.getTrackRatings(metadata.artist, metadata.title)
+          .then(ratings => {
+            if (ratings) {
+              console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}": ` +
+                `Фломастер (РЗТ): ${ratings.flomaster !== null ? ratings.flomaster : '—'} | ` +
+                `Сайт (с рецензиями): ${ratings.withReviews !== null ? ratings.withReviews : '—'} | ` +
+                `Сайт (без рецензий): ${ratings.withoutReviews !== null ? ratings.withoutReviews : '—'}`
+              );
+            } else {
+              console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}" не найдены (возможно, релиз не оценен)`);
+            }
+          })
+          .catch(err => {
+            console.error('[RZT] Ошибка получения оценок:', err.message);
+          });
+      }
+
       this.currentTrackId = trackId;
       this.currentTrack = {
         title: metadata.title,
