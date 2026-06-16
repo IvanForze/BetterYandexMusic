@@ -1,50 +1,35 @@
-const crypto = require('crypto');
-const https = require('https');
-
 // Дефолтные ключи Last.fm (могут быть переопределены пользователем в настройках)
 const LASTFM_DEFAULT_API_KEY = '4d12b2b376510476bfdae3e2c62c96c4';
 const LASTFM_DEFAULT_SECRET = '78e24c2a5e985b67484df24cd76bf349';
 
-function md5(str) {
-  return crypto.createHash('md5').update(str, 'utf8').digest('hex');
+function md5Hash(str) {
+  if (typeof window !== 'undefined' && window.md5) return window.md5(str);
+  if (typeof global !== 'undefined' && global.md5) return global.md5(str);
+  throw new Error('MD5 function not found. Ensure md5.js is loaded.');
 }
 
-function makeHttpRequest(url, options = {}, body = null) {
-  return new Promise((resolve, reject) => {
-    const parsedUrl = new URL(url);
-    const reqOptions = {
-      hostname: parsedUrl.hostname,
-      path: parsedUrl.pathname + parsedUrl.search,
-      method: options.method || 'GET',
-      headers: options.headers || {}
-    };
+async function makeHttpRequest(url, options = {}, body = null) {
+  const reqOptions = {
+    method: options.method || 'GET',
+    headers: options.headers || {}
+  };
 
-    if (body) {
-      reqOptions.headers['Content-Length'] = Buffer.byteLength(body);
+  if (body) {
+    reqOptions.body = body;
+  }
+
+  const response = await fetch(url, reqOptions);
+  const text = await response.text();
+
+  if (response.ok) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return text;
     }
-
-    const req = https.request(reqOptions, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            resolve(data);
-          }
-        } else {
-          reject(new Error(`HTTP ${res.statusCode}: ${data}`));
-        }
-      });
-    });
-
-    req.on('error', (err) => reject(err));
-    if (body) {
-      req.write(body);
-    }
-    req.end();
-  });
+  } else {
+    throw new Error(`HTTP ${response.status}: ${text}`);
+  }
 }
 
 // Генерирует подпись api_sig для Last.fm
@@ -57,7 +42,7 @@ function generateLastFmSignature(params, secret) {
     }
   }
   signatureStr += secret;
-  return md5(signatureStr);
+  return md5Hash(signatureStr);
 }
 
 class ScrobblerService {
@@ -199,6 +184,8 @@ class ScrobblerService {
       }
     ];
 
+    console.log(`[LISTENBRAINZ] Отправка статуса '${listenType}' для: ${trackData.artist} - ${trackData.title}`);
+
     const body = JSON.stringify({
       listen_type: listenType, // 'playing_now' или 'single' (для скроблинга)
       payload: payload
@@ -212,7 +199,10 @@ class ScrobblerService {
         'Authorization': `Token ${config.listenbrainzToken}`,
         'Content-Type': 'application/json'
       }
-    }, body);
+    }, body).then(res => {
+      console.log(`[LISTENBRAINZ] Успешно отправлен статус '${listenType}'`);
+      return res;
+    });
   }
 
   // Проверить токен ListenBrainz и получить имя пользователя
@@ -231,7 +221,7 @@ class ScrobblerService {
 }
 
 // Экспортируем в preload контекст
-global.ScrobblerService = ScrobblerService;
+window.ScrobblerService = ScrobblerService;
 
 class ScrobbleManager {
   constructor() {
@@ -377,12 +367,12 @@ class ScrobbleManager {
   }
 }
 
-global.ScrobbleManager = new ScrobbleManager();
+window.ScrobbleManager = new ScrobbleManager();
 
 if (typeof module !== 'undefined') {
   module.exports = {
     ScrobblerService,
-    ScrobbleManager: global.ScrobbleManager
+    ScrobbleManager: window.ScrobbleManager
   };
 }
 

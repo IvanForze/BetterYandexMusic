@@ -2,6 +2,30 @@
 // SCROBBLER SETTINGS UI INJECTOR (Polished & Resilient)
 // ==========================================
 
+// Имитация contextBridge для браузерного расширения через window.postMessage
+if (!window.__ymSyncBridge && typeof window.ScrobblerService === 'undefined') {
+  function callScrobblerApi(method, args) {
+    return new Promise((resolve, reject) => {
+      const nonce = Math.random().toString();
+      const handler = (event) => {
+        if (event.source !== window || !event.data || event.data.type !== 'YM_SCROBBLER_API_RESPONSE' || event.data.nonce !== nonce) return;
+        window.removeEventListener('message', handler);
+        if (event.data.error) reject(new Error(event.data.error));
+        else resolve(event.data.result);
+      };
+      window.addEventListener('message', handler);
+      window.postMessage({ type: 'YM_SCROBBLER_API_CALL', method, args, nonce }, '*');
+    });
+  }
+
+  window.__ymSyncBridge = {
+    sendScrobblerSettings: (settings) => window.postMessage({ type: 'YM_SCROBBLER_SETTINGS_CHANGED', settings }, '*'),
+    lastFmGetToken: (k, s) => callScrobblerApi('lastFmGetToken', [k, s]),
+    lastFmGetSession: (t, k, s) => callScrobblerApi('lastFmGetSession', [t, k, s]),
+    listenBrainzValidateToken: (t) => callScrobblerApi('listenBrainzValidateToken', [t])
+  };
+}
+
 let lastFmPendingToken = null;
 
 function syncSettingsToPreload() {
@@ -31,18 +55,20 @@ setTimeout(syncSettingsToPreload, 2000);
 
 function checkAndInjectSettings() {
   if (!window.location.pathname.includes('/settings')) {
-    window.ymScrobblerSettingsInjected = false;
     return;
   }
   
-  if (window.ymScrobblerSettingsInjected) return;
+  // Проверяем, не внедрено ли уже в DOM
+  if (document.getElementById('ym-scrobbler-settings-block')) {
+    return;
+  }
   
-  // Ищем элемент "Офлайн-режим" или "О приложении", чтобы найти список настроек
+  // Ищем элемент "Офлайн-режим", "О приложении", "Внешний вид", "Язык" чтобы найти список настроек
   const divs = Array.from(document.querySelectorAll('div, span, p, h2, h3'));
   const targetTextElement = divs.find(el => {
     if (el.children.length > 0) return false; // Ищем самый глубокий текстовый узел
     const text = el.textContent || '';
-    return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении');
+    return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении') || text.includes('Внешний вид') || text.includes('Язык') || text.includes('Качество звука');
   });
 
   if (!targetTextElement) return;
@@ -55,12 +81,6 @@ function checkAndInjectSettings() {
 
   const listContainer = itemNode ? itemNode.parentElement : null;
   if (!listContainer) return;
-
-  // Проверяем, не внедрено ли уже
-  if (document.getElementById('ym-scrobbler-settings-block')) {
-    window.ymScrobblerSettingsInjected = true;
-    return;
-  }
 
   // Создаем блок настроек скроблинга
   const block = document.createElement('div');

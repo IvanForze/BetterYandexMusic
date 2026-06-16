@@ -13,7 +13,9 @@
     "https://soundcloud.com/*",
     "https://api-v2.soundcloud.com/*",
     "https://*.sndcdn.com/*",
-    "https://translate.googleapis.com/*"
+    "https://translate.googleapis.com/*",
+    "https://ws.audioscrobbler.com/*",
+    "https://api.listenbrainz.org/*"
   ],
   "background": {
     "service_worker": "background.js"

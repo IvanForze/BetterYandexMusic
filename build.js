@@ -16,7 +16,8 @@ function buildElectron() {
   const preloadFiles = [
     'preload/variables.js',
     'preload/discord.js',
-    'preload/scrobbler.js',
+    'shared/md5.js',
+    'shared/scrobbler.js',
     'preload/api-server.js',
     'shared/soundcloud-import.js',
     'preload/bridge.js'
@@ -111,6 +112,9 @@ function buildExtension() {
   // Isolated Context Files
   const isolatedFiles = [
     'shared/styles.js',
+    'shared/md5.js',
+    'shared/scrobbler.js',
+    'isolated/scrobbler-init.js',
     'isolated/variables.js',
     'shared/themes.js',
     'shared/navbar-sync.js',
@@ -131,6 +135,7 @@ function buildExtension() {
   const mainFiles = [
     'main/variables.js',
     'main/player-monitor.js',
+    'shared/settings-injector.js',
     'shared/soundcloud-api.js',
     'shared/custom-audio.js',
     'shared/player-faker.js',
