@@ -33,6 +33,25 @@ window.addEventListener('message', async (event) => {
     return;
   }
 
+  if (type === 'YM_UPLOAD_TRACK') {
+    try {
+      const result = await handleSoundCloudUpload(payload);
+      window.postMessage({
+        __ym_sc_bridge_response: true,
+        requestId,
+        response: { ok: true, result }
+      }, '*');
+    } catch (err) {
+      console.error('[BRIDGE] Yandex upload error:', err);
+      window.postMessage({
+        __ym_sc_bridge_response: true,
+        requestId,
+        response: { ok: false, error: err.message }
+      }, '*');
+    }
+    return;
+  }
+
   // All other types (SC_SEARCH, SC_GET_STREAM) → relay to background service worker
   chrome.runtime.sendMessage({ type, ...payload }, (response) => {
     window.postMessage({
@@ -42,4 +61,3 @@ window.addEventListener('message', async (event) => {
     }, '*');
   });
 });
-

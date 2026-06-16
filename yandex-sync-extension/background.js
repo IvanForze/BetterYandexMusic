@@ -116,4 +116,116 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(err => sendResponse({ ok: false, error: err.message }));
     return true; // async response
   }
+
+  if (request.type === 'RZT_GET_RATINGS') {
+    const query = request.title;
+    const url = `https://risazatvorchestvo.com/search?query=${encodeURIComponent(query)}&type=releases`;
+    fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    })
+    .then(res => res.text())
+    .then(html => {
+      const ratings = rztParseScoresFromHtml(html, request.title, request.artist);
+      sendResponse({ ok: true, data: ratings });
+    })
+    .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true; // async response
+  }
 });
+
+function rztNormalizeText(text) {
+  if (!text) return '';
+  return text.toLowerCase()
+    .replace(/[\u200b-\u200d\uFEFF]/g, '')
+    .replace(/[^a-zа-я0-9\s-_]/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function rztHasArtistMatch(chunk, artistName) {
+  if (!artistName) return true;
+  const cleanArtist = rztNormalizeText(artistName);
+  const cleanChunk = rztNormalizeText(chunk);
+  
+  if (cleanChunk.includes(cleanArtist)) return true;
+  
+  const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => rztNormalizeText(a)).filter(Boolean);
+  for (const a of artists) {
+    if (cleanChunk.includes(a)) return true;
+  }
+  
+  return false;
+}
+
+function rztParseScoresFromHtml(html, trackTitle, artistName) {
+  if (!html) return null;
+  const titleClean = rztNormalizeText(trackTitle);
+  
+  const indices = [];
+  let idx = html.toLowerCase().indexOf(titleClean);
+  while (idx !== -1) {
+    indices.push(idx);
+    idx = html.toLowerCase().indexOf(titleClean, idx + 1);
+  }
+  
+  if (indices.length === 0) {
+    const simpleTitle = rztNormalizeText(trackTitle.split(/[(\[]/)[0]);
+    if (simpleTitle && simpleTitle !== titleClean) {
+      let idx2 = html.toLowerCase().indexOf(simpleTitle);
+      while (idx2 !== -1) {
+        indices.push(idx2);
+        idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+      }
+    }
+  }
+
+  for (const pos of indices) {
+    const chunk = html.slice(pos, pos + 3000);
+    if (rztHasArtistMatch(chunk, artistName)) {
+      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+      if (matches.length > 0) {
+        return {
+          flomaster: matches[2] || null,
+          withReviews: matches[0] || null,
+          withoutReviews: matches[1] || null
+        };
+      }
+    }
+  }
+
+  if (indices.length > 0) {
+    const chunk = html.slice(indices[0], indices[0] + 3000);
+    const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+    const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+    if (matches.length > 0) {
+      return {
+        flomaster: matches[2] || null,
+        withReviews: matches[0] || null,
+        withoutReviews: matches[1] || null
+      };
+    }
+  }
+
+  const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
+  const match = html.match(fallbackRegex);
+  if (match) {
+    const pos = html.indexOf(match[0]);
+    const chunk = html.slice(pos, pos + 3000);
+    const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+    const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+    if (matches.length > 0) {
+      return {
+        flomaster: matches[2] || null,
+        withReviews: matches[0] || null,
+        withoutReviews: matches[1] || null
+      };
+    }
+  }
+
+  return null;
+}

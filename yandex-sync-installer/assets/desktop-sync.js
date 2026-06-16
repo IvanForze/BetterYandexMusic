@@ -86,7 +86,13 @@
             window.__ymSyncJoinRoomCallback = callback;
           },
           fetchLyrics: (url) => fetchLyricsNode(url),
-          translateText: (text, targetLang) => translateTextNode(text, targetLang)
+          translateText: (text, targetLang) => translateTextNode(text, targetLang),
+          lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+          lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+          listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+          sendScrobblerSettings: (settings) => {
+            if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+          }
         });
       } else if (typeof window !== 'undefined') {
         window.__ymSyncBridge = {
@@ -100,7 +106,13 @@
             window.__ymSyncJoinRoomCallback = callback;
           },
           fetchLyrics: (url) => fetchLyricsNode(url),
-          translateText: (text, targetLang) => translateTextNode(text, targetLang)
+          translateText: (text, targetLang) => translateTextNode(text, targetLang),
+          lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+          lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+          listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+          sendScrobblerSettings: (settings) => {
+            if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+          }
         };
       }
     } catch (e) {
@@ -168,7 +180,13 @@
                 });
               });
             },
-            translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang)
+            translateText: (text, targetLang) => translateTextNodeFallback(text, targetLang),
+            lastFmGetToken: (apiKey, secret) => global.ScrobblerService.lastFmGetToken(apiKey, secret),
+            lastFmGetSession: (token, apiKey, secret) => global.ScrobblerService.lastFmGetSession(token, apiKey, secret),
+            listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
+            sendScrobblerSettings: (settings) => {
+              if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
+            }
           };
         }
       } catch (e2) {}
@@ -451,11 +469,15 @@
         qualityInfo = `${codecStr}${bitrateStr}`;
       }
     
-      const stateText = qualityInfo ? `от ${metadata.artist} • ${qualityInfo}` : `от ${metadata.artist}`;
+      let stateText = qualityInfo ? `от ${metadata.artist} • ${qualityInfo}` : `от ${metadata.artist}`;
+      if (isPause) {
+        stateText = `[Пауза] ${stateText}`;
+      }
     
       const activity = {
         details: metadata.title,
         state: stateText,
+        type: 2, // 2 = Listening (Слушает)
         assets: {
           large_image: metadata.coverUrl,
           large_text: qualityInfo ? `${metadata.title} — ${metadata.artist} [${qualityInfo}]` : `${metadata.title} — ${metadata.artist}`
@@ -468,11 +490,11 @@
       }
     
       if (!isPause && metadata.durationMs > 0) {
-        const startTime = now - Math.round(position * 1000);
-        const endTime = startTime + metadata.durationMs;
+        const startSec = Math.floor((now - Math.round(position * 1000)) / 1000);
+        const endSec = Math.floor((now - Math.round(position * 1000) + metadata.durationMs) / 1000);
         activity.timestamps = {
-          start: startTime,
-          end: endTime
+          start: startSec,
+          end: endSec
         };
       }
     
@@ -505,6 +527,984 @@
     
       if (discordRPC) discordRPC.setActivity(activity);
     }
+    
+    
+    // --- Component: shared/md5.js ---
+    /*
+     * JavaScript MD5
+     * https://github.com/blueimp/JavaScript-MD5
+     *
+     * Copyright 2011, Sebastian Tschan
+     * https://blueimp.net
+     *
+     * Licensed under the MIT license:
+     * https://opensource.org/licenses/MIT
+     *
+     * Based on
+     * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+     * Digest Algorithm, as defined in RFC 1321.
+     * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+     * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+     * Distributed under the BSD License
+     * See http://pajhome.org.uk/crypt/md5 for more info.
+     */
+    
+    /* global define */
+    
+    /* eslint-disable strict */
+    
+    ;(function ($) {
+      'use strict'
+    
+      /**
+       * Add integers, wrapping at 2^32.
+       * This uses 16-bit operations internally to work around bugs in interpreters.
+       *
+       * @param {number} x First integer
+       * @param {number} y Second integer
+       * @returns {number} Sum
+       */
+      function safeAdd(x, y) {
+        var lsw = (x & 0xffff) + (y & 0xffff)
+        var msw = (x >> 16) + (y >> 16) + (lsw >> 16)
+        return (msw << 16) | (lsw & 0xffff)
+      }
+    
+      /**
+       * Bitwise rotate a 32-bit number to the left.
+       *
+       * @param {number} num 32-bit number
+       * @param {number} cnt Rotation count
+       * @returns {number} Rotated number
+       */
+      function bitRotateLeft(num, cnt) {
+        return (num << cnt) | (num >>> (32 - cnt))
+      }
+    
+      /**
+       * Basic operation the algorithm uses.
+       *
+       * @param {number} q q
+       * @param {number} a a
+       * @param {number} b b
+       * @param {number} x x
+       * @param {number} s s
+       * @param {number} t t
+       * @returns {number} Result
+       */
+      function md5cmn(q, a, b, x, s, t) {
+        return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
+      }
+      /**
+       * Basic operation the algorithm uses.
+       *
+       * @param {number} a a
+       * @param {number} b b
+       * @param {number} c c
+       * @param {number} d d
+       * @param {number} x x
+       * @param {number} s s
+       * @param {number} t t
+       * @returns {number} Result
+       */
+      function md5ff(a, b, c, d, x, s, t) {
+        return md5cmn((b & c) | (~b & d), a, b, x, s, t)
+      }
+      /**
+       * Basic operation the algorithm uses.
+       *
+       * @param {number} a a
+       * @param {number} b b
+       * @param {number} c c
+       * @param {number} d d
+       * @param {number} x x
+       * @param {number} s s
+       * @param {number} t t
+       * @returns {number} Result
+       */
+      function md5gg(a, b, c, d, x, s, t) {
+        return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
+      }
+      /**
+       * Basic operation the algorithm uses.
+       *
+       * @param {number} a a
+       * @param {number} b b
+       * @param {number} c c
+       * @param {number} d d
+       * @param {number} x x
+       * @param {number} s s
+       * @param {number} t t
+       * @returns {number} Result
+       */
+      function md5hh(a, b, c, d, x, s, t) {
+        return md5cmn(b ^ c ^ d, a, b, x, s, t)
+      }
+      /**
+       * Basic operation the algorithm uses.
+       *
+       * @param {number} a a
+       * @param {number} b b
+       * @param {number} c c
+       * @param {number} d d
+       * @param {number} x x
+       * @param {number} s s
+       * @param {number} t t
+       * @returns {number} Result
+       */
+      function md5ii(a, b, c, d, x, s, t) {
+        return md5cmn(c ^ (b | ~d), a, b, x, s, t)
+      }
+    
+      /**
+       * Calculate the MD5 of an array of little-endian words, and a bit length.
+       *
+       * @param {Array} x Array of little-endian words
+       * @param {number} len Bit length
+       * @returns {Array<number>} MD5 Array
+       */
+      function binlMD5(x, len) {
+        /* append padding */
+        x[len >> 5] |= 0x80 << len % 32
+        x[(((len + 64) >>> 9) << 4) + 14] = len
+    
+        var i
+        var olda
+        var oldb
+        var oldc
+        var oldd
+        var a = 1732584193
+        var b = -271733879
+        var c = -1732584194
+        var d = 271733878
+    
+        for (i = 0; i < x.length; i += 16) {
+          olda = a
+          oldb = b
+          oldc = c
+          oldd = d
+    
+          a = md5ff(a, b, c, d, x[i], 7, -680876936)
+          d = md5ff(d, a, b, c, x[i + 1], 12, -389564586)
+          c = md5ff(c, d, a, b, x[i + 2], 17, 606105819)
+          b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330)
+          a = md5ff(a, b, c, d, x[i + 4], 7, -176418897)
+          d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426)
+          c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341)
+          b = md5ff(b, c, d, a, x[i + 7], 22, -45705983)
+          a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416)
+          d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417)
+          c = md5ff(c, d, a, b, x[i + 10], 17, -42063)
+          b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162)
+          a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682)
+          d = md5ff(d, a, b, c, x[i + 13], 12, -40341101)
+          c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290)
+          b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329)
+    
+          a = md5gg(a, b, c, d, x[i + 1], 5, -165796510)
+          d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632)
+          c = md5gg(c, d, a, b, x[i + 11], 14, 643717713)
+          b = md5gg(b, c, d, a, x[i], 20, -373897302)
+          a = md5gg(a, b, c, d, x[i + 5], 5, -701558691)
+          d = md5gg(d, a, b, c, x[i + 10], 9, 38016083)
+          c = md5gg(c, d, a, b, x[i + 15], 14, -660478335)
+          b = md5gg(b, c, d, a, x[i + 4], 20, -405537848)
+          a = md5gg(a, b, c, d, x[i + 9], 5, 568446438)
+          d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690)
+          c = md5gg(c, d, a, b, x[i + 3], 14, -187363961)
+          b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501)
+          a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467)
+          d = md5gg(d, a, b, c, x[i + 2], 9, -51403784)
+          c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473)
+          b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734)
+    
+          a = md5hh(a, b, c, d, x[i + 5], 4, -378558)
+          d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463)
+          c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562)
+          b = md5hh(b, c, d, a, x[i + 14], 23, -35309556)
+          a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060)
+          d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353)
+          c = md5hh(c, d, a, b, x[i + 7], 16, -155497632)
+          b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640)
+          a = md5hh(a, b, c, d, x[i + 13], 4, 681279174)
+          d = md5hh(d, a, b, c, x[i], 11, -358537222)
+          c = md5hh(c, d, a, b, x[i + 3], 16, -722521979)
+          b = md5hh(b, c, d, a, x[i + 6], 23, 76029189)
+          a = md5hh(a, b, c, d, x[i + 9], 4, -640364487)
+          d = md5hh(d, a, b, c, x[i + 12], 11, -421815835)
+          c = md5hh(c, d, a, b, x[i + 15], 16, 530742520)
+          b = md5hh(b, c, d, a, x[i + 2], 23, -995338651)
+    
+          a = md5ii(a, b, c, d, x[i], 6, -198630844)
+          d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415)
+          c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905)
+          b = md5ii(b, c, d, a, x[i + 5], 21, -57434055)
+          a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571)
+          d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606)
+          c = md5ii(c, d, a, b, x[i + 10], 15, -1051523)
+          b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799)
+          a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359)
+          d = md5ii(d, a, b, c, x[i + 15], 10, -30611744)
+          c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380)
+          b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649)
+          a = md5ii(a, b, c, d, x[i + 4], 6, -145523070)
+          d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379)
+          c = md5ii(c, d, a, b, x[i + 2], 15, 718787259)
+          b = md5ii(b, c, d, a, x[i + 9], 21, -343485551)
+    
+          a = safeAdd(a, olda)
+          b = safeAdd(b, oldb)
+          c = safeAdd(c, oldc)
+          d = safeAdd(d, oldd)
+        }
+        return [a, b, c, d]
+      }
+    
+      /**
+       * Convert an array of little-endian words to a string
+       *
+       * @param {Array<number>} input MD5 Array
+       * @returns {string} MD5 string
+       */
+      function binl2rstr(input) {
+        var i
+        var output = ''
+        var length32 = input.length * 32
+        for (i = 0; i < length32; i += 8) {
+          output += String.fromCharCode((input[i >> 5] >>> i % 32) & 0xff)
+        }
+        return output
+      }
+    
+      /**
+       * Convert a raw string to an array of little-endian words
+       * Characters >255 have their high-byte silently ignored.
+       *
+       * @param {string} input Raw input string
+       * @returns {Array<number>} Array of little-endian words
+       */
+      function rstr2binl(input) {
+        var i
+        var output = []
+        output[(input.length >> 2) - 1] = undefined
+        for (i = 0; i < output.length; i += 1) {
+          output[i] = 0
+        }
+        var length8 = input.length * 8
+        for (i = 0; i < length8; i += 8) {
+          output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << i % 32
+        }
+        return output
+      }
+    
+      /**
+       * Calculate the MD5 of a raw string
+       *
+       * @param {string} s Input string
+       * @returns {string} Raw MD5 string
+       */
+      function rstrMD5(s) {
+        return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
+      }
+    
+      /**
+       * Calculates the HMAC-MD5 of a key and some data (raw strings)
+       *
+       * @param {string} key HMAC key
+       * @param {string} data Raw input string
+       * @returns {string} Raw MD5 string
+       */
+      function rstrHMACMD5(key, data) {
+        var i
+        var bkey = rstr2binl(key)
+        var ipad = []
+        var opad = []
+        var hash
+        ipad[15] = opad[15] = undefined
+        if (bkey.length > 16) {
+          bkey = binlMD5(bkey, key.length * 8)
+        }
+        for (i = 0; i < 16; i += 1) {
+          ipad[i] = bkey[i] ^ 0x36363636
+          opad[i] = bkey[i] ^ 0x5c5c5c5c
+        }
+        hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8)
+        return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
+      }
+    
+      /**
+       * Convert a raw string to a hex string
+       *
+       * @param {string} input Raw input string
+       * @returns {string} Hex encoded string
+       */
+      function rstr2hex(input) {
+        var hexTab = '0123456789abcdef'
+        var output = ''
+        var x
+        var i
+        for (i = 0; i < input.length; i += 1) {
+          x = input.charCodeAt(i)
+          output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f)
+        }
+        return output
+      }
+    
+      /**
+       * Encode a string as UTF-8
+       *
+       * @param {string} input Input string
+       * @returns {string} UTF8 string
+       */
+      function str2rstrUTF8(input) {
+        return unescape(encodeURIComponent(input))
+      }
+    
+      /**
+       * Encodes input string as raw MD5 string
+       *
+       * @param {string} s Input string
+       * @returns {string} Raw MD5 string
+       */
+      function rawMD5(s) {
+        return rstrMD5(str2rstrUTF8(s))
+      }
+      /**
+       * Encodes input string as Hex encoded string
+       *
+       * @param {string} s Input string
+       * @returns {string} Hex encoded string
+       */
+      function hexMD5(s) {
+        return rstr2hex(rawMD5(s))
+      }
+      /**
+       * Calculates the raw HMAC-MD5 for the given key and data
+       *
+       * @param {string} k HMAC key
+       * @param {string} d Input string
+       * @returns {string} Raw MD5 string
+       */
+      function rawHMACMD5(k, d) {
+        return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
+      }
+      /**
+       * Calculates the Hex encoded HMAC-MD5 for the given key and data
+       *
+       * @param {string} k HMAC key
+       * @param {string} d Input string
+       * @returns {string} Raw MD5 string
+       */
+      function hexHMACMD5(k, d) {
+        return rstr2hex(rawHMACMD5(k, d))
+      }
+    
+      /**
+       * Calculates MD5 value for a given string.
+       * If a key is provided, calculates the HMAC-MD5 value.
+       * Returns a Hex encoded string unless the raw argument is given.
+       *
+       * @param {string} string Input string
+       * @param {string} [key] HMAC key
+       * @param {boolean} [raw] Raw output switch
+       * @returns {string} MD5 output
+       */
+      function md5(string, key, raw) {
+        if (!key) {
+          if (!raw) {
+            return hexMD5(string)
+          }
+          return rawMD5(string)
+        }
+        if (!raw) {
+          return hexHMACMD5(key, string)
+        }
+        return rawHMACMD5(key, string)
+      }
+    
+      if (typeof define === 'function' && define.amd) {
+        define(function () {
+          return md5
+        })
+      } else if (typeof module === 'object' && module.exports) {
+        module.exports = md5
+      } else {
+        $.md5 = md5
+      }
+      if (typeof window !== 'undefined') window.md5 = md5;
+      if (typeof global !== 'undefined') global.md5 = md5;
+    })(this)
+    
+    
+    // --- Component: shared/rzt-api.js ---
+    // ==========================================
+    // RISA ZA TVORCHESTVO (RZT) API
+    // ==========================================
+    
+    const RztAPI = {
+      _pendingRequests: {},
+      _initialized: false,
+    
+      _init() {
+        if (this._initialized) return;
+        this._initialized = true;
+    
+        if (typeof window !== 'undefined') {
+          window.addEventListener('message', (event) => {
+            if (!event.data || !event.data.__ym_sc_bridge_response) return;
+            const { requestId, response } = event.data;
+            const pending = this._pendingRequests[requestId];
+            if (pending) {
+              delete this._pendingRequests[requestId];
+              if (response && response.ok) {
+                pending.resolve(response.data || response.result); // supports data or result keys
+              } else {
+                pending.reject(new Error(response && response.error ? response.error : 'Unknown bridge error'));
+              }
+            }
+          });
+        }
+      },
+    
+      _sendToBridge(type, payload) {
+        this._init();
+        return new Promise((resolve, reject) => {
+          const requestId = `rzt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+          this._pendingRequests[requestId] = { resolve, reject };
+    
+          // Timeout safety
+          setTimeout(() => {
+            if (this._pendingRequests[requestId]) {
+              delete this._pendingRequests[requestId];
+              reject(new Error('RZT bridge request timed out'));
+            }
+          }, 15000);
+    
+          window.postMessage({
+            __ym_sc_bridge: true,
+            requestId,
+            type,
+            payload
+          }, '*');
+        });
+      },
+    
+      normalizeText(text) {
+        if (!text) return '';
+        return text.toLowerCase()
+          .replace(/[\u200b-\u200d\uFEFF]/g, '') // Strip zero-width spaces/BOM
+          .replace(/[^a-zа-я0-9\s-_]/gi, '')   // Keep only letters, digits, spaces, hyphens, underscores
+          .replace(/\s+/g, ' ')
+          .trim();
+      },
+    
+      hasArtistMatch(chunk, artistName) {
+        if (!artistName) return true;
+        const cleanArtist = this.normalizeText(artistName);
+        const cleanChunk = this.normalizeText(chunk);
+        
+        if (cleanChunk.includes(cleanArtist)) return true;
+        
+        // Split by common artist separators and check each one
+        const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => this.normalizeText(a)).filter(Boolean);
+        for (const a of artists) {
+          if (cleanChunk.includes(a)) return true;
+        }
+        
+        return false;
+      },
+    
+      parseScoresFromHtml(html, trackTitle, artistName) {
+        if (!html) return null;
+        const titleClean = this.normalizeText(trackTitle);
+        
+        // 1. Gather all occurrence positions of the track title
+        const indices = [];
+        let idx = html.toLowerCase().indexOf(titleClean);
+        while (idx !== -1) {
+          indices.push(idx);
+          idx = html.toLowerCase().indexOf(titleClean, idx + 1);
+        }
+        
+        // Fallback 1: try title without bracketed info if no matches found
+        if (indices.length === 0) {
+          const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
+          if (simpleTitle && simpleTitle !== titleClean) {
+            let idx2 = html.toLowerCase().indexOf(simpleTitle);
+            while (idx2 !== -1) {
+              indices.push(idx2);
+              idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+            }
+          }
+        }
+    
+        // 2. Scan occurrences and look for the one matching the artist
+        for (const pos of indices) {
+          const chunk = html.slice(pos, pos + 3000);
+          if (this.hasArtistMatch(chunk, artistName)) {
+            const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+            const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+            if (matches.length > 0) {
+              return {
+                flomaster: matches[2] || null,
+                withReviews: matches[0] || null,
+                withoutReviews: matches[1] || null
+              };
+            }
+          }
+        }
+    
+        // Fallback 2: if no matches had the artist, parse ratings from the first track title match
+        if (indices.length > 0) {
+          const chunk = html.slice(indices[0], indices[0] + 3000);
+          const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+          const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+          if (matches.length > 0) {
+            return {
+              flomaster: matches[2] || null,
+              withReviews: matches[0] || null,
+              withoutReviews: matches[1] || null
+            };
+          }
+        }
+    
+        // Fallback 3: try the first track link in the entire search results page
+        const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
+        const match = html.match(fallbackRegex);
+        if (match) {
+          const pos = html.indexOf(match[0]);
+          const chunk = html.slice(pos, pos + 3000);
+          const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+          const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+          if (matches.length > 0) {
+            return {
+              flomaster: matches[2] || null,
+              withReviews: matches[0] || null,
+              withoutReviews: matches[1] || null
+            };
+          }
+        }
+    
+        return null;
+      },
+    
+      async getTrackRatings(artist, title) {
+        try {
+          return await this._sendToBridge('RZT_GET_RATINGS', { artist, title });
+        } catch (err) {
+          console.error('[RZT] Error getting track ratings:', err);
+          return null;
+        }
+      }
+    };
+    
+    if (typeof window !== 'undefined') {
+      window.RztAPI = RztAPI;
+    }
+    if (typeof module !== 'undefined') {
+      module.exports = RztAPI;
+    }
+    
+    
+    // --- Component: shared/scrobbler.js ---
+    // Дефолтные ключи Last.fm (могут быть переопределены пользователем в настройках)
+    const LASTFM_DEFAULT_API_KEY = '4d12b2b376510476bfdae3e2c62c96c4';
+    const LASTFM_DEFAULT_SECRET = '78e24c2a5e985b67484df24cd76bf349';
+    
+    function md5Hash(str) {
+      if (typeof window !== 'undefined' && window.md5) return window.md5(str);
+      if (typeof global !== 'undefined' && global.md5) return global.md5(str);
+      throw new Error('MD5 function not found. Ensure md5.js is loaded.');
+    }
+    
+    async function makeHttpRequest(url, options = {}, body = null) {
+      const reqOptions = {
+        method: options.method || 'GET',
+        headers: options.headers || {}
+      };
+    
+      if (body) {
+        reqOptions.body = body;
+      }
+    
+      const response = await fetch(url, reqOptions);
+      const text = await response.text();
+    
+      if (response.ok) {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          return text;
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}: ${text}`);
+      }
+    }
+    
+    // Генерирует подпись api_sig для Last.fm
+    function generateLastFmSignature(params, secret) {
+      const sortedKeys = Object.keys(params).sort();
+      let signatureStr = '';
+      for (const key of sortedKeys) {
+        if (key !== 'format') {
+          signatureStr += key + params[key];
+        }
+      }
+      signatureStr += secret;
+      return md5Hash(signatureStr);
+    }
+    
+    class ScrobblerService {
+      static getSettings() {
+        let settings = {
+          lastfmEnabled: false,
+          lastfmApiKey: '',
+          lastfmSecret: '',
+          lastfmSessionKey: '',
+          lastfmUsername: '',
+          listenbrainzEnabled: false,
+          listenbrainzToken: '',
+          listenbrainzUsername: ''
+        };
+        return settings;
+      }
+    
+      // Получить авторизационный токен Last.fm
+      static async lastFmGetToken(customApiKey, customSecret) {
+        const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = customSecret || LASTFM_DEFAULT_SECRET;
+    
+        const params = {
+          api_key: apiKey,
+          method: 'auth.getToken'
+        };
+        const apiSig = generateLastFmSignature(params, secret);
+        const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key=${apiKey}&api_sig=${apiSig}&format=json`;
+        const data = await makeHttpRequest(url);
+        return data.token;
+      }
+    
+      // Получить Session Key по токену Last.fm
+      static async lastFmGetSession(token, customApiKey, customSecret) {
+        const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = customSecret || LASTFM_DEFAULT_SECRET;
+        
+        const params = {
+          api_key: apiKey,
+          method: 'auth.getSession',
+          token: token
+        };
+        const apiSig = generateLastFmSignature(params, secret);
+        
+        const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${apiKey}&token=${token}&api_sig=${apiSig}&format=json`;
+        const data = await makeHttpRequest(url);
+        if (data.session) {
+          return {
+            sessionKey: data.session.key,
+            username: data.session.name
+          };
+        }
+        throw new Error('Не удалось получить сессию Last.fm');
+      }
+    
+      // Обновить "Now Playing" в Last.fm
+      static async lastFmNowPlaying(trackData, config) {
+        if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+        
+        const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+    
+        const params = {
+          api_key: apiKey,
+          artist: trackData.artist,
+          track: trackData.title,
+          method: 'track.updateNowPlaying',
+          sk: config.lastfmSessionKey
+        };
+        if (trackData.album) params.album = trackData.album;
+        if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+    
+        const apiSig = generateLastFmSignature(params, secret);
+        params.api_sig = apiSig;
+        params.format = 'json';
+    
+        const body = new URLSearchParams(params).toString();
+        const url = 'https://ws.audioscrobbler.com/2.0/';
+        
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }, body);
+      }
+    
+      // Заскроблить в Last.fm
+      static async lastFmScrobble(trackData, config) {
+        if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+    
+        const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+        const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+        const timestamp = Math.floor(Date.now() / 1000);
+    
+        const params = {
+          api_key: apiKey,
+          artist: trackData.artist,
+          track: trackData.title,
+          timestamp: timestamp,
+          method: 'track.scrobble',
+          sk: config.lastfmSessionKey
+        };
+        if (trackData.album) params.album = trackData.album;
+        if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+    
+        const apiSig = generateLastFmSignature(params, secret);
+        params.api_sig = apiSig;
+        params.format = 'json';
+    
+        const body = new URLSearchParams(params).toString();
+        const url = 'https://ws.audioscrobbler.com/2.0/';
+    
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        }, body);
+      }
+    
+      // Отправка Now Playing / Scrobble в ListenBrainz
+      static async listenBrainzSubmit(trackData, config, listenType) {
+        if (!config.listenbrainzEnabled || !config.listenbrainzToken) return;
+    
+        const timestamp = Math.floor(Date.now() / 1000);
+        const payload = [
+          {
+            listened_at: listenType === 'scrobble' ? timestamp : undefined,
+            track_metadata: {
+              artist_name: trackData.artist,
+              track_name: trackData.title,
+              release_name: trackData.album || undefined,
+              additional_info: {
+                media_player: 'Yandex Music Sync Client',
+                duration_ms: trackData.durationMs || undefined
+              }
+            }
+          }
+        ];
+    
+        console.log(`[LISTENBRAINZ] Отправка статуса '${listenType}' для: ${trackData.artist} - ${trackData.title}`);
+    
+        const body = JSON.stringify({
+          listen_type: listenType, // 'playing_now' или 'single' (для скроблинга)
+          payload: payload
+        });
+    
+        const url = 'https://api.listenbrainz.org/1/submit-listens';
+        
+        return makeHttpRequest(url, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Token ${config.listenbrainzToken}`,
+            'Content-Type': 'application/json'
+          }
+        }, body).then(res => {
+          console.log(`[LISTENBRAINZ] Успешно отправлен статус '${listenType}'`);
+          return res;
+        });
+      }
+    
+      // Проверить токен ListenBrainz и получить имя пользователя
+      static async listenBrainzValidateToken(token) {
+        const url = 'https://api.listenbrainz.org/1/validate-token';
+        const data = await makeHttpRequest(url, {
+          headers: {
+            'Authorization': `Token ${token}`
+          }
+        });
+        if (data.valid === true) {
+          return data.user_name;
+        }
+        throw new Error('Недействительный токен ListenBrainz');
+      }
+    }
+    
+    // Экспортируем в preload контекст
+    window.ScrobblerService = ScrobblerService;
+    
+    class ScrobbleManager {
+      constructor() {
+        this.currentTrackId = null;
+        this.currentTrack = null;
+        this.isPlaying = false;
+        this.playtimeMs = 0;
+        this.lastTimestamp = 0;
+        this.nowPlayingSent = false;
+        this.scrobbled = false;
+        
+        // Дефолтные настройки
+        this.config = {
+          lastfmEnabled: false,
+          lastfmApiKey: '',
+          lastfmSecret: '',
+          lastfmSessionKey: '',
+          lastfmUsername: '',
+          listenbrainzEnabled: false,
+          listenbrainzToken: '',
+          listenbrainzUsername: ''
+        };
+      }
+    
+      updateConfig(newConfig) {
+        this.config = { ...this.config, ...newConfig };
+        console.log('[SCROBBLER] Конфигурация обновлена:', {
+          lastfmEnabled: this.config.lastfmEnabled,
+          lastfmUsername: this.config.lastfmUsername,
+          listenbrainzEnabled: this.config.listenbrainzEnabled,
+          listenbrainzUsername: this.config.listenbrainzUsername
+        });
+      }
+    
+      onStateChange(trackId, isPause, position, metadata) {
+        if (!trackId || !metadata) {
+          this.reset();
+          return;
+        }
+    
+        const trackChanged = trackId !== this.currentTrackId;
+    
+        if (trackChanged) {
+          // Пытаемся заскроблить предыдущий трек перед переключением, если порог был достигнут
+          this.checkAndScrobble();
+    
+          console.log('[SCROBBLER] Обнаружена смена трека:', metadata.artist, '-', metadata.title);
+          
+          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (typeof window !== 'undefined' ? window.RztAPI : null);
+          if (apiObj) {
+            apiObj.getTrackRatings(metadata.artist, metadata.title)
+              .then(ratings => {
+                if (ratings) {
+                  console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}": ` +
+                    `Фломастер (РЗТ): ${ratings.flomaster !== null ? ratings.flomaster : '—'} | ` +
+                    `Сайт (с рецензиями): ${ratings.withReviews !== null ? ratings.withReviews : '—'} | ` +
+                    `Сайт (без рецензий): ${ratings.withoutReviews !== null ? ratings.withoutReviews : '—'}`
+                  );
+                } else {
+                  console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}" не найдены (возможно, релиз не оценен)`);
+                }
+              })
+              .catch(err => {
+                console.error('[RZT] Ошибка получения оценок:', err.message);
+              });
+          }
+    
+          this.currentTrackId = trackId;
+          this.currentTrack = {
+            title: metadata.title,
+            artist: metadata.artist,
+            album: metadata.album || '',
+            durationMs: metadata.durationMs || 0
+          };
+          this.isPlaying = !isPause;
+          this.playtimeMs = 0;
+          this.lastTimestamp = Date.now();
+          this.nowPlayingSent = false;
+          this.scrobbled = false;
+        } else {
+          const now = Date.now();
+          if (this.isPlaying) {
+            const delta = now - this.lastTimestamp;
+            // Предохранитель от больших скачков во времени
+            if (delta > 0 && delta < 5000) {
+              this.playtimeMs += delta;
+            }
+          }
+          this.isPlaying = !isPause;
+          this.lastTimestamp = now;
+        }
+    
+        // Отправляем "Слушает сейчас" после 2 секунд чистого воспроизведения
+        if (!this.nowPlayingSent && this.playtimeMs > 2000) {
+          this.sendNowPlaying();
+        }
+    
+        // Проверяем условия для скроблинга
+        this.checkAndScrobble();
+      }
+    
+      reset() {
+        this.checkAndScrobble();
+        this.currentTrackId = null;
+        this.currentTrack = null;
+        this.isPlaying = false;
+        this.playtimeMs = 0;
+        this.lastTimestamp = 0;
+        this.nowPlayingSent = false;
+        this.scrobbled = false;
+      }
+    
+      sendNowPlaying() {
+        if (!this.currentTrack) return;
+        this.nowPlayingSent = true;
+    
+        console.log('[SCROBBLER] Отправка статуса Now Playing для:', this.currentTrack.artist, '-', this.currentTrack.title);
+    
+        if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+          ScrobblerService.lastFmNowPlaying(this.currentTrack, this.config).catch(err => {
+            console.error('[SCROBBLER] Ошибка Last.fm Now Playing:', err.message);
+          });
+        }
+    
+        if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+          ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'playing_now').catch(err => {
+            console.error('[SCROBBLER] Ошибка ListenBrainz Now Playing:', err.message);
+          });
+        }
+      }
+    
+      checkAndScrobble() {
+        if (!this.currentTrack || this.scrobbled) return;
+    
+        // Условия скробблинга Last.fm / ListenBrainz:
+        // 1. Трек играл не менее 30 секунд.
+        // 2. Прослушано 50% длины трека ИЛИ 4 минуты (240 секунд).
+        const durationMs = this.currentTrack.durationMs || 180000; // По умолчанию 3 минуты, если неизвестно
+        const playtimeSec = this.playtimeMs / 1000;
+        const durationSec = durationMs / 1000;
+        const thresholdSec = Math.min(durationSec / 2, 240);
+    
+        if (playtimeSec >= 30 && playtimeSec >= thresholdSec) {
+          this.scrobbled = true;
+          console.log(`[SCROBBLER] Условия скроблинга выполнены (время: ${Math.round(playtimeSec)}с, порог: ${Math.round(thresholdSec)}с). Отправляем скробл.`);
+    
+          if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+            ScrobblerService.lastFmScrobble(this.currentTrack, this.config).then(() => {
+              console.log('[SCROBBLER] Last.fm Scrobble выполнен успешно');
+            }).catch(err => {
+              console.error('[SCROBBLER] Ошибка Last.fm Scrobble:', err.message);
+            });
+          }
+    
+          if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+            ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'scrobble').then(() => {
+              console.log('[SCROBBLER] ListenBrainz Scrobble выполнен успешно');
+            }).catch(err => {
+              console.error('[SCROBBLER] Ошибка ListenBrainz Scrobble:', err.message);
+            });
+          }
+        }
+      }
+    }
+    
+    window.ScrobbleManager = new ScrobbleManager();
+    
+    if (typeof module !== 'undefined') {
+      module.exports = {
+        ScrobblerService,
+        ScrobbleManager: window.ScrobbleManager
+      };
+    }
+    
     
     
     // --- Component: preload/api-server.js ---
@@ -569,6 +1569,227 @@
       } catch (err) {
         console.error('[SYNC] Не удалось запустить локальный API сервер:', err);
       }
+    }
+    
+    
+    // --- Component: shared/soundcloud-import.js ---
+    // ==========================================
+    // SOUNDCLOUD IMPORT UTILITIES
+    // Shareable functions for downloading tracks and uploading to Yandex Music loader
+    // ==========================================
+    
+    // --- ID3v2.3 TAG WRITER HELPERS ---
+    
+    function stringToUtf16leWithBom(str) {
+      const buf = new ArrayBuffer(2 + str.length * 2);
+      const uint8 = new Uint8Array(buf);
+      uint8[0] = 0xFF;
+      uint8[1] = 0xFE;
+      for (let i = 0; i < str.length; i++) {
+        const code = str.charCodeAt(i);
+        uint8[2 + i * 2] = code & 0xFF;
+        uint8[2 + i * 2 + 1] = (code >> 8) & 0xFF;
+      }
+      return uint8;
+    }
+    
+    function encodeUint32(val) {
+      return [
+        (val >> 24) & 0xFF,
+        (val >> 16) & 0xFF,
+        (val >> 8) & 0xFF,
+        val & 0xFF
+      ];
+    }
+    
+    function encodeSynchsafe(size) {
+      return [
+        (size >> 21) & 0x7F,
+        (size >> 14) & 0x7F,
+        (size >> 7) & 0x7F,
+        size & 0x7F
+      ];
+    }
+    
+    function makeTextFrame(id, text) {
+      const utf16Data = stringToUtf16leWithBom(text);
+      const content = new Uint8Array(1 + utf16Data.length);
+      content[0] = 1; // UTF-16 with BOM
+      content.set(utf16Data, 1);
+    
+      const header = new Uint8Array(10);
+      for (let i = 0; i < 4; i++) {
+        header[i] = id.charCodeAt(i);
+      }
+      header.set(encodeUint32(content.length), 4);
+      header[8] = 0;
+      header[9] = 0;
+    
+      const frame = new Uint8Array(header.length + content.length);
+      frame.set(header, 0);
+      frame.set(content, header.length);
+      return frame;
+    }
+    
+    function makeApicFrame(imageBytes, mimeType = 'image/jpeg') {
+      const mimeBytes = new TextEncoder().encode(mimeType);
+      const contentHeaderSize = 1 + mimeBytes.length + 1 + 1 + 1; // encoding + mime + null + type + desc_null
+      const contentSize = contentHeaderSize + imageBytes.length;
+    
+      const content = new Uint8Array(contentSize);
+      let offset = 0;
+      content[offset++] = 0; // ISO-8859-1 encoding for MIME/Description
+      content.set(mimeBytes, offset);
+      offset += mimeBytes.length;
+      content[offset++] = 0; // null termination for MIME
+      content[offset++] = 3; // Front cover
+      content[offset++] = 0; // Empty description, null-terminated
+    
+      content.set(imageBytes, offset);
+    
+      const header = new Uint8Array(10);
+      const id = 'APIC';
+      for (let i = 0; i < 4; i++) {
+        header[i] = id.charCodeAt(i);
+      }
+      header.set(encodeUint32(content.length), 4);
+      header[8] = 0;
+      header[9] = 0;
+    
+      const frame = new Uint8Array(header.length + content.length);
+      frame.set(header, 0);
+      frame.set(content, header.length);
+      return frame;
+    }
+    
+    function generateId3v23Tag(title, artist, imageBytes, mimeType) {
+      const frames = [];
+      if (title) frames.push(makeTextFrame('TIT2', title));
+      if (artist) frames.push(makeTextFrame('TPE1', artist));
+      if (imageBytes && imageBytes.length > 0) {
+        frames.push(makeApicFrame(imageBytes, mimeType));
+      }
+    
+      let totalSize = 0;
+      for (const frame of frames) {
+        totalSize += frame.length;
+      }
+    
+      const header = new Uint8Array(10);
+      header[0] = 0x49; // 'I'
+      header[1] = 0x44; // 'D'
+      header[2] = 0x33; // '3'
+      header[3] = 3;    // version 2.3
+      header[4] = 0;    // revision 0
+      header[5] = 0;    // flags
+    
+      header.set(encodeSynchsafe(totalSize), 6);
+    
+      const tag = new Uint8Array(10 + totalSize);
+      tag.set(header, 0);
+      let offset = 10;
+      for (const frame of frames) {
+        tag.set(frame, offset);
+        offset += frame.length;
+      }
+      return tag;
+    }
+    
+    // --- SHAREABLE UPLOAD FUNCTION ---
+    
+    async function handleSoundCloudUpload(payload) {
+      console.log('[SOUNDCLOUD IMPORT] Starting SoundCloud to Yandex upload. Target:', payload.postTarget);
+      
+      const response = await fetch(payload.streamUrl, { credentials: 'omit' });
+      if (!response.ok) throw new Error(`Failed to download SC stream: ${response.status}`);
+      const rawBlob = await response.blob();
+      
+      // Fetch cover art image if URL is provided
+      let imageBytes = null;
+      let mimeType = 'image/jpeg';
+      if (payload.artworkUrl) {
+        try {
+          const rawArtUrl = payload.artworkUrl;
+          // Prefer high-quality artwork URL (500x500)
+          const artUrl = rawArtUrl.replace('-large', '-t500x500');
+          console.log('[SOUNDCLOUD IMPORT] Downloading cover art from:', artUrl);
+          const imgRes = await fetch(artUrl, { credentials: 'omit' });
+          if (imgRes.ok) {
+            const blob = await imgRes.blob();
+            imageBytes = new Uint8Array(await blob.arrayBuffer());
+            mimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+            console.log('[SOUNDCLOUD IMPORT] Downloaded cover art. Size:', imageBytes.length, 'MIME:', mimeType);
+          }
+        } catch (imgErr) {
+          console.warn('[SOUNDCLOUD IMPORT] Failed to download cover art:', imgErr);
+        }
+      }
+    
+      // Generate ID3v2.3 tag and prepend it to the downloaded MP3 bytes
+      const rawArrayBuffer = await rawBlob.arrayBuffer();
+      const rawBytes = new Uint8Array(rawArrayBuffer);
+      const id3Tag = generateId3v23Tag(payload.title, payload.artist, imageBytes, mimeType);
+    
+      const combinedBytes = new Uint8Array(id3Tag.length + rawBytes.length);
+      combinedBytes.set(id3Tag, 0);
+      combinedBytes.set(rawBytes, id3Tag.length);
+    
+      const mp3Blob = new Blob([combinedBytes], { type: 'audio/mpeg' });
+      console.log('[SOUNDCLOUD IMPORT] Prepended ID3v2.3 tag. Total audio size:', mp3Blob.size);
+    
+      const cleanPostTarget = payload.postTarget.replace(':443/', '/');
+      const formData = new FormData();
+      const file = new File([mp3Blob], payload.filename, { type: 'audio/mpeg' });
+      formData.append('file', file);
+    
+      let uploadResult = null;
+      let uploadError = null;
+      const maxRetries = 3;
+    
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`[SOUNDCLOUD IMPORT] Upload attempt ${attempt} of ${maxRetries} to:`, cleanPostTarget);
+          const uploadRes = await fetch(cleanPostTarget, {
+            method: 'POST',
+            body: formData,
+            credentials: 'omit'
+          });
+    
+          if (uploadRes.status !== 200 && uploadRes.status !== 201) {
+            throw new Error(`Yandex upload returned HTTP ${uploadRes.status}`);
+          }
+    
+          let parsed = { result: 'CREATED' };
+          try {
+            const text = await uploadRes.text();
+            if (text) {
+              const obj = JSON.parse(text);
+              if (obj && typeof obj === 'object') {
+                parsed = { ...parsed, ...obj };
+              }
+            }
+          } catch (e) {
+            console.warn('[SOUNDCLOUD IMPORT] Failed to parse upload response as JSON:', e);
+          }
+    
+          uploadResult = parsed;
+          uploadError = null;
+          break; // Success, exit retry loop
+        } catch (err) {
+          uploadError = err;
+          console.warn(`[SOUNDCLOUD IMPORT] Upload attempt ${attempt} failed:`, err);
+          if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
+      }
+    
+      if (uploadError) {
+        console.warn('[SOUNDCLOUD IMPORT] All upload attempts failed or connection reset, proceeding to check if registration works:', uploadError);
+        uploadResult = { result: 'CREATED' };
+      }
+      console.log('[SOUNDCLOUD IMPORT] Yandex upload complete/ignored. Result:', uploadResult);
+      return uploadResult;
     }
     
     
@@ -701,6 +1922,9 @@
       currentRoom = currentRoomId;
       currentServerUrl = serverUrl;
       updateDiscordPresencePreload(trackId, isPause, position, metadata);
+      if (global.ScrobbleManager) {
+        global.ScrobbleManager.onStateChange(trackId, isPause, position, metadata);
+      }
     };
     
     settingsChangeListener = (settings) => {
@@ -726,6 +1950,12 @@
         
         if (event.data && event.data.type === 'YM_SYNC_SETTINGS_CHANGED') {
           settingsChangeListener({ enabled: event.data.enabled });
+        }
+    
+        if (event.data && event.data.type === 'YM_SCROBBLER_SETTINGS_CHANGED') {
+          if (global.ScrobbleManager) {
+            global.ScrobbleManager.updateConfig(event.data.settings);
+          }
         }
     
         if (event.data && event.data.__ym_sc_bridge === true) {
@@ -795,6 +2025,53 @@
                   response: { ok: false, error: err.message }
                 }, '*');
               });
+          } else if (type === 'YM_UPLOAD_TRACK') {
+            handleSoundCloudUpload(payload)
+              .then(result => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: true, result }
+                }, '*');
+              })
+              .catch(err => {
+                console.error('[PRELOAD-SC] Yandex upload error:', err);
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: false, error: err.message }
+                }, '*');
+              });
+          } else if (type === 'RZT_GET_RATINGS') {
+            const query = payload.title;
+            const url = `https://risazatvorchestvo.com/search?query=${encodeURIComponent(query)}&type=releases`;
+            nodeHttpsRequest(url, {
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+              }
+            })
+            .then(html => {
+              const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+              if (apiObj) {
+                const ratings = apiObj.parseScoresFromHtml(html, payload.title, payload.artist);
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: true, data: ratings }
+                }, '*');
+              } else {
+                throw new Error('RztAPI is not defined in preload context');
+              }
+            })
+            .catch(err => {
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: false, error: err.message }
+              }, '*');
+            });
           }
         }
       });
@@ -1736,6 +3013,82 @@ function injectStyles() {
       box-shadow: 0 0 12px rgba(255, 219, 77, 0.4) !important;
     }
 
+    /* RZT Ratings Container and Circles */
+    .ym-fullscreen-rzt-ratings {
+      position: absolute !important;
+      top: 34px !important;
+      left: 92px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 10px !important;
+      z-index: 100000 !important;
+      pointer-events: auto !important;
+    }
+
+    .ym-rzt-rating-circle {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-family: "YSMusic Headline", "YS Text", "Yandex Sans", sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      position: relative !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: transform 0.2s ease, opacity 0.2s ease !important;
+    }
+
+    .ym-rzt-rating-circle:hover {
+      transform: scale(1.1) !important;
+    }
+
+    /* Tooltip styling */
+    .ym-rzt-rating-circle::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: rgba(28, 28, 32, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-family: "YS Text", "Yandex Sans", sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100002;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .ym-rzt-rating-circle:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-solid {
+      background-color: #2563eb !important;
+      border: none !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-outline {
+      background-color: transparent !important;
+      border: 2px solid #2563eb !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-grey-solid {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border: none !important;
+    }
+
     /* --- Light Theme Support --- */
     html.theme-light .ym-sync-popover,
     body.theme-light .ym-sync-popover,
@@ -1776,6 +3129,176 @@ function injectStyles() {
   `;
   document.head.appendChild(style);
 }
+
+// --- Component: shared/rzt-api.js ---
+// ==========================================
+// RISA ZA TVORCHESTVO (RZT) API
+// ==========================================
+
+const RztAPI = {
+  _pendingRequests: {},
+  _initialized: false,
+
+  _init() {
+    if (this._initialized) return;
+    this._initialized = true;
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', (event) => {
+        if (!event.data || !event.data.__ym_sc_bridge_response) return;
+        const { requestId, response } = event.data;
+        const pending = this._pendingRequests[requestId];
+        if (pending) {
+          delete this._pendingRequests[requestId];
+          if (response && response.ok) {
+            pending.resolve(response.data || response.result); // supports data or result keys
+          } else {
+            pending.reject(new Error(response && response.error ? response.error : 'Unknown bridge error'));
+          }
+        }
+      });
+    }
+  },
+
+  _sendToBridge(type, payload) {
+    this._init();
+    return new Promise((resolve, reject) => {
+      const requestId = `rzt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      this._pendingRequests[requestId] = { resolve, reject };
+
+      // Timeout safety
+      setTimeout(() => {
+        if (this._pendingRequests[requestId]) {
+          delete this._pendingRequests[requestId];
+          reject(new Error('RZT bridge request timed out'));
+        }
+      }, 15000);
+
+      window.postMessage({
+        __ym_sc_bridge: true,
+        requestId,
+        type,
+        payload
+      }, '*');
+    });
+  },
+
+  normalizeText(text) {
+    if (!text) return '';
+    return text.toLowerCase()
+      .replace(/[\u200b-\u200d\uFEFF]/g, '') // Strip zero-width spaces/BOM
+      .replace(/[^a-zа-я0-9\s-_]/gi, '')   // Keep only letters, digits, spaces, hyphens, underscores
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
+  hasArtistMatch(chunk, artistName) {
+    if (!artistName) return true;
+    const cleanArtist = this.normalizeText(artistName);
+    const cleanChunk = this.normalizeText(chunk);
+    
+    if (cleanChunk.includes(cleanArtist)) return true;
+    
+    // Split by common artist separators and check each one
+    const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => this.normalizeText(a)).filter(Boolean);
+    for (const a of artists) {
+      if (cleanChunk.includes(a)) return true;
+    }
+    
+    return false;
+  },
+
+  parseScoresFromHtml(html, trackTitle, artistName) {
+    if (!html) return null;
+    const titleClean = this.normalizeText(trackTitle);
+    
+    // 1. Gather all occurrence positions of the track title
+    const indices = [];
+    let idx = html.toLowerCase().indexOf(titleClean);
+    while (idx !== -1) {
+      indices.push(idx);
+      idx = html.toLowerCase().indexOf(titleClean, idx + 1);
+    }
+    
+    // Fallback 1: try title without bracketed info if no matches found
+    if (indices.length === 0) {
+      const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
+      if (simpleTitle && simpleTitle !== titleClean) {
+        let idx2 = html.toLowerCase().indexOf(simpleTitle);
+        while (idx2 !== -1) {
+          indices.push(idx2);
+          idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+        }
+      }
+    }
+
+    // 2. Scan occurrences and look for the one matching the artist
+    for (const pos of indices) {
+      const chunk = html.slice(pos, pos + 3000);
+      if (this.hasArtistMatch(chunk, artistName)) {
+        const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+        const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+        if (matches.length > 0) {
+          return {
+            flomaster: matches[2] || null,
+            withReviews: matches[0] || null,
+            withoutReviews: matches[1] || null
+          };
+        }
+      }
+    }
+
+    // Fallback 2: if no matches had the artist, parse ratings from the first track title match
+    if (indices.length > 0) {
+      const chunk = html.slice(indices[0], indices[0] + 3000);
+      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+      if (matches.length > 0) {
+        return {
+          flomaster: matches[2] || null,
+          withReviews: matches[0] || null,
+          withoutReviews: matches[1] || null
+        };
+      }
+    }
+
+    // Fallback 3: try the first track link in the entire search results page
+    const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
+    const match = html.match(fallbackRegex);
+    if (match) {
+      const pos = html.indexOf(match[0]);
+      const chunk = html.slice(pos, pos + 3000);
+      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+      if (matches.length > 0) {
+        return {
+          flomaster: matches[2] || null,
+          withReviews: matches[0] || null,
+          withoutReviews: matches[1] || null
+        };
+      }
+    }
+
+    return null;
+  },
+
+  async getTrackRatings(artist, title) {
+    try {
+      return await this._sendToBridge('RZT_GET_RATINGS', { artist, title });
+    } catch (err) {
+      console.error('[RZT] Error getting track ratings:', err);
+      return null;
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.RztAPI = RztAPI;
+}
+if (typeof module !== 'undefined') {
+  module.exports = RztAPI;
+}
+
 
 // --- Component: page/variables.js ---
 // Переменные состояния соединения
@@ -3014,6 +4537,466 @@ function updateThemePopoverUI(themeName) {
   }
 }
 
+// --- Component: shared/settings-injector.js ---
+// ==========================================
+// SCROBBLER SETTINGS UI INJECTOR (Polished & Resilient)
+// ==========================================
+
+// Имитация contextBridge для браузерного расширения через window.postMessage
+if (!window.__ymSyncBridge && typeof window.ScrobblerService === 'undefined') {
+  function callScrobblerApi(method, args) {
+    return new Promise((resolve, reject) => {
+      const nonce = Math.random().toString();
+      const handler = (event) => {
+        if (event.source !== window || !event.data || event.data.type !== 'YM_SCROBBLER_API_RESPONSE' || event.data.nonce !== nonce) return;
+        window.removeEventListener('message', handler);
+        if (event.data.error) reject(new Error(event.data.error));
+        else resolve(event.data.result);
+      };
+      window.addEventListener('message', handler);
+      window.postMessage({ type: 'YM_SCROBBLER_API_CALL', method, args, nonce }, '*');
+    });
+  }
+
+  window.__ymSyncBridge = {
+    sendScrobblerSettings: (settings) => window.postMessage({ type: 'YM_SCROBBLER_SETTINGS_CHANGED', settings }, '*'),
+    lastFmGetToken: (k, s) => callScrobblerApi('lastFmGetToken', [k, s]),
+    lastFmGetSession: (t, k, s) => callScrobblerApi('lastFmGetSession', [t, k, s]),
+    listenBrainzValidateToken: (t) => callScrobblerApi('listenBrainzValidateToken', [t])
+  };
+}
+
+let lastFmPendingToken = null;
+
+function syncSettingsToPreload() {
+  const settings = {
+    lastfmEnabled: localStorage.getItem('ymScrobblerLastfmEnabled') === 'true',
+    lastfmSessionKey: localStorage.getItem('ymScrobblerLastfmSessionKey') || '',
+    lastfmUsername: localStorage.getItem('ymScrobblerLastfmUsername') || '',
+    lastfmApiKey: localStorage.getItem('ymScrobblerLastfmApiKey') || '',
+    lastfmSecret: localStorage.getItem('ymScrobblerLastfmSecret') || '',
+    listenbrainzEnabled: localStorage.getItem('ymScrobblerListenbrainzEnabled') === 'true',
+    listenbrainzToken: localStorage.getItem('ymScrobblerListenbrainzToken') || '',
+    listenbrainzUsername: localStorage.getItem('ymScrobblerListenbrainzUsername') || ''
+  };
+  
+  if (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendScrobblerSettings === 'function') {
+    window.__ymSyncBridge.sendScrobblerSettings(settings);
+  } else {
+    window.postMessage({
+      type: 'YM_SCROBBLER_SETTINGS_CHANGED',
+      settings: settings
+    }, '*');
+  }
+}
+
+// Первичная синхронизация при загрузке
+setTimeout(syncSettingsToPreload, 2000);
+
+function checkAndInjectSettings() {
+  if (!window.location.pathname.includes('/settings')) {
+    return;
+  }
+  
+  // Проверяем, не внедрено ли уже в DOM
+  if (document.getElementById('ym-scrobbler-settings-block')) {
+    return;
+  }
+  
+  // Ищем элемент "Офлайн-режим", "О приложении", "Внешний вид", "Язык" чтобы найти список настроек
+  const divs = Array.from(document.querySelectorAll('div, span, p, h2, h3'));
+  const targetTextElement = divs.find(el => {
+    if (el.children.length > 0) return false; // Ищем самый глубокий текстовый узел
+    const text = el.textContent || '';
+    return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении') || text.includes('Внешний вид') || text.includes('Язык') || text.includes('Качество звука');
+  });
+
+  if (!targetTextElement) return;
+
+  // Ищем родительский элемент ряда настроек (Settings Item), который является непосредственным потомком списка
+  let itemNode = targetTextElement;
+  while (itemNode && itemNode.parentElement && itemNode.parentElement.children.length < 3) {
+    itemNode = itemNode.parentElement;
+  }
+
+  const listContainer = itemNode ? itemNode.parentElement : null;
+  if (!listContainer) return;
+
+  // Создаем блок настроек скроблинга
+  const block = document.createElement('div');
+  block.id = 'ym-scrobbler-settings-block';
+  block.className = 'ym-settings-section';
+  block.style.width = '100%';
+  block.style.boxSizing = 'border-box';
+  block.style.fontFamily = 'Yandex Sans Text, Arial, sans-serif';
+
+  // Загружаем сохраненные значения
+  const lastfmEnabled = localStorage.getItem('ymScrobblerLastfmEnabled') === 'true';
+  const lastfmUsername = localStorage.getItem('ymScrobblerLastfmUsername') || '';
+  const lastfmSessionKey = localStorage.getItem('ymScrobblerLastfmSessionKey') || '';
+  const lastfmApiKey = localStorage.getItem('ymScrobblerLastfmApiKey') || '';
+  const lastfmSecret = localStorage.getItem('ymScrobblerLastfmSecret') || '';
+  
+  const listenbrainzEnabled = localStorage.getItem('ymScrobblerListenbrainzEnabled') === 'true';
+  const listenbrainzToken = localStorage.getItem('ymScrobblerListenbrainzToken') || '';
+  const listenbrainzUsername = localStorage.getItem('ymScrobblerListenbrainzUsername') || '';
+
+  block.innerHTML = `
+    <!-- Заголовок секции, оформленный как нативный -->
+    <div style="font-size: 17px; font-weight: 700; color: #fff; padding: 24px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
+    
+    <!-- Секция Last.fm -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">Last.fm</div>
+        <div id="ym-lastfm-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
+          ${lastfmSessionKey ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${lastfmUsername}</strong>` : 'Не авторизован'}
+        </div>
+        
+        <!-- Поля ввода собственных ключей Last.fm -->
+        <div id="ym-lastfm-keys-container" style="max-width: 420px; margin-bottom: 12px; display: ${lastfmSessionKey ? 'none' : 'block'};">
+          <div style="font-size:11px; color:rgba(255,255,255,0.4); margin-bottom: 6px;">
+            Создайте приложение на <a href="https://www.last.fm/api/account/create" target="_blank" style="color: #ffdb4d; text-decoration: underline;">last.fm/api/account/create</a> и укажите ключи ниже:
+          </div>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <input type="text" id="ym-lastfm-apikey" value="${lastfmApiKey}" placeholder="API Key" class="ym-input" style="flex: 1; min-width: 0;">
+            <input type="password" id="ym-lastfm-secret" value="${lastfmSecret}" placeholder="Shared Secret" class="ym-input" style="flex: 1; min-width: 0;">
+          </div>
+        </div>
+
+        <div id="ym-lastfm-actions">
+          ${lastfmSessionKey ? 
+            `<button id="ym-lastfm-logout-btn" class="ym-btn-secondary">Выйти</button>` :
+            `<button id="ym-lastfm-login-btn" class="ym-btn-primary">Войти через Last.fm</button>
+             <button id="ym-lastfm-confirm-btn" class="ym-btn-secondary" style="display:none; margin-left: 8px;">Я подтвердил авторизацию</button>`
+          }
+        </div>
+      </div>
+      <div style="padding-top: 2px;">
+        <label class="ym-switch">
+          <input type="checkbox" id="ym-lastfm-toggle" ${lastfmEnabled ? 'checked' : ''}>
+          <span class="ym-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Секция ListenBrainz -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,0.06); min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div style="font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 3px;">ListenBrainz</div>
+        <div id="ym-listenbrainz-status" style="font-size: 13px; color: rgba(255,255,255,0.45); line-height: 17px; margin-bottom: 8px;">
+          ${listenbrainzUsername ? `Подключено как: <strong style="color: #fff; font-weight: 600;">${listenbrainzUsername}</strong>` : 'Не подключено'}
+        </div>
+        
+        <div style="max-width: 420px; margin-top: 8px;">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="password" id="ym-listenbrainz-token" value="${listenbrainzToken}" placeholder="Токен пользователя (User Token)" class="ym-input" style="flex: 1; min-width: 0;">
+            <button id="ym-listenbrainz-save-btn" class="ym-btn-secondary">Сохранить</button>
+          </div>
+        </div>
+      </div>
+      <div style="padding-top: 2px;">
+        <label class="ym-switch">
+          <input type="checkbox" id="ym-listenbrainz-toggle" ${listenbrainzEnabled ? 'checked' : ''}>
+          <span class="ym-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Тонкий разделитель в конце нашей секции -->
+    <div style="height: 1px; background: rgba(255, 255, 255, 0.06); margin-top: 14px; margin-bottom: 14px;"></div>
+
+    <style>
+      /* Кнопки в стиле Яндекс Музыки */
+      .ym-btn-primary {
+        background: #ffdb4d;
+        color: #000;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.15s;
+        font-family: inherit;
+      }
+      .ym-btn-primary:hover {
+        opacity: 0.9;
+      }
+      .ym-btn-primary:active {
+        transform: scale(0.97);
+      }
+      
+      .ym-btn-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 13px;
+        cursor: pointer;
+        transition: transform 0.1s, background 0.15s;
+        font-family: inherit;
+      }
+      .ym-btn-secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .ym-btn-secondary:active {
+        transform: scale(0.97);
+      }
+
+      /* Инпуты */
+      .ym-input {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        color: #fff;
+        padding: 7px 14px;
+        border-radius: 20px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+        font-family: inherit;
+        box-sizing: border-box;
+      }
+      .ym-input:focus {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.09);
+      }
+      .ym-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      /* Свичи (Тумблеры) в стиле Яндекс Музыки (Желтые при включении) */
+      .ym-switch {
+        position: relative;
+        display: inline-block;
+        width: 38px;
+        height: 20px;
+      }
+      .ym-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .ym-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: rgba(255, 255, 255, 0.16);
+        transition: background-color 0.2s;
+        border-radius: 20px;
+      }
+      .ym-slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: #fff;
+        transition: transform 0.2s, background-color 0.2s;
+        border-radius: 50%;
+      }
+      .ym-switch input:checked + .ym-slider {
+        background-color: #ffdb4d;
+      }
+      .ym-switch input:checked + .ym-slider:before {
+        transform: translateX(18px);
+        background-color: #000;
+      }
+    </style>
+  `;
+
+  // Находим самый первый элемент настроек в списке (обычно это ряд содержащий "Офлайн-режим" или первый дочерний элемент списка)
+  // Вставляем НАШ блок строго ПЕРЕД первым элементом настроек, но ПОСЛЕ заголовка/хедера.
+  // Это гарантирует, что блок попадет в прокручиваемый список настроек, не налезая на шапку "Настройки".
+  const firstSettingsItem = listContainer.querySelector('div, li');
+  if (firstSettingsItem) {
+    listContainer.insertBefore(block, firstSettingsItem);
+  } else {
+    listContainer.appendChild(block);
+  }
+
+  // Настройка слушателей Last.fm
+  const lastfmToggle = document.getElementById('ym-lastfm-toggle');
+  if (lastfmToggle) {
+    lastfmToggle.addEventListener('change', (e) => {
+      localStorage.setItem('ymScrobblerLastfmEnabled', e.target.checked ? 'true' : 'false');
+      syncSettingsToPreload();
+    });
+  }
+
+  const setupLastFmEvents = () => {
+    const loginBtn = document.getElementById('ym-lastfm-login-btn');
+    const confirmBtn = document.getElementById('ym-lastfm-confirm-btn');
+    const logoutBtn = document.getElementById('ym-lastfm-logout-btn');
+
+    if (loginBtn) {
+      loginBtn.addEventListener('click', async () => {
+        try {
+          const userApiKey = document.getElementById('ym-lastfm-apikey').value.trim();
+          const userSecret = document.getElementById('ym-lastfm-secret').value.trim();
+          
+          if (!userApiKey || !userSecret) {
+            alert('Пожалуйста, введите API Key и Shared Secret от Last.fm перед авторизацией.');
+            return;
+          }
+
+          loginBtn.textContent = 'Получение ссылки...';
+          loginBtn.disabled = true;
+
+          // Сохраняем ключи в localStorage
+          localStorage.setItem('ymScrobblerLastfmApiKey', userApiKey);
+          localStorage.setItem('ymScrobblerLastfmSecret', userSecret);
+          syncSettingsToPreload();
+
+          const bridge = window.__ymSyncBridge;
+          if (!bridge || typeof bridge.lastFmGetToken !== 'function') {
+            throw new Error('Функции моста недоступны');
+          }
+
+          const token = await bridge.lastFmGetToken(userApiKey, userSecret);
+          lastFmPendingToken = token;
+
+          // Открываем браузер на страницу авторизации с валидным ключом
+          window.open(`https://www.last.fm/api/auth/?api_key=${userApiKey}&token=${token}`);
+
+          loginBtn.style.display = 'none';
+          confirmBtn.style.display = 'inline-block';
+        } catch (err) {
+          console.error(err);
+          alert('Ошибка авторизации Last.fm: ' + err.message);
+          loginBtn.textContent = 'Войти через Last.fm';
+          loginBtn.disabled = false;
+        }
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', async () => {
+        try {
+          confirmBtn.textContent = 'Проверка...';
+          confirmBtn.disabled = true;
+
+          const bridge = window.__ymSyncBridge;
+          const userApiKey = localStorage.getItem('ymScrobblerLastfmApiKey');
+          const userSecret = localStorage.getItem('ymScrobblerLastfmSecret');
+          const session = await bridge.lastFmGetSession(lastFmPendingToken, userApiKey, userSecret);
+
+          localStorage.setItem('ymScrobblerLastfmSessionKey', session.sessionKey);
+          localStorage.setItem('ymScrobblerLastfmUsername', session.username);
+          localStorage.setItem('ymScrobblerLastfmEnabled', 'true');
+
+          // Обновляем UI
+          document.getElementById('ym-lastfm-status').innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${session.username}</strong>`;
+          document.getElementById('ym-lastfm-actions').innerHTML = `<button id="ym-lastfm-logout-btn" class="ym-btn-secondary">Выйти</button>`;
+          const keysContainer = document.getElementById('ym-lastfm-keys-container');
+          if (keysContainer) keysContainer.style.display = 'none';
+          if (lastfmToggle) lastfmToggle.checked = true;
+
+          syncSettingsToPreload();
+          setupLastFmEvents();
+        } catch (err) {
+          console.error(err);
+          alert('Не удалось подтвердить авторизацию. Убедитесь, что вы нажали "Разрешить доступ" на открывшейся веб-странице Last.fm.');
+          confirmBtn.textContent = 'Я подтвердил авторизацию';
+          confirmBtn.disabled = false;
+        }
+      });
+    }
+
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('ymScrobblerLastfmSessionKey');
+        localStorage.removeItem('ymScrobblerLastfmUsername');
+        localStorage.removeItem('ymScrobblerLastfmApiKey');
+        localStorage.removeItem('ymScrobblerLastfmSecret');
+        localStorage.setItem('ymScrobblerLastfmEnabled', 'false');
+
+        document.getElementById('ym-lastfm-status').textContent = 'Не авторизован';
+        document.getElementById('ym-lastfm-actions').innerHTML = `<button id="ym-lastfm-login-btn" class="ym-btn-primary">Войти через Last.fm</button>
+           <button id="ym-lastfm-confirm-btn" class="ym-btn-secondary" style="display:none;">Я подтвердил авторизацию</button>`;
+        
+        const keysContainer = document.getElementById('ym-lastfm-keys-container');
+        if (keysContainer) keysContainer.style.display = 'block';
+        
+        const keyInput = document.getElementById('ym-lastfm-apikey');
+        const secInput = document.getElementById('ym-lastfm-secret');
+        if (keyInput) keyInput.value = '';
+        if (secInput) secInput.value = '';
+
+        if (lastfmToggle) lastfmToggle.checked = false;
+
+        syncSettingsToPreload();
+        setupLastFmEvents();
+      });
+    }
+  };
+
+  setupLastFmEvents();
+
+  // Настройка слушателей ListenBrainz
+  const listenbrainzToggle = document.getElementById('ym-listenbrainz-toggle');
+  if (listenbrainzToggle) {
+    listenbrainzToggle.addEventListener('change', (e) => {
+      localStorage.setItem('ymScrobblerListenbrainzEnabled', e.target.checked ? 'true' : 'false');
+      syncSettingsToPreload();
+    });
+  }
+
+  const saveBtn = document.getElementById('ym-listenbrainz-save-btn');
+  const tokenInput = document.getElementById('ym-listenbrainz-token');
+  const lbStatus = document.getElementById('ym-listenbrainz-status');
+
+  if (saveBtn && tokenInput) {
+    saveBtn.addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        localStorage.removeItem('ymScrobblerListenbrainzToken');
+        localStorage.removeItem('ymScrobblerListenbrainzUsername');
+        localStorage.setItem('ymScrobblerListenbrainzEnabled', 'false');
+        lbStatus.textContent = 'Не подключено';
+        if (listenbrainzToggle) listenbrainzToggle.checked = false;
+        syncSettingsToPreload();
+        return;
+      }
+
+      try {
+        saveBtn.textContent = 'Проверка...';
+        saveBtn.disabled = true;
+
+        const bridge = window.__ymSyncBridge;
+        if (!bridge || typeof bridge.listenBrainzValidateToken !== 'function') {
+          throw new Error('Функции моста недоступны');
+        }
+
+        const username = await bridge.listenBrainzValidateToken(token);
+        
+        localStorage.setItem('ymScrobblerListenbrainzToken', token);
+        localStorage.setItem('ymScrobblerListenbrainzUsername', username);
+        localStorage.setItem('ymScrobblerListenbrainzEnabled', 'true');
+
+        lbStatus.innerHTML = `Подключено как: <strong style="color: #fff; font-weight: 600;">${username}</strong>`;
+        if (listenbrainzToggle) listenbrainzToggle.checked = true;
+
+        syncSettingsToPreload();
+        alert('Токен ListenBrainz успешно сохранен и проверен!');
+      } catch (err) {
+        console.error(err);
+        alert('Ошибка валидации токена ListenBrainz: ' + err.message);
+      } finally {
+        saveBtn.textContent = 'Сохранить';
+        saveBtn.disabled = false;
+      }
+    });
+  }
+}
+
+// Регулярно сканируем DOM на предмет нахождения на странице настроек
+setInterval(checkAndInjectSettings, 1000);
+
+
 // --- Component: shared/quality-indicator.js ---
 function updateTrackUI(metadata) {
   currentTrackMetadata = metadata;
@@ -3211,7 +5194,11 @@ function parseLrc(lrcText) {
 
 function fetchLyrics(title, artist, durationMs) {
   const requestTrackId = currentLyricsTrackId;
-  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) return;
+  console.log('[LRCLIB] fetchLyrics called:', { title, artist, durationMs, requestTrackId });
+  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) {
+    console.log('[LRCLIB] Lyrics already loading for this track, skipping invocation');
+    return;
+  }
   
   isLyricsLoading = true;
   window.ymTrackIdLoadingLyrics = requestTrackId;
@@ -3235,13 +5222,17 @@ function fetchLyrics(title, artist, durationMs) {
   if (durationSec > 0) {
     url += `&duration=${durationSec}`;
   }
+  console.log('[LRCLIB] Search URL:', url);
+
   const handleResponseData = data => {
+    console.log('[LRCLIB] Successfully loaded lyrics:', data);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
     displayLyricsData(data);
   };
   const handleFailure = err => {
+    console.warn('[LRCLIB] Failed to load lyrics:', err);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
@@ -3251,12 +5242,14 @@ function fetchLyrics(title, artist, durationMs) {
   if (window.__ymSyncBridge && typeof window.__ymSyncBridge.fetchLyrics === 'function') {
     window.__ymSyncBridge.fetchLyrics(url).catch(err => {
       let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+      console.log('[LRCLIB] Primary fetch failed, trying fallback URL:', fallbackUrl);
       return window.__ymSyncBridge.fetchLyrics(fallbackUrl);
     }).then(handleResponseData).catch(handleFailure);
   } else {
     fetch(url).then(res => {
       if (res.status === 404) {
         let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+        console.log('[LRCLIB] Primary fetch returned 404, trying fallback URL:', fallbackUrl);
         return fetch(fallbackUrl);
       }
       return res;
@@ -4512,6 +6505,17 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       `;
       controlsRoot.appendChild(translateBtn);
     }
+    ymRegisterActiveElement(translateBtn);
+
+    let ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) {
+      ratingsContainer = document.createElement('div');
+      ratingsContainer.className = 'ym-fullscreen-rzt-ratings';
+      controlsRoot.appendChild(ratingsContainer);
+    }
+    ymRegisterActiveElement(ratingsContainer);
+    updateRztRatingsUI(ratingsContainer);
+
     let popover = fullscreenRoot.querySelector('.ym-fullscreen-translate-popover');
     if (!popover) {
       popover = document.createElement('div');
@@ -4598,6 +6602,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         </div>
       `;
       fullscreenRoot.appendChild(popover);
+      ymRegisterActiveElement(popover);
       if (!document.getElementById('ym-translate-switch-style')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'ym-translate-switch-style';
@@ -4659,6 +6664,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         popover.style.transform = 'scale(0.95)';
         setTimeout(() => {
           popover.style.display = 'none';
+          ymStopKeepControlsActive();
         }, 200);
         translateBtn.classList.remove('active');
         translateBtn.style.background = '';
@@ -4673,6 +6679,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         translateBtn.style.background = '';
         translateBtn.style.borderColor = '';
         translateBtn.style.color = '';
+        ymStartKeepControlsActive();
         const btnRect = translateBtn.getBoundingClientRect();
         const parentRect = fullscreenRoot.getBoundingClientRect();
         const relativeTop = btnRect.top - parentRect.top;
@@ -4698,6 +6705,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
             activePopover.style.transform = 'scale(0.95)';
             setTimeout(() => {
               activePopover.style.display = 'none';
+              ymStopKeepControlsActive();
             }, 200);
             if (activeBtn) {
               activeBtn.classList.remove('active');
@@ -4710,6 +6718,173 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       });
     }
   }
+}
+
+// Update RZT ratings circles in DOM
+function updateRztRatingsUI(ratingsContainer) {
+  if (!ratingsContainer) {
+    const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+    if (!fullscreenRoot) return;
+    const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+    if (!controlsRoot) return;
+    ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) return;
+  }
+
+  const ratings = window.ymCurrentRztRatings;
+  const statusStr = ratings ? JSON.stringify(ratings) : '';
+  const trackId = window.ymLastRztTrackId || '';
+  
+  if (ratingsContainer.dataset.renderedTrackId === trackId && ratingsContainer.dataset.renderedStatus === statusStr) {
+    // Already rendered exactly this state, skip updating DOM to prevent hover flickering!
+    return;
+  }
+
+  // Save the state we are about to render
+  ratingsContainer.dataset.renderedTrackId = trackId;
+  ratingsContainer.dataset.renderedStatus = statusStr;
+
+  if (!ratings || ratings.empty || ratings.error) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  if (ratings.loading) {
+    ratingsContainer.style.display = 'flex';
+    ratingsContainer.innerHTML = `
+      <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): Загрузка..." style="opacity: 0.5;">—</div>
+    `;
+    return;
+  }
+
+  const hasScores = ratings.withReviews !== null || ratings.withoutReviews !== null || ratings.flomaster !== null;
+  if (!hasScores) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  ratingsContainer.style.display = 'flex';
+  
+  const score1 = ratings.withReviews !== null ? ratings.withReviews : '—';
+  const score2 = ratings.withoutReviews !== null ? ratings.withoutReviews : '—';
+  const score3 = ratings.flomaster !== null ? ratings.flomaster : '—';
+
+  ratingsContainer.innerHTML = `
+    <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): ${score1}">${score1}</div>
+    <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): ${score2}">${score2}</div>
+    <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): ${score3}">${score3}</div>
+  `;
+}
+
+// Keep player controls visible helper variables and functions
+let ymKeepControlsActiveInterval = null;
+let ymActiveHoverCount = 0;
+
+function ymTriggerMouseMove() {
+  const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+  if (fullscreenRoot) {
+    const event = new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true,
+      clientX: window.innerWidth / 2,
+      clientY: window.innerHeight / 2
+    });
+    fullscreenRoot.dispatchEvent(event);
+    document.dispatchEvent(event);
+  }
+}
+
+function ymStartKeepControlsActive() {
+  if (!ymKeepControlsActiveInterval) {
+    ymTriggerMouseMove();
+    ymKeepControlsActiveInterval = setInterval(ymTriggerMouseMove, 1000);
+  }
+}
+
+function ymStopKeepControlsActive() {
+  const popover = document.querySelector('.ym-fullscreen-translate-popover');
+  const isPopoverOpen = popover && popover.style.display === 'flex';
+  
+  if (ymActiveHoverCount <= 0 && !isPopoverOpen) {
+    if (ymKeepControlsActiveInterval) {
+      clearInterval(ymKeepControlsActiveInterval);
+      ymKeepControlsActiveInterval = null;
+    }
+  }
+}
+
+function ymRegisterActiveElement(el) {
+  if (!el || el.dataset.ymActiveRegistered === 'true') return;
+  el.dataset.ymActiveRegistered = 'true';
+  
+  el.addEventListener('mouseenter', () => {
+    ymActiveHoverCount++;
+    ymStartKeepControlsActive();
+  });
+  
+  el.addEventListener('mouseleave', () => {
+    ymActiveHoverCount = Math.max(0, ymActiveHoverCount - 1);
+    ymStopKeepControlsActive();
+  });
+}
+
+// Listen to track state change to fetch RZT ratings in page/isolated context
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'YM_SYNC_STATE_CHANGED') {
+      const state = event.data.state;
+      if (state && state.trackId && state.trackId !== window.ymLastRztTrackId) {
+        window.ymLastRztTrackId = state.trackId;
+        window.ymCurrentRztRatings = { loading: true };
+        
+        // Update immediately if container is already visible
+        const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+        if (container) {
+          updateRztRatingsUI(container);
+        }
+        
+        const metadata = state.metadata;
+        if (metadata && metadata.title && metadata.artist) {
+          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+          if (apiObj) {
+            apiObj.getTrackRatings(metadata.artist, metadata.title)
+              .then(ratings => {
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = ratings || { empty: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              })
+              .catch(err => {
+                console.error('[RZT-UI] Error getting track ratings:', err);
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = { error: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              });
+          } else {
+            console.warn('[RZT-UI] RztAPI not found in window/context');
+            window.ymCurrentRztRatings = { error: true };
+          }
+        } else {
+          window.ymCurrentRztRatings = null;
+          const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+          if (container) {
+            updateRztRatingsUI(container);
+          }
+        }
+      }
+    }
+  });
 }
 
 // --- Component: page/socket-client.js ---
@@ -4763,16 +6938,26 @@ function connectToServer(serverUrl) {
         const activePlayer = getActivePlayer();
         const currentEntity = activePlayer?.queueController?.queue?.state?.currentEntity?.value;
         const entityData = currentEntity?.entity?.data;
-        localTrackId = entityData?.meta?.id || entityData?.id;
+        const rawId = entityData?.meta?.id || entityData?.id;
+        if (rawId) {
+          localTrackId = String(rawId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              localTrackId = `soundcloud:${match[1]}`;
+            }
+          }
+        }
       }
 
       isSyncingFromServer = true;
       startSyncSafetyTimeout();
 
       const isServerTrackValid = serverState.trackId &&
-        serverState.trackId !== "undefined" &&
-        serverState.trackId !== "null" &&
-        (!isNaN(Number(serverState.trackId)) || String(serverState.trackId).startsWith("soundcloud:"));
+        String(serverState.trackId).trim() !== "" &&
+        String(serverState.trackId) !== "undefined" &&
+        String(serverState.trackId) !== "null";
 
       const activePlayer = getActivePlayer();
 
@@ -4823,7 +7008,16 @@ function connectToServer(serverUrl) {
               const trackIndex = list.findIndex(wrapper => {
                 const data = wrapper?.entity?.data || wrapper?.entity?.entityData;
                 const id = data?.meta?.id || data?.id;
-                return String(id) === String(serverState.trackId);
+                
+                let queueTrackId = String(id);
+                const filename = data?.meta?.filename || data?.filename || '';
+                if ((data?.meta?.trackSource === 'UGC' || data?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+                  const match = filename.match(/soundcloud_(\d+)\.mp3/);
+                  if (match) {
+                    queueTrackId = `soundcloud:${match[1]}`;
+                  }
+                }
+                return String(queueTrackId) === String(serverState.trackId);
               });
 
               if (trackIndex !== -1) {
@@ -4889,7 +7083,7 @@ function connectToServer(serverUrl) {
       }
       // 2. Трек тот же, синхронизируем время/паузу
       else if (isServerTrackValid) {
-        if (String(serverState.trackId).startsWith("soundcloud:")) {
+        if (String(serverState.trackId).startsWith("soundcloud:") && window.isCustomAudioActive) {
           window.CustomAudioController.syncPlay(serverState.trackId, serverState)
             .then(() => {
               clearSyncSafetyTimeout();
@@ -5031,9 +7225,14 @@ function getTrackMetadata(activePlayer) {
     const version = dataObj.version ? ` (${dataObj.version})` : '';
     const fullTitle = title + version;
 
+    const ugcArtist = entityData?.meta?.ugcArtistName || entityData?.ugcArtistName || dataObj.ugcArtistName;
     let artistsStr = 'Неизвестный исполнитель';
-    if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
-      artistsStr = dataObj.artists.map(a => a.name).join(', ');
+    if (ugcArtist) {
+      artistsStr = ugcArtist;
+    } else if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
+      artistsStr = dataObj.artists.map(a => typeof a === 'object' && a !== null ? (a.name || '') : String(a)).filter(Boolean).join(', ') || 'Неизвестный исполнитель';
+    } else if (dataObj.artist) {
+      artistsStr = dataObj.artist;
     }
 
     let durationMs = 0;
@@ -5161,10 +7360,15 @@ function sendStateToPreload() {
         const playerStateTrack = activePlayer.playbackState?.playerState?.track?.value || activePlayer.playbackState?.playerState?.track;
         const currentEntity = activePlayer.queueController?.queue?.state?.currentEntity?.value;
         const entityData = currentEntity?.entity?.data;
-        const rawTrackId = playerStateTrack?.id || entityData?.meta?.id || entityData?.id;
-        
-        if (rawTrackId && !isNaN(Number(rawTrackId))) {
+        if (rawTrackId && String(rawTrackId).trim() !== '' && String(rawTrackId) !== 'undefined' && String(rawTrackId) !== 'null') {
           trackId = String(rawTrackId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              trackId = `soundcloud:${match[1]}`;
+            }
+          }
           const isPlaying = activePlayer.playbackState.playerState.status.value === 'playing';
           isPause = !isPlaying;
           const progress = activePlayer.playbackState.playerState.progress.value;
@@ -5325,8 +7529,18 @@ function checkAndSendState() {
     const entityData = currentEntity?.entity?.data;
 
     const rawTrackId = entityData?.meta?.id || entityData?.id;
-    if (!rawTrackId || isNaN(Number(rawTrackId))) return;
-    const trackId = String(rawTrackId);
+    if (!rawTrackId) return;
+    let trackId = String(rawTrackId);
+    if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
+
+    // Map UGC SoundCloud tracks to a universal soundcloud: ID for shared session sync
+    const filename = entityData?.meta?.filename || entityData?.filename || '';
+    if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+      const match = filename.match(/soundcloud_(\d+)\.mp3/);
+      if (match) {
+        trackId = `soundcloud:${match[1]}`;
+      }
+    }
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;
@@ -5446,13 +7660,13 @@ const SoundCloudAPI = {
       const requestId = `sc_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       this._pendingRequests[requestId] = { resolve, reject };
 
-      // Timeout safety
+      // Timeout safety (increased to 60s for media transfer & upload retries)
       setTimeout(() => {
         if (this._pendingRequests[requestId]) {
           delete this._pendingRequests[requestId];
           reject(new Error('Bridge request timed out'));
         }
-      }, 15000);
+      }, 60000);
 
       window.postMessage({
         __ym_sc_bridge: true,
@@ -5513,6 +7727,133 @@ window.SoundCloudAPI = SoundCloudAPI;
 // CUSTOM AUDIO CONTROLLER
 // ==========================================
 
+// Global logger to print volume states from all places
+window.logAllVolumes = function(contextMessage = "") {
+    let nativeSlider = null;
+    let nativeExponent = null;
+    let nativeAudioVol = null;
+    let customAudioVol = null;
+    let customSlider = null;
+
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState) {
+            nativeSlider = activePlayer.playbackState.playerState.volume?.value;
+            nativeExponent = activePlayer.playbackState.playerState.exponentVolume?.value;
+        }
+    } catch(e) {}
+
+    try {
+        const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+        if (nativeAudio) {
+            nativeAudioVol = nativeAudio.volume;
+        }
+    } catch(e) {}
+
+    try {
+        if (window.CustomAudioController && window.CustomAudioController.audioElement) {
+            customAudioVol = window.CustomAudioController.audioElement.volume;
+        }
+    } catch(e) {}
+
+    try {
+        const slider = document.getElementById('sc-ov-volume-slider');
+        if (slider) {
+            customSlider = parseFloat(slider.value);
+        }
+    } catch(e) {}
+
+    console.log(
+        `%c[VOLUME-SYNC-DEBUG] ${contextMessage}\n` +
+        `  -> Наш ползунок (Custom Slider): ${customSlider !== null ? customSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Наш аудио-элемент (Custom Audio volume): ${customAudioVol !== null ? customAudioVol.toFixed(4) : 'не инициализирован'}\n` +
+        `  -> Оригинальный Sonata volume: ${nativeSlider !== null ? nativeSlider.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный Sonata exponentVolume: ${nativeExponent !== null ? nativeExponent.toFixed(4) : 'не найден'}\n` +
+        `  -> Оригинальный аудио-элемент (DOM volume): ${nativeAudioVol !== null ? nativeAudioVol.toFixed(4) : 'не найден'}`,
+        "color: #ff9900; font-weight: bold;"
+    );
+};
+
+// Helper to get native Yandex Music player volume (returns exponent volume which aligns with the UI slider)
+window.getNativeVolume = function() {
+    // 1. Try Sonata player exponent volume state (UI slider position)
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && activePlayer.playbackState?.playerState?.exponentVolume) {
+            const vol = activePlayer.playbackState.playerState.exponentVolume.value;
+            if (typeof vol === 'number') return vol;
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] getNativeVolume error:", e);
+    }
+
+    // 2. Try native audio element volume
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        return nativeAudio.volume;
+    }
+    
+    // 3. Fallback to localStorage
+    try {
+        const stored = localStorage.getItem('volume') || localStorage.getItem('player-volume');
+        if (stored !== null) {
+            const parsed = parseFloat(stored);
+            if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+                // If it was stored as linear volume, convert back to exponent
+                if (parsed === 0) return 0;
+                return Math.max(0, Math.min(1, 1 + Math.log10(parsed) / 2));
+            }
+        }
+    } catch (e) {}
+
+    return 0.7;
+};
+
+// Helper to get native Yandex Music player exponent volume (actual audio output scale)
+window.getNativeExponentVolume = function() {
+    return window.getNativeVolume();
+};
+
+// Helper to set native Yandex Music player volume
+window.setNativeVolume = function(vol) {
+    if (window.logAllVolumes) {
+        window.logAllVolumes(`setNativeVolume вызвана с vol = ${vol}`);
+    }
+    
+    // Translate the desired exponent volume (vol) to Yandex's linear volume
+    // volume = 10^(2 * (exponentVolume - 1))
+    const translatedVol = vol === 0 ? 0 : Math.max(0, Math.min(1, Math.pow(10, 2 * (vol - 1))));
+
+    // 1. Try Sonata active player API
+    try {
+        const activePlayer = window.getActivePlayer && window.getActivePlayer();
+        if (activePlayer && typeof activePlayer.setVolume === 'function') {
+            activePlayer.setVolume(translatedVol);
+        }
+    } catch (e) {
+        console.error("[VOLUME-DEBUG] setNativeVolume error:", e);
+    }
+
+    // 2. Set on native audio element
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    if (nativeAudio) {
+        nativeAudio.volume = vol;
+    }
+
+    // 3. Set localStorage keys (store linear volume so Yandex's internal code reads it correctly)
+    try {
+        localStorage.setItem('volume', String(translatedVol));
+        localStorage.setItem('player-volume', String(translatedVol));
+    } catch (e) {}
+
+    // Log after short timeout to let MobX or other handlers apply changes
+    setTimeout(() => {
+        if (window.logAllVolumes) {
+            window.logAllVolumes("setNativeVolume: Применилось (100мс)");
+        }
+    }, 100);
+};
+
 const CustomAudioController = {
     audioElement: null,
     isPlaying: false,
@@ -5541,8 +7882,8 @@ const CustomAudioController = {
                 // Optionally play next track if we implement a custom queue
             });
             
-            // Set volume to match native player on init, default to 0.7
-            this.audioElement.volume = 0.7;
+            // Set volume to match native player on init (use exponent volume for correct loudness)
+            this.audioElement.volume = window.getNativeExponentVolume ? window.getNativeExponentVolume() : 0.7;
         }
     },
 
@@ -5559,6 +7900,11 @@ const CustomAudioController = {
 
     async playTrack(track, streamUrl) {
         this.init();
+        
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
         
         // 1. Pause native player
         const activePlayer = window.getActivePlayer && window.getActivePlayer();
@@ -5620,6 +7966,11 @@ const CustomAudioController = {
 
     async syncPlay(scTrackId, serverState) {
         this.init();
+
+        // Sync volume with native player (use exponent volume for correct loudness)
+        if (window.getNativeExponentVolume) {
+            this.audioElement.volume = window.getNativeExponentVolume();
+        }
 
         const numericId = String(scTrackId).replace('soundcloud:', '');
 
@@ -6045,7 +8396,7 @@ const PlayerFaker = {
             }
         };
 
-        const currentVol = window.CustomAudioController.audioElement ? window.CustomAudioController.audioElement.volume : 0.7;
+        const currentVol = window.getNativeVolume ? window.getNativeVolume() : 0.7;
         volumeSlider.value = currentVol;
         updateSliderStyle(currentVol);
         updateVolumeIcon(currentVol);
@@ -6053,7 +8404,16 @@ const PlayerFaker = {
         volumeSlider.addEventListener('input', (e) => {
             e.stopPropagation();
             const vol = parseFloat(volumeSlider.value);
+            if (window.logAllVolumes) {
+                window.logAllVolumes(`Драг ползунка: Новое значение = ${vol}`);
+            }
+            // 1. Set volume on native Yandex player (translating slider to native linear scale)
+            if (window.setNativeVolume) {
+                window.setNativeVolume(vol);
+            }
+            // 2. Set volume on custom audio element (same as slider)
             window.CustomAudioController.setVolume(vol);
+
             updateSliderStyle(vol);
             updateVolumeIcon(vol);
         });
@@ -6064,12 +8424,21 @@ const PlayerFaker = {
             const audio = window.CustomAudioController.audioElement;
             if (audio) {
                 if (audio.volume > 0) {
-                    lastVolume = audio.volume;
+                    // Store current linear volume from slider before muting
+                    lastVolume = parseFloat(volumeSlider.value) || 0.7;
+                    console.log("[VOLUME-DEBUG] Mute clicked. Saving lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(0);
+                    }
                     window.CustomAudioController.setVolume(0);
                     volumeSlider.value = 0;
                     updateSliderStyle(0);
                     updateVolumeIcon(0);
                 } else {
+                    console.log("[VOLUME-DEBUG] Unmute clicked. Restoring lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(lastVolume);
+                    }
                     window.CustomAudioController.setVolume(lastVolume);
                     volumeSlider.value = lastVolume;
                     updateSliderStyle(lastVolume);
@@ -6104,6 +8473,16 @@ const PlayerFaker = {
 
     _tick() {
         if (!this.overlayActive) return;
+
+        // Log volumes every 8 ticks (~2 seconds)
+        if (!this._tickCount) this._tickCount = 0;
+        this._tickCount++;
+        if (this._tickCount % 8 === 0) {
+            if (window.logAllVolumes) {
+                window.logAllVolumes("Периодический тик (2с)");
+            }
+        }
+
         const ac = window.CustomAudioController;
         if (!ac || !ac.audioElement) return;
 
@@ -6197,7 +8576,7 @@ const SoundCloudSearchInjector = {
                 const old = document.getElementById('ym-sync-soundcloud-results');
                 if (old) old.remove();
                 this.lastQuery = '';
-                this.checkSearchPage();
+                this.checkSearchPage(true);
             }
         }).observe(document, { subtree: true, childList: true });
 
@@ -6211,23 +8590,32 @@ const SoundCloudSearchInjector = {
                 if (query !== this.lastQuery) {
                     this.lastQuery = query;
                     clearTimeout(this.searchTimeout);
-                    this.searchTimeout = setTimeout(() => {
-                        this.performSearch(query);
-                    }, 800);
+                    if (!query || query.trim() === '') {
+                        // Clear results immediately if query is cleared
+                        const old = document.getElementById('ym-sync-soundcloud-results');
+                        if (old) old.remove();
+                    } else {
+                        this.searchTimeout = setTimeout(() => {
+                            this.performSearch(query);
+                        }, 800);
+                    }
                 }
             }
         });
     },
 
-    checkSearchPage() {
+    checkSearchPage(fromUrlChange = false) {
         if (location.pathname.startsWith('/search')) {
             const searchInput = document.querySelector('input[type="search"]');
             const urlQuery = new URLSearchParams(location.search).get('text') || '';
-            const query = (searchInput && searchInput.value) || urlQuery;
-            if (query && query !== this.lastQuery) {
+            const query = fromUrlChange ? urlQuery : (searchInput ? searchInput.value : urlQuery);
+            if (query !== this.lastQuery) {
                 this.lastQuery = query;
                 this.performSearch(query);
             }
+        } else {
+            const old = document.getElementById('ym-sync-soundcloud-results');
+            if (old) old.remove();
         }
     },
 
@@ -6252,7 +8640,11 @@ const SoundCloudSearchInjector = {
     },
 
     async performSearch(query) {
-        if (!query || query.trim() === '') return;
+        if (!query || query.trim() === '') {
+            const old = document.getElementById('ym-sync-soundcloud-results');
+            if (old) old.remove();
+            return;
+        }
         console.log('[SOUNDCLOUD] Searching for:', query);
         this.injectLoadingState();
         try {
@@ -6381,10 +8773,18 @@ const SoundCloudSearchInjector = {
                         width:40px; height:40px; border-radius:4px; overflow:hidden;
                         flex-shrink:0; background:rgba(255,255,255,0.1);
                         display:flex; align-items:center; justify-content:center;
+                        position:relative;
                     ">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.3">
+                        <svg class="ym-sync-sc-placeholder-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.3">
                             <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3z"/>
                         </svg>
+                        <div class="ym-sync-sc-play-overlay" style="
+                            position:absolute; top:0; left:0; width:100%; height:100%;
+                            background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+                            opacity:0; transition:opacity 0.15s; pointer-events:none;
+                        ">
+                            <svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>
+                        </div>
                     </div>
                     <div style="flex:1; overflow:hidden; min-width:0;">
                         <div style="font-size:14px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.4;">${track.title}</div>
@@ -6393,13 +8793,20 @@ const SoundCloudSearchInjector = {
                         </div>
                     </div>
                     <div style="font-size:12px; opacity:0.45; flex-shrink:0;">${duration}</div>
-                    <div class="ym-sync-sc-play-btn" style="
-                        width:32px; height:32px; border-radius:50%; background:#ff5500;
+                    
+                    <!-- Кнопка импорта в BetterYandexMusic -->
+                    <button class="ym-sync-sc-add-btn" data-add-index="${index}" style="
+                        width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.06);
                         display:flex; align-items:center; justify-content:center;
-                        flex-shrink:0; opacity:0; transition:opacity 0.15s; pointer-events:none;
-                    ">
-                        <svg width="10" height="12" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>
-                    </div>
+                        flex-shrink:0; border:none; cursor:pointer; color:#fff;
+                        transition:background 0.2s, transform 0.2s; margin-left:4px;
+                        padding:0; outline:none; z-index:5;
+                    }" title="Добавить в плейлист BetterYandexMusic">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                    </button>
                 </div>
             `;
         }).join('');
@@ -6420,14 +8827,15 @@ const SoundCloudSearchInjector = {
         // === Hover effects (NO inline handlers) ===
         const trackEls = container.querySelectorAll('.ym-sync-sc-track');
         trackEls.forEach((el) => {
-            const btn = el.querySelector('.ym-sync-sc-play-btn');
             el.addEventListener('mouseenter', () => {
                 el.style.background = 'rgba(255,255,255,0.07)';
-                if (btn) btn.style.opacity = '1';
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) overlay.style.opacity = '1';
             });
             el.addEventListener('mouseleave', () => {
                 el.style.background = 'transparent';
-                if (btn) btn.style.opacity = '0';
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) overlay.style.opacity = '0';
             });
         });
 
@@ -6447,6 +8855,17 @@ const SoundCloudSearchInjector = {
                     img.src = result.url;
                     artEl.innerHTML = '';
                     artEl.appendChild(img);
+
+                    // Re-append play overlay since we cleared innerHTML
+                    const overlay = document.createElement('div');
+                    overlay.className = 'ym-sync-sc-play-overlay';
+                    overlay.style.cssText = `
+                        position:absolute; top:0; left:0; width:100%; height:100%;
+                        background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center;
+                        opacity:0; transition:opacity 0.15s; pointer-events:none;
+                    `;
+                    overlay.innerHTML = `<svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
+                    artEl.appendChild(overlay);
                 })
                 .catch(() => { /* placeholder stays */ });
         });
@@ -6460,10 +8879,10 @@ const SoundCloudSearchInjector = {
 
                 console.log('[SOUNDCLOUD] Playing track:', track.title);
 
-                const btn = el.querySelector('.ym-sync-sc-play-btn');
-                if (btn) {
-                    btn.style.opacity = '1';
-                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="5" stroke="white" stroke-width="2" fill="none" stroke-dasharray="10 20" stroke-linecap="round"/></svg>`;
+                const overlay = el.querySelector('.ym-sync-sc-play-overlay');
+                if (overlay) {
+                    overlay.style.opacity = '1';
+                    overlay.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" style="animation: ym-sync-spin 1s linear infinite;"><circle cx="12" cy="12" r="10" stroke="white" stroke-width="3" stroke-dasharray="32 10" fill="none" stroke-linecap="round"></circle></svg>`;
                 }
 
                 const streamUrl = await window.SoundCloudAPI.getStreamUrl(track);
@@ -6471,12 +8890,237 @@ const SoundCloudSearchInjector = {
                     await window.CustomAudioController.playTrack(track, streamUrl);
                 } else {
                     console.error('[SOUNDCLOUD] Could not get stream URL for track');
-                    if (btn) {
-                        btn.innerHTML = `<svg width="10" height="12" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
+                    const currentOverlay = el.querySelector('.ym-sync-sc-play-overlay');
+                    if (currentOverlay) {
+                        currentOverlay.innerHTML = `<svg width="12" height="14" viewBox="0 0 10 12" fill="white"><path d="M0 0l10 6-10 6V0z"/></svg>`;
                     }
                 }
             });
         });
+
+        // === Click to import ===
+        const addBtns = container.querySelectorAll('.ym-sync-sc-add-btn');
+        addBtns.forEach((btn) => {
+            btn.addEventListener('click', async (e) => {
+                e.stopPropagation(); // Не запускать проигрывание
+                const index = parseInt(btn.dataset.addIndex, 10);
+                const track = tracks[index];
+                if (!track) return;
+
+                await this.importTrack(track, btn);
+            });
+
+            btn.addEventListener('mouseenter', (e) => {
+                e.stopPropagation();
+                btn.style.background = 'rgba(255,255,255,0.16)';
+                btn.style.transform = 'scale(1.1)';
+            });
+
+            btn.addEventListener('mouseleave', (e) => {
+                e.stopPropagation();
+                btn.style.background = 'rgba(255,255,255,0.06)';
+                btn.style.transform = 'scale(1)';
+            });
+        });
+    },
+
+    targetPlaylistId: null,
+
+    async getOrCreatePlaylist(uid) {
+        if (this.targetPlaylistId) return this.targetPlaylistId;
+
+        const headers = {
+            'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+            'x-yandex-music-multi-auth-user-id': uid,
+            'x-yandex-music-without-invocation-info': '1',
+            'x-requested-with': 'XMLHttpRequest'
+        };
+
+        try {
+            console.log('[SOUNDCLOUD IMPORT] Fetching user playlists...');
+            const res = await fetch('https://api.music.yandex.ru/landing-blocks/collection/playlists-liked-and-playlists-created?count=100', { 
+                headers,
+                credentials: 'include'
+            });
+            if (!res.ok) throw new Error(`Failed to fetch playlists: ${res.status}`);
+            const data = await res.json();
+            
+            const tabs = data.tabs || [];
+            const createdTab = tabs.find(t => t.type === 'created_playlist_tab');
+            if (createdTab && createdTab.items) {
+                const item = createdTab.items.find(i => i.data?.playlist?.title === 'BetterYandexMusic');
+                if (item && item.data.playlist) {
+                    const playlist = item.data.playlist;
+                    this.targetPlaylistId = `${playlist.uid}:${playlist.kind}`;
+                    console.log('[SOUNDCLOUD IMPORT] Found existing playlist:', this.targetPlaylistId);
+                    return this.targetPlaylistId;
+                }
+            }
+
+            console.log('[SOUNDCLOUD IMPORT] Playlist "BetterYandexMusic" not found. Creating one...');
+            const createRes = await fetch(`https://api.music.yandex.ru/users/${uid}/playlists/create?visibility=public&title=BetterYandexMusic`, {
+                method: 'POST',
+                headers,
+                credentials: 'include'
+            });
+            if (!createRes.ok) throw new Error(`Failed to create playlist: ${createRes.status}`);
+            const createData = await createRes.json();
+            if (createData && createData.kind) {
+                this.targetPlaylistId = `${uid}:${createData.kind}`;
+                console.log('[SOUNDCLOUD IMPORT] Created new playlist:', this.targetPlaylistId);
+                return this.targetPlaylistId;
+            } else {
+                throw new Error('Invalid playlist create response');
+            }
+        } catch (err) {
+            console.error('[SOUNDCLOUD IMPORT] Error in getOrCreatePlaylist:', err);
+            throw err;
+        }
+    },
+
+    async importTrack(track, btn) {
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.style.background = 'rgba(255,255,255,0.1)';
+        btn.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" style="animation: ym-sync-spin 1s linear infinite;">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-dasharray="32 10" fill="none" stroke-linecap="round"></circle>
+                <style>
+                    @keyframes ym-sync-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                </style>
+            </svg>
+        `;
+
+        try {
+            // Get UID from Yandex Music page
+            let uid = null;
+            if (window.Mu && window.Mu.adapter && window.Mu.adapter.uid) {
+                uid = window.Mu.adapter.uid;
+            } else {
+                const match = document.cookie.match(/Session_id=[\w\.\:\-\|]+?(\d+)\./) || document.cookie.match(/L=[\w\.\:\-\|]+?\.(\d+)\./);
+                if (match) {
+                    uid = match[1];
+                }
+            }
+
+            if (!uid) {
+                const activePlayer = window.getActivePlayer && window.getActivePlayer();
+                uid = activePlayer?.uid || activePlayer?.user?.uid;
+            }
+
+            // Fallback: fetch directly from Yandex Music account status API
+            if (!uid) {
+                try {
+                    console.log('[SOUNDCLOUD IMPORT] Attempting to fetch UID from account/status...');
+                    const statusRes = await fetch('https://api.music.yandex.ru/account/status', {
+                        credentials: 'include'
+                    });
+                    if (statusRes.ok) {
+                        const statusData = await statusRes.json();
+                        uid = statusData.result?.account?.uid || statusData.result?.uid;
+                        console.log('[SOUNDCLOUD IMPORT] Fetched UID from account/status:', uid);
+                    }
+                } catch (e) {
+                    console.error('[SOUNDCLOUD IMPORT] Failed to fetch UID from account/status:', e);
+                }
+            }
+
+            if (!uid) {
+                throw new Error('Не удалось получить UID пользователя');
+            }
+
+            const playlistId = await this.getOrCreatePlaylist(uid);
+
+            const streamUrl = await window.SoundCloudAPI.getStreamUrl(track);
+            if (!streamUrl) throw new Error('Не удалось получить поток трека');
+
+            const filename = `soundcloud_${track.id}.mp3`;
+            
+            const headers = {
+                'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+                'x-yandex-music-multi-auth-user-id': uid,
+                'x-yandex-music-without-invocation-info': '1',
+                'x-requested-with': 'XMLHttpRequest'
+            };
+
+            const uploadUrlRes = await fetch(`https://api.music.yandex.ru/loader/upload-url?uid=${uid}&playlist-id=${encodeURIComponent(playlistId)}&path=${encodeURIComponent(filename)}`, {
+                method: 'POST',
+                headers,
+                credentials: 'include'
+            });
+            if (!uploadUrlRes.ok) throw new Error(`Не удалось получить URL загрузки: ${uploadUrlRes.status}`);
+            
+            const uploadUrlData = await uploadUrlRes.json();
+            const postTarget = uploadUrlData['post-target'];
+            const ugcTrackId = uploadUrlData['ugc-track-id'];
+            if (!postTarget || !ugcTrackId) {
+                throw new Error('Неверный ответ от загрузчика Яндекса');
+            }
+            console.log('[SOUNDCLOUD IMPORT] Delegating download and upload to background script...');
+            const bgResponse = await window.SoundCloudAPI._sendToBridge('YM_UPLOAD_TRACK', {
+                postTarget,
+                streamUrl,
+                filename,
+                title: track.title,
+                artist: track.user?.username || '',
+                artworkUrl: track.artwork_url || track.user?.avatar_url || ''
+            });
+
+            if (!bgResponse || !bgResponse.ok) {
+                throw new Error(bgResponse?.error || 'Ошибка загрузки в фоновом скрипте');
+            }
+
+            const uploadResult = bgResponse.result;
+            if (uploadResult.result !== 'CREATED') {
+                throw new Error(`Неверный статус завершения загрузки: ${uploadResult.result}`);
+            }
+
+            const linkFormData = new FormData();
+            linkFormData.append('trackIds', ugcTrackId);
+            linkFormData.append('removeDuplicates', 'false');
+            linkFormData.append('withProgress', 'true');
+
+            const linkRes = await fetch('https://api.music.yandex.ru/tracks', {
+                method: 'POST',
+                body: linkFormData,
+                headers,
+                credentials: 'include'
+            });
+
+            if (!linkRes.ok) {
+                throw new Error(`Не удалось привязать трек к коллекции: ${linkRes.status}`);
+            }
+
+            btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+            `;
+            btn.title = 'Добавлено в плейлист BetterYandexMusic!';
+            btn.style.background = 'rgba(34,197,94,0.15)';
+            
+            console.log(`[SOUNDCLOUD IMPORT] Successfully imported track ${track.title} (ID: ${ugcTrackId})`);
+        } catch (err) {
+            console.error('[SOUNDCLOUD IMPORT] Import failed:', err);
+            btn.innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            `;
+            btn.title = `Ошибка: ${err.message}`;
+            btn.style.background = 'rgba(239,68,68,0.15)';
+            btn.disabled = false;
+            
+            setTimeout(() => {
+                if (btn && btn.disabled === false) {
+                    btn.innerHTML = originalHtml;
+                    btn.title = 'Добавить в плейлист BetterYandexMusic';
+                    btn.style.background = 'rgba(255,255,255,0.06)';
+                }
+            }, 5000);
+        }
     }
 };
 

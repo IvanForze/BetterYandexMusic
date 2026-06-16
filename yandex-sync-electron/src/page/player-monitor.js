@@ -97,9 +97,14 @@ function getTrackMetadata(activePlayer) {
     const version = dataObj.version ? ` (${dataObj.version})` : '';
     const fullTitle = title + version;
 
+    const ugcArtist = entityData?.meta?.ugcArtistName || entityData?.ugcArtistName || dataObj.ugcArtistName;
     let artistsStr = 'Неизвестный исполнитель';
-    if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
-      artistsStr = dataObj.artists.map(a => a.name).join(', ');
+    if (ugcArtist) {
+      artistsStr = ugcArtist;
+    } else if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
+      artistsStr = dataObj.artists.map(a => typeof a === 'object' && a !== null ? (a.name || '') : String(a)).filter(Boolean).join(', ') || 'Неизвестный исполнитель';
+    } else if (dataObj.artist) {
+      artistsStr = dataObj.artist;
     }
 
     let durationMs = 0;
@@ -227,10 +232,15 @@ function sendStateToPreload() {
         const playerStateTrack = activePlayer.playbackState?.playerState?.track?.value || activePlayer.playbackState?.playerState?.track;
         const currentEntity = activePlayer.queueController?.queue?.state?.currentEntity?.value;
         const entityData = currentEntity?.entity?.data;
-        const rawTrackId = playerStateTrack?.id || entityData?.meta?.id || entityData?.id;
-        
-        if (rawTrackId && !isNaN(Number(rawTrackId))) {
+        if (rawTrackId && String(rawTrackId).trim() !== '' && String(rawTrackId) !== 'undefined' && String(rawTrackId) !== 'null') {
           trackId = String(rawTrackId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              trackId = `soundcloud:${match[1]}`;
+            }
+          }
           const isPlaying = activePlayer.playbackState.playerState.status.value === 'playing';
           isPause = !isPlaying;
           const progress = activePlayer.playbackState.playerState.progress.value;
@@ -391,8 +401,18 @@ function checkAndSendState() {
     const entityData = currentEntity?.entity?.data;
 
     const rawTrackId = entityData?.meta?.id || entityData?.id;
-    if (!rawTrackId || isNaN(Number(rawTrackId))) return;
-    const trackId = String(rawTrackId);
+    if (!rawTrackId) return;
+    let trackId = String(rawTrackId);
+    if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
+
+    // Map UGC SoundCloud tracks to a universal soundcloud: ID for shared session sync
+    const filename = entityData?.meta?.filename || entityData?.filename || '';
+    if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+      const match = filename.match(/soundcloud_(\d+)\.mp3/);
+      if (match) {
+        trackId = `soundcloud:${match[1]}`;
+      }
+    }
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;

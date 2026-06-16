@@ -16,14 +16,18 @@ function buildElectron() {
   const preloadFiles = [
     'preload/variables.js',
     'preload/discord.js',
-    'preload/scrobbler.js',
+    'shared/md5.js',
+    'shared/rzt-api.js',
+    'shared/scrobbler.js',
     'preload/api-server.js',
+    'shared/soundcloud-import.js',
     'preload/bridge.js'
   ];
 
   // Page Context Files
   const pageFiles = [
     'shared/styles.js',
+    'shared/rzt-api.js',
     'page/variables.js',
     'shared/themes.js',
     'shared/navbar-sync.js',
@@ -48,7 +52,7 @@ function buildElectron() {
 
   let preloadCode = '';
   for (const file of preloadFiles) {
-    const filePath = path.join(electronSrcDir, file);
+    const filePath = file.startsWith('shared/') ? path.join(rootDir, file) : path.join(electronSrcDir, file);
     if (!fs.existsSync(filePath)) {
       console.error(`Error: Preload component file ${file} not found at ${filePath}`);
       return false;
@@ -87,6 +91,14 @@ ${pageCode}
   const destPath = path.join(rootDir, 'yandex-sync-electron', 'desktop-sync.js');
   fs.writeFileSync(destPath, combinedCode, 'utf8');
   console.log(`Successfully built Electron desktop-sync.js -> ${destPath}`);
+
+  // Also copy to installer assets
+  const installerAssetsDir = path.join(rootDir, 'yandex-sync-installer', 'assets');
+  if (fs.existsSync(installerAssetsDir)) {
+    const installerDestPath = path.join(installerAssetsDir, 'desktop-sync.js');
+    fs.writeFileSync(installerDestPath, combinedCode, 'utf8');
+    console.log(`Successfully copied desktop-sync.js -> ${installerDestPath}`);
+  }
   return true;
 }
 
@@ -102,6 +114,10 @@ function buildExtension() {
   // Isolated Context Files
   const isolatedFiles = [
     'shared/styles.js',
+    'shared/md5.js',
+    'shared/rzt-api.js',
+    'shared/scrobbler.js',
+    'isolated/scrobbler-init.js',
     'isolated/variables.js',
     'shared/themes.js',
     'shared/navbar-sync.js',
@@ -122,6 +138,7 @@ function buildExtension() {
   const mainFiles = [
     'main/variables.js',
     'main/player-monitor.js',
+    'shared/settings-injector.js',
     'shared/soundcloud-api.js',
     'shared/custom-audio.js',
     'shared/player-faker.js',
@@ -153,12 +170,14 @@ function buildExtension() {
   fs.writeFileSync(destIsolated, isolatedCode, 'utf8');
   console.log(`Successfully built Extension isolated.js -> ${destIsolated}`);
 
-  // Copy soundcloud-bridge.js as standalone isolated script
+  // Bundle soundcloud-bridge.js as standalone isolated script with shared/soundcloud-import.js
   const bridgeSrc = path.join(extSrcDir, 'isolated', 'soundcloud-bridge.js');
+  const sharedImport = path.join(rootDir, 'shared', 'soundcloud-import.js');
   const bridgeDest = path.join(rootDir, 'yandex-sync-extension', 'soundcloud-bridge.js');
-  if (fs.existsSync(bridgeSrc)) {
-    fs.copyFileSync(bridgeSrc, bridgeDest);
-    console.log(`Successfully copied soundcloud-bridge.js -> ${bridgeDest}`);
+  if (fs.existsSync(bridgeSrc) && fs.existsSync(sharedImport)) {
+    const combined = fs.readFileSync(sharedImport, 'utf8') + '\n\n' + fs.readFileSync(bridgeSrc, 'utf8');
+    fs.writeFileSync(bridgeDest, combined, 'utf8');
+    console.log(`Successfully built bundled soundcloud-bridge.js -> ${bridgeDest}`);
   }
 
   const destMain = path.join(rootDir, 'yandex-sync-extension', 'main.js');

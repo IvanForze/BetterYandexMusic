@@ -229,6 +229,53 @@ if (typeof window !== 'undefined') {
               response: { ok: false, error: err.message }
             }, '*');
           });
+      } else if (type === 'YM_UPLOAD_TRACK') {
+        handleSoundCloudUpload(payload)
+          .then(result => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, result }
+            }, '*');
+          })
+          .catch(err => {
+            console.error('[PRELOAD-SC] Yandex upload error:', err);
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
+      } else if (type === 'RZT_GET_RATINGS') {
+        const query = payload.title;
+        const url = `https://risazatvorchestvo.com/search?query=${encodeURIComponent(query)}&type=releases`;
+        nodeHttpsRequest(url, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+          }
+        })
+        .then(html => {
+          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+          if (apiObj) {
+            const ratings = apiObj.parseScoresFromHtml(html, payload.title, payload.artist);
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, data: ratings }
+            }, '*');
+          } else {
+            throw new Error('RztAPI is not defined in preload context');
+          }
+        })
+        .catch(err => {
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: false, error: err.message }
+          }, '*');
+        });
       }
     }
   });

@@ -212,6 +212,17 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       `;
       controlsRoot.appendChild(translateBtn);
     }
+    ymRegisterActiveElement(translateBtn);
+
+    let ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) {
+      ratingsContainer = document.createElement('div');
+      ratingsContainer.className = 'ym-fullscreen-rzt-ratings';
+      controlsRoot.appendChild(ratingsContainer);
+    }
+    ymRegisterActiveElement(ratingsContainer);
+    updateRztRatingsUI(ratingsContainer);
+
     let popover = fullscreenRoot.querySelector('.ym-fullscreen-translate-popover');
     if (!popover) {
       popover = document.createElement('div');
@@ -298,6 +309,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         </div>
       `;
       fullscreenRoot.appendChild(popover);
+      ymRegisterActiveElement(popover);
       if (!document.getElementById('ym-translate-switch-style')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'ym-translate-switch-style';
@@ -359,6 +371,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         popover.style.transform = 'scale(0.95)';
         setTimeout(() => {
           popover.style.display = 'none';
+          ymStopKeepControlsActive();
         }, 200);
         translateBtn.classList.remove('active');
         translateBtn.style.background = '';
@@ -373,6 +386,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         translateBtn.style.background = '';
         translateBtn.style.borderColor = '';
         translateBtn.style.color = '';
+        ymStartKeepControlsActive();
         const btnRect = translateBtn.getBoundingClientRect();
         const parentRect = fullscreenRoot.getBoundingClientRect();
         const relativeTop = btnRect.top - parentRect.top;
@@ -398,6 +412,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
             activePopover.style.transform = 'scale(0.95)';
             setTimeout(() => {
               activePopover.style.display = 'none';
+              ymStopKeepControlsActive();
             }, 200);
             if (activeBtn) {
               activeBtn.classList.remove('active');
@@ -410,4 +425,171 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       });
     }
   }
+}
+
+// Update RZT ratings circles in DOM
+function updateRztRatingsUI(ratingsContainer) {
+  if (!ratingsContainer) {
+    const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+    if (!fullscreenRoot) return;
+    const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+    if (!controlsRoot) return;
+    ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) return;
+  }
+
+  const ratings = window.ymCurrentRztRatings;
+  const statusStr = ratings ? JSON.stringify(ratings) : '';
+  const trackId = window.ymLastRztTrackId || '';
+  
+  if (ratingsContainer.dataset.renderedTrackId === trackId && ratingsContainer.dataset.renderedStatus === statusStr) {
+    // Already rendered exactly this state, skip updating DOM to prevent hover flickering!
+    return;
+  }
+
+  // Save the state we are about to render
+  ratingsContainer.dataset.renderedTrackId = trackId;
+  ratingsContainer.dataset.renderedStatus = statusStr;
+
+  if (!ratings || ratings.empty || ratings.error) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  if (ratings.loading) {
+    ratingsContainer.style.display = 'flex';
+    ratingsContainer.innerHTML = `
+      <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): Загрузка..." style="opacity: 0.5;">—</div>
+    `;
+    return;
+  }
+
+  const hasScores = ratings.withReviews !== null || ratings.withoutReviews !== null || ratings.flomaster !== null;
+  if (!hasScores) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  ratingsContainer.style.display = 'flex';
+  
+  const score1 = ratings.withReviews !== null ? ratings.withReviews : '—';
+  const score2 = ratings.withoutReviews !== null ? ratings.withoutReviews : '—';
+  const score3 = ratings.flomaster !== null ? ratings.flomaster : '—';
+
+  ratingsContainer.innerHTML = `
+    <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): ${score1}">${score1}</div>
+    <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): ${score2}">${score2}</div>
+    <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): ${score3}">${score3}</div>
+  `;
+}
+
+// Keep player controls visible helper variables and functions
+let ymKeepControlsActiveInterval = null;
+let ymActiveHoverCount = 0;
+
+function ymTriggerMouseMove() {
+  const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+  if (fullscreenRoot) {
+    const event = new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true,
+      clientX: window.innerWidth / 2,
+      clientY: window.innerHeight / 2
+    });
+    fullscreenRoot.dispatchEvent(event);
+    document.dispatchEvent(event);
+  }
+}
+
+function ymStartKeepControlsActive() {
+  if (!ymKeepControlsActiveInterval) {
+    ymTriggerMouseMove();
+    ymKeepControlsActiveInterval = setInterval(ymTriggerMouseMove, 1000);
+  }
+}
+
+function ymStopKeepControlsActive() {
+  const popover = document.querySelector('.ym-fullscreen-translate-popover');
+  const isPopoverOpen = popover && popover.style.display === 'flex';
+  
+  if (ymActiveHoverCount <= 0 && !isPopoverOpen) {
+    if (ymKeepControlsActiveInterval) {
+      clearInterval(ymKeepControlsActiveInterval);
+      ymKeepControlsActiveInterval = null;
+    }
+  }
+}
+
+function ymRegisterActiveElement(el) {
+  if (!el || el.dataset.ymActiveRegistered === 'true') return;
+  el.dataset.ymActiveRegistered = 'true';
+  
+  el.addEventListener('mouseenter', () => {
+    ymActiveHoverCount++;
+    ymStartKeepControlsActive();
+  });
+  
+  el.addEventListener('mouseleave', () => {
+    ymActiveHoverCount = Math.max(0, ymActiveHoverCount - 1);
+    ymStopKeepControlsActive();
+  });
+}
+
+// Listen to track state change to fetch RZT ratings in page/isolated context
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'YM_SYNC_STATE_CHANGED') {
+      const state = event.data.state;
+      if (state && state.trackId && state.trackId !== window.ymLastRztTrackId) {
+        window.ymLastRztTrackId = state.trackId;
+        window.ymCurrentRztRatings = { loading: true };
+        
+        // Update immediately if container is already visible
+        const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+        if (container) {
+          updateRztRatingsUI(container);
+        }
+        
+        const metadata = state.metadata;
+        if (metadata && metadata.title && metadata.artist) {
+          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+          if (apiObj) {
+            apiObj.getTrackRatings(metadata.artist, metadata.title)
+              .then(ratings => {
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = ratings || { empty: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              })
+              .catch(err => {
+                console.error('[RZT-UI] Error getting track ratings:', err);
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = { error: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              });
+          } else {
+            console.warn('[RZT-UI] RztAPI not found in window/context');
+            window.ymCurrentRztRatings = { error: true };
+          }
+        } else {
+          window.ymCurrentRztRatings = null;
+          const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+          if (container) {
+            updateRztRatingsUI(container);
+          }
+        }
+      }
+    }
+  });
 }

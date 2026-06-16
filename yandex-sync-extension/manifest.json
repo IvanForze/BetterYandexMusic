@@ -6,12 +6,17 @@
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "*://music.yandex.ru/*",
+    "*://*.music.yandex.ru/*",
+    "*://*.yandex.ru/*",
     "http://localhost:3000/*",
     "https://lrclib.net/*",
     "https://soundcloud.com/*",
     "https://api-v2.soundcloud.com/*",
     "https://*.sndcdn.com/*",
-    "https://translate.googleapis.com/*"
+    "https://translate.googleapis.com/*",
+    "https://ws.audioscrobbler.com/*",
+    "https://api.listenbrainz.org/*",
+    "https://risazatvorchestvo.com/*"
   ],
   "background": {
     "service_worker": "background.js"

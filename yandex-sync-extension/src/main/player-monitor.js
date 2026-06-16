@@ -127,9 +127,14 @@ function getTrackMetadata(activePlayer) {
     const version = dataObj.version ? ` (${dataObj.version})` : '';
     const fullTitle = title + version;
 
+    const ugcArtist = entityData?.meta?.ugcArtistName || entityData?.ugcArtistName || dataObj.ugcArtistName;
     let artistsStr = 'Неизвестный исполнитель';
-    if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
-      artistsStr = dataObj.artists.map(a => a.name).join(', ');
+    if (ugcArtist) {
+      artistsStr = ugcArtist;
+    } else if (Array.isArray(dataObj.artists) && dataObj.artists.length > 0) {
+      artistsStr = dataObj.artists.map(a => typeof a === 'object' && a !== null ? (a.name || '') : String(a)).filter(Boolean).join(', ') || 'Неизвестный исполнитель';
+    } else if (dataObj.artist) {
+      artistsStr = dataObj.artist;
     }
 
     let durationMs = 0;
@@ -280,6 +285,50 @@ function checkAndSendState() {
       hasLoggedActivePlayer = true;
       window.myDebugPlayer = activePlayer; // Сохраняем глобально для отладки
       console.log("[SYNC-DEBUG] Объект activePlayer найден! Полный вывод:", activePlayer);
+      
+      // Запускаем инспекцию громкости
+      try {
+        console.log("--- ИНСПЕКЦИЯ ГРОМКОСТИ ---");
+        const inspect = (obj, path = "myDebugPlayer", depth = 0) => {
+          if (!obj || typeof obj !== 'object' || depth > 4) return;
+          let keys = [];
+          try {
+            let curr = obj;
+            while (curr && curr !== Object.prototype) {
+              keys.push(...Object.getOwnPropertyNames(curr));
+              curr = Object.getPrototypeOf(curr);
+            }
+          } catch(e) {}
+          const uniqueKeys = [...new Set(keys)];
+          for (const key of uniqueKeys) {
+            if (key.toLowerCase().includes('volume') || key.toLowerCase().includes('mute')) {
+              try { console.log(`[VOLUME-PROP] ${path}.${key} (${typeof obj[key]})`); } catch(e) {}
+            }
+            try {
+              const desc = Object.getOwnPropertyDescriptor(obj, key);
+              if (desc && desc.value && typeof desc.value === 'object') {
+                inspect(desc.value, `${path}.${key}`, depth + 1);
+              }
+            } catch(e) {}
+          }
+        };
+        inspect(activePlayer);
+
+        const findAudio = (obj, path = "myDebugPlayer", depth = 0, visited = new Set()) => {
+          if (!obj || typeof obj !== 'object' || depth > 4 || visited.has(obj)) return;
+          visited.add(obj);
+          if (obj instanceof HTMLAudioElement) {
+            console.log(`[VOLUME-AUDIO-EL] ${path} (HTMLAudioElement), volume:`, obj.volume);
+            return;
+          }
+          for (const key in obj) {
+            try { findAudio(obj[key], `${path}.${key}`, depth + 1, visited); } catch(e) {}
+          }
+        };
+        findAudio(activePlayer);
+      } catch (e) {
+        console.error("Ошибка при инспекции громкости:", e);
+      }
       console.log("[SYNC-DEBUG] Ключи activePlayer:", Object.keys(activePlayer));
       console.log("[SYNC-DEBUG] get() метод:", typeof activePlayer.get);
       if (typeof activePlayer.get === 'function') {
@@ -345,8 +394,18 @@ function checkAndSendState() {
     const entityData = currentEntity?.entity?.data;
     
     const rawTrackId = playerStateTrack?.id || entityData?.meta?.id || entityData?.id;
-    if (!rawTrackId || isNaN(Number(rawTrackId))) return;
-    const trackId = String(rawTrackId);
+    if (!rawTrackId) return;
+    let trackId = String(rawTrackId);
+    if (trackId.trim() === '' || trackId === 'undefined' || trackId === 'null') return;
+
+    // Map UGC SoundCloud tracks to a universal soundcloud: ID for shared session sync
+    const filename = entityData?.meta?.filename || entityData?.filename || '';
+    if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+      const match = filename.match(/soundcloud_(\d+)\.mp3/);
+      if (match) {
+        trackId = `soundcloud:${match[1]}`;
+      }
+    }
 
     const context = currentEntity?.context;
     const contextId = context?.data?.meta?.id || context?.data?.id;

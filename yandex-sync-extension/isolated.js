@@ -910,6 +910,82 @@ function injectStyles() {
       box-shadow: 0 0 12px rgba(255, 219, 77, 0.4) !important;
     }
 
+    /* RZT Ratings Container and Circles */
+    .ym-fullscreen-rzt-ratings {
+      position: absolute !important;
+      top: 34px !important;
+      left: 92px !important;
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 10px !important;
+      z-index: 100000 !important;
+      pointer-events: auto !important;
+    }
+
+    .ym-rzt-rating-circle {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-family: "YSMusic Headline", "YS Text", "Yandex Sans", sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      color: #ffffff !important;
+      position: relative !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+      transition: transform 0.2s ease, opacity 0.2s ease !important;
+    }
+
+    .ym-rzt-rating-circle:hover {
+      transform: scale(1.1) !important;
+    }
+
+    /* Tooltip styling */
+    .ym-rzt-rating-circle::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: rgba(28, 28, 32, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-family: "YS Text", "Yandex Sans", sans-serif;
+      font-weight: 500;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100002;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    .ym-rzt-rating-circle:hover::after {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-solid {
+      background-color: #2563eb !important;
+      border: none !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-blue-outline {
+      background-color: transparent !important;
+      border: 2px solid #2563eb !important;
+    }
+
+    .ym-rzt-rating-circle.rzt-grey-solid {
+      background-color: rgba(255, 255, 255, 0.15) !important;
+      border: none !important;
+    }
+
     /* --- Light Theme Support --- */
     html.theme-light .ym-sync-popover,
     body.theme-light .ym-sync-popover,
@@ -950,6 +1026,1012 @@ function injectStyles() {
   `;
   document.head.appendChild(style);
 }
+
+// --- Component: shared/md5.js ---
+/*
+ * JavaScript MD5
+ * https://github.com/blueimp/JavaScript-MD5
+ *
+ * Copyright 2011, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * https://opensource.org/licenses/MIT
+ *
+ * Based on
+ * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
+ * Digest Algorithm, as defined in RFC 1321.
+ * Version 2.2 Copyright (C) Paul Johnston 1999 - 2009
+ * Other contributors: Greg Holt, Andrew Kepert, Ydnar, Lostinet
+ * Distributed under the BSD License
+ * See http://pajhome.org.uk/crypt/md5 for more info.
+ */
+
+/* global define */
+
+/* eslint-disable strict */
+
+;(function ($) {
+  'use strict'
+
+  /**
+   * Add integers, wrapping at 2^32.
+   * This uses 16-bit operations internally to work around bugs in interpreters.
+   *
+   * @param {number} x First integer
+   * @param {number} y Second integer
+   * @returns {number} Sum
+   */
+  function safeAdd(x, y) {
+    var lsw = (x & 0xffff) + (y & 0xffff)
+    var msw = (x >> 16) + (y >> 16) + (lsw >> 16)
+    return (msw << 16) | (lsw & 0xffff)
+  }
+
+  /**
+   * Bitwise rotate a 32-bit number to the left.
+   *
+   * @param {number} num 32-bit number
+   * @param {number} cnt Rotation count
+   * @returns {number} Rotated number
+   */
+  function bitRotateLeft(num, cnt) {
+    return (num << cnt) | (num >>> (32 - cnt))
+  }
+
+  /**
+   * Basic operation the algorithm uses.
+   *
+   * @param {number} q q
+   * @param {number} a a
+   * @param {number} b b
+   * @param {number} x x
+   * @param {number} s s
+   * @param {number} t t
+   * @returns {number} Result
+   */
+  function md5cmn(q, a, b, x, s, t) {
+    return safeAdd(bitRotateLeft(safeAdd(safeAdd(a, q), safeAdd(x, t)), s), b)
+  }
+  /**
+   * Basic operation the algorithm uses.
+   *
+   * @param {number} a a
+   * @param {number} b b
+   * @param {number} c c
+   * @param {number} d d
+   * @param {number} x x
+   * @param {number} s s
+   * @param {number} t t
+   * @returns {number} Result
+   */
+  function md5ff(a, b, c, d, x, s, t) {
+    return md5cmn((b & c) | (~b & d), a, b, x, s, t)
+  }
+  /**
+   * Basic operation the algorithm uses.
+   *
+   * @param {number} a a
+   * @param {number} b b
+   * @param {number} c c
+   * @param {number} d d
+   * @param {number} x x
+   * @param {number} s s
+   * @param {number} t t
+   * @returns {number} Result
+   */
+  function md5gg(a, b, c, d, x, s, t) {
+    return md5cmn((b & d) | (c & ~d), a, b, x, s, t)
+  }
+  /**
+   * Basic operation the algorithm uses.
+   *
+   * @param {number} a a
+   * @param {number} b b
+   * @param {number} c c
+   * @param {number} d d
+   * @param {number} x x
+   * @param {number} s s
+   * @param {number} t t
+   * @returns {number} Result
+   */
+  function md5hh(a, b, c, d, x, s, t) {
+    return md5cmn(b ^ c ^ d, a, b, x, s, t)
+  }
+  /**
+   * Basic operation the algorithm uses.
+   *
+   * @param {number} a a
+   * @param {number} b b
+   * @param {number} c c
+   * @param {number} d d
+   * @param {number} x x
+   * @param {number} s s
+   * @param {number} t t
+   * @returns {number} Result
+   */
+  function md5ii(a, b, c, d, x, s, t) {
+    return md5cmn(c ^ (b | ~d), a, b, x, s, t)
+  }
+
+  /**
+   * Calculate the MD5 of an array of little-endian words, and a bit length.
+   *
+   * @param {Array} x Array of little-endian words
+   * @param {number} len Bit length
+   * @returns {Array<number>} MD5 Array
+   */
+  function binlMD5(x, len) {
+    /* append padding */
+    x[len >> 5] |= 0x80 << len % 32
+    x[(((len + 64) >>> 9) << 4) + 14] = len
+
+    var i
+    var olda
+    var oldb
+    var oldc
+    var oldd
+    var a = 1732584193
+    var b = -271733879
+    var c = -1732584194
+    var d = 271733878
+
+    for (i = 0; i < x.length; i += 16) {
+      olda = a
+      oldb = b
+      oldc = c
+      oldd = d
+
+      a = md5ff(a, b, c, d, x[i], 7, -680876936)
+      d = md5ff(d, a, b, c, x[i + 1], 12, -389564586)
+      c = md5ff(c, d, a, b, x[i + 2], 17, 606105819)
+      b = md5ff(b, c, d, a, x[i + 3], 22, -1044525330)
+      a = md5ff(a, b, c, d, x[i + 4], 7, -176418897)
+      d = md5ff(d, a, b, c, x[i + 5], 12, 1200080426)
+      c = md5ff(c, d, a, b, x[i + 6], 17, -1473231341)
+      b = md5ff(b, c, d, a, x[i + 7], 22, -45705983)
+      a = md5ff(a, b, c, d, x[i + 8], 7, 1770035416)
+      d = md5ff(d, a, b, c, x[i + 9], 12, -1958414417)
+      c = md5ff(c, d, a, b, x[i + 10], 17, -42063)
+      b = md5ff(b, c, d, a, x[i + 11], 22, -1990404162)
+      a = md5ff(a, b, c, d, x[i + 12], 7, 1804603682)
+      d = md5ff(d, a, b, c, x[i + 13], 12, -40341101)
+      c = md5ff(c, d, a, b, x[i + 14], 17, -1502002290)
+      b = md5ff(b, c, d, a, x[i + 15], 22, 1236535329)
+
+      a = md5gg(a, b, c, d, x[i + 1], 5, -165796510)
+      d = md5gg(d, a, b, c, x[i + 6], 9, -1069501632)
+      c = md5gg(c, d, a, b, x[i + 11], 14, 643717713)
+      b = md5gg(b, c, d, a, x[i], 20, -373897302)
+      a = md5gg(a, b, c, d, x[i + 5], 5, -701558691)
+      d = md5gg(d, a, b, c, x[i + 10], 9, 38016083)
+      c = md5gg(c, d, a, b, x[i + 15], 14, -660478335)
+      b = md5gg(b, c, d, a, x[i + 4], 20, -405537848)
+      a = md5gg(a, b, c, d, x[i + 9], 5, 568446438)
+      d = md5gg(d, a, b, c, x[i + 14], 9, -1019803690)
+      c = md5gg(c, d, a, b, x[i + 3], 14, -187363961)
+      b = md5gg(b, c, d, a, x[i + 8], 20, 1163531501)
+      a = md5gg(a, b, c, d, x[i + 13], 5, -1444681467)
+      d = md5gg(d, a, b, c, x[i + 2], 9, -51403784)
+      c = md5gg(c, d, a, b, x[i + 7], 14, 1735328473)
+      b = md5gg(b, c, d, a, x[i + 12], 20, -1926607734)
+
+      a = md5hh(a, b, c, d, x[i + 5], 4, -378558)
+      d = md5hh(d, a, b, c, x[i + 8], 11, -2022574463)
+      c = md5hh(c, d, a, b, x[i + 11], 16, 1839030562)
+      b = md5hh(b, c, d, a, x[i + 14], 23, -35309556)
+      a = md5hh(a, b, c, d, x[i + 1], 4, -1530992060)
+      d = md5hh(d, a, b, c, x[i + 4], 11, 1272893353)
+      c = md5hh(c, d, a, b, x[i + 7], 16, -155497632)
+      b = md5hh(b, c, d, a, x[i + 10], 23, -1094730640)
+      a = md5hh(a, b, c, d, x[i + 13], 4, 681279174)
+      d = md5hh(d, a, b, c, x[i], 11, -358537222)
+      c = md5hh(c, d, a, b, x[i + 3], 16, -722521979)
+      b = md5hh(b, c, d, a, x[i + 6], 23, 76029189)
+      a = md5hh(a, b, c, d, x[i + 9], 4, -640364487)
+      d = md5hh(d, a, b, c, x[i + 12], 11, -421815835)
+      c = md5hh(c, d, a, b, x[i + 15], 16, 530742520)
+      b = md5hh(b, c, d, a, x[i + 2], 23, -995338651)
+
+      a = md5ii(a, b, c, d, x[i], 6, -198630844)
+      d = md5ii(d, a, b, c, x[i + 7], 10, 1126891415)
+      c = md5ii(c, d, a, b, x[i + 14], 15, -1416354905)
+      b = md5ii(b, c, d, a, x[i + 5], 21, -57434055)
+      a = md5ii(a, b, c, d, x[i + 12], 6, 1700485571)
+      d = md5ii(d, a, b, c, x[i + 3], 10, -1894986606)
+      c = md5ii(c, d, a, b, x[i + 10], 15, -1051523)
+      b = md5ii(b, c, d, a, x[i + 1], 21, -2054922799)
+      a = md5ii(a, b, c, d, x[i + 8], 6, 1873313359)
+      d = md5ii(d, a, b, c, x[i + 15], 10, -30611744)
+      c = md5ii(c, d, a, b, x[i + 6], 15, -1560198380)
+      b = md5ii(b, c, d, a, x[i + 13], 21, 1309151649)
+      a = md5ii(a, b, c, d, x[i + 4], 6, -145523070)
+      d = md5ii(d, a, b, c, x[i + 11], 10, -1120210379)
+      c = md5ii(c, d, a, b, x[i + 2], 15, 718787259)
+      b = md5ii(b, c, d, a, x[i + 9], 21, -343485551)
+
+      a = safeAdd(a, olda)
+      b = safeAdd(b, oldb)
+      c = safeAdd(c, oldc)
+      d = safeAdd(d, oldd)
+    }
+    return [a, b, c, d]
+  }
+
+  /**
+   * Convert an array of little-endian words to a string
+   *
+   * @param {Array<number>} input MD5 Array
+   * @returns {string} MD5 string
+   */
+  function binl2rstr(input) {
+    var i
+    var output = ''
+    var length32 = input.length * 32
+    for (i = 0; i < length32; i += 8) {
+      output += String.fromCharCode((input[i >> 5] >>> i % 32) & 0xff)
+    }
+    return output
+  }
+
+  /**
+   * Convert a raw string to an array of little-endian words
+   * Characters >255 have their high-byte silently ignored.
+   *
+   * @param {string} input Raw input string
+   * @returns {Array<number>} Array of little-endian words
+   */
+  function rstr2binl(input) {
+    var i
+    var output = []
+    output[(input.length >> 2) - 1] = undefined
+    for (i = 0; i < output.length; i += 1) {
+      output[i] = 0
+    }
+    var length8 = input.length * 8
+    for (i = 0; i < length8; i += 8) {
+      output[i >> 5] |= (input.charCodeAt(i / 8) & 0xff) << i % 32
+    }
+    return output
+  }
+
+  /**
+   * Calculate the MD5 of a raw string
+   *
+   * @param {string} s Input string
+   * @returns {string} Raw MD5 string
+   */
+  function rstrMD5(s) {
+    return binl2rstr(binlMD5(rstr2binl(s), s.length * 8))
+  }
+
+  /**
+   * Calculates the HMAC-MD5 of a key and some data (raw strings)
+   *
+   * @param {string} key HMAC key
+   * @param {string} data Raw input string
+   * @returns {string} Raw MD5 string
+   */
+  function rstrHMACMD5(key, data) {
+    var i
+    var bkey = rstr2binl(key)
+    var ipad = []
+    var opad = []
+    var hash
+    ipad[15] = opad[15] = undefined
+    if (bkey.length > 16) {
+      bkey = binlMD5(bkey, key.length * 8)
+    }
+    for (i = 0; i < 16; i += 1) {
+      ipad[i] = bkey[i] ^ 0x36363636
+      opad[i] = bkey[i] ^ 0x5c5c5c5c
+    }
+    hash = binlMD5(ipad.concat(rstr2binl(data)), 512 + data.length * 8)
+    return binl2rstr(binlMD5(opad.concat(hash), 512 + 128))
+  }
+
+  /**
+   * Convert a raw string to a hex string
+   *
+   * @param {string} input Raw input string
+   * @returns {string} Hex encoded string
+   */
+  function rstr2hex(input) {
+    var hexTab = '0123456789abcdef'
+    var output = ''
+    var x
+    var i
+    for (i = 0; i < input.length; i += 1) {
+      x = input.charCodeAt(i)
+      output += hexTab.charAt((x >>> 4) & 0x0f) + hexTab.charAt(x & 0x0f)
+    }
+    return output
+  }
+
+  /**
+   * Encode a string as UTF-8
+   *
+   * @param {string} input Input string
+   * @returns {string} UTF8 string
+   */
+  function str2rstrUTF8(input) {
+    return unescape(encodeURIComponent(input))
+  }
+
+  /**
+   * Encodes input string as raw MD5 string
+   *
+   * @param {string} s Input string
+   * @returns {string} Raw MD5 string
+   */
+  function rawMD5(s) {
+    return rstrMD5(str2rstrUTF8(s))
+  }
+  /**
+   * Encodes input string as Hex encoded string
+   *
+   * @param {string} s Input string
+   * @returns {string} Hex encoded string
+   */
+  function hexMD5(s) {
+    return rstr2hex(rawMD5(s))
+  }
+  /**
+   * Calculates the raw HMAC-MD5 for the given key and data
+   *
+   * @param {string} k HMAC key
+   * @param {string} d Input string
+   * @returns {string} Raw MD5 string
+   */
+  function rawHMACMD5(k, d) {
+    return rstrHMACMD5(str2rstrUTF8(k), str2rstrUTF8(d))
+  }
+  /**
+   * Calculates the Hex encoded HMAC-MD5 for the given key and data
+   *
+   * @param {string} k HMAC key
+   * @param {string} d Input string
+   * @returns {string} Raw MD5 string
+   */
+  function hexHMACMD5(k, d) {
+    return rstr2hex(rawHMACMD5(k, d))
+  }
+
+  /**
+   * Calculates MD5 value for a given string.
+   * If a key is provided, calculates the HMAC-MD5 value.
+   * Returns a Hex encoded string unless the raw argument is given.
+   *
+   * @param {string} string Input string
+   * @param {string} [key] HMAC key
+   * @param {boolean} [raw] Raw output switch
+   * @returns {string} MD5 output
+   */
+  function md5(string, key, raw) {
+    if (!key) {
+      if (!raw) {
+        return hexMD5(string)
+      }
+      return rawMD5(string)
+    }
+    if (!raw) {
+      return hexHMACMD5(key, string)
+    }
+    return rawHMACMD5(key, string)
+  }
+
+  if (typeof define === 'function' && define.amd) {
+    define(function () {
+      return md5
+    })
+  } else if (typeof module === 'object' && module.exports) {
+    module.exports = md5
+  } else {
+    $.md5 = md5
+  }
+  if (typeof window !== 'undefined') window.md5 = md5;
+  if (typeof global !== 'undefined') global.md5 = md5;
+})(this)
+
+
+// --- Component: shared/rzt-api.js ---
+// ==========================================
+// RISA ZA TVORCHESTVO (RZT) API
+// ==========================================
+
+const RztAPI = {
+  _pendingRequests: {},
+  _initialized: false,
+
+  _init() {
+    if (this._initialized) return;
+    this._initialized = true;
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', (event) => {
+        if (!event.data || !event.data.__ym_sc_bridge_response) return;
+        const { requestId, response } = event.data;
+        const pending = this._pendingRequests[requestId];
+        if (pending) {
+          delete this._pendingRequests[requestId];
+          if (response && response.ok) {
+            pending.resolve(response.data || response.result); // supports data or result keys
+          } else {
+            pending.reject(new Error(response && response.error ? response.error : 'Unknown bridge error'));
+          }
+        }
+      });
+    }
+  },
+
+  _sendToBridge(type, payload) {
+    this._init();
+    return new Promise((resolve, reject) => {
+      const requestId = `rzt_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      this._pendingRequests[requestId] = { resolve, reject };
+
+      // Timeout safety
+      setTimeout(() => {
+        if (this._pendingRequests[requestId]) {
+          delete this._pendingRequests[requestId];
+          reject(new Error('RZT bridge request timed out'));
+        }
+      }, 15000);
+
+      window.postMessage({
+        __ym_sc_bridge: true,
+        requestId,
+        type,
+        payload
+      }, '*');
+    });
+  },
+
+  normalizeText(text) {
+    if (!text) return '';
+    return text.toLowerCase()
+      .replace(/[\u200b-\u200d\uFEFF]/g, '') // Strip zero-width spaces/BOM
+      .replace(/[^a-zа-я0-9\s-_]/gi, '')   // Keep only letters, digits, spaces, hyphens, underscores
+      .replace(/\s+/g, ' ')
+      .trim();
+  },
+
+  hasArtistMatch(chunk, artistName) {
+    if (!artistName) return true;
+    const cleanArtist = this.normalizeText(artistName);
+    const cleanChunk = this.normalizeText(chunk);
+    
+    if (cleanChunk.includes(cleanArtist)) return true;
+    
+    // Split by common artist separators and check each one
+    const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => this.normalizeText(a)).filter(Boolean);
+    for (const a of artists) {
+      if (cleanChunk.includes(a)) return true;
+    }
+    
+    return false;
+  },
+
+  parseScoresFromHtml(html, trackTitle, artistName) {
+    if (!html) return null;
+    const titleClean = this.normalizeText(trackTitle);
+    
+    // 1. Gather all occurrence positions of the track title
+    const indices = [];
+    let idx = html.toLowerCase().indexOf(titleClean);
+    while (idx !== -1) {
+      indices.push(idx);
+      idx = html.toLowerCase().indexOf(titleClean, idx + 1);
+    }
+    
+    // Fallback 1: try title without bracketed info if no matches found
+    if (indices.length === 0) {
+      const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
+      if (simpleTitle && simpleTitle !== titleClean) {
+        let idx2 = html.toLowerCase().indexOf(simpleTitle);
+        while (idx2 !== -1) {
+          indices.push(idx2);
+          idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+        }
+      }
+    }
+
+    // 2. Scan occurrences and look for the one matching the artist
+    for (const pos of indices) {
+      const chunk = html.slice(pos, pos + 3000);
+      if (this.hasArtistMatch(chunk, artistName)) {
+        const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+        const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+        if (matches.length > 0) {
+          return {
+            flomaster: matches[2] || null,
+            withReviews: matches[0] || null,
+            withoutReviews: matches[1] || null
+          };
+        }
+      }
+    }
+
+    // Fallback 2: if no matches had the artist, parse ratings from the first track title match
+    if (indices.length > 0) {
+      const chunk = html.slice(indices[0], indices[0] + 3000);
+      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+      if (matches.length > 0) {
+        return {
+          flomaster: matches[2] || null,
+          withReviews: matches[0] || null,
+          withoutReviews: matches[1] || null
+        };
+      }
+    }
+
+    // Fallback 3: try the first track link in the entire search results page
+    const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
+    const match = html.match(fallbackRegex);
+    if (match) {
+      const pos = html.indexOf(match[0]);
+      const chunk = html.slice(pos, pos + 3000);
+      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
+      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
+      if (matches.length > 0) {
+        return {
+          flomaster: matches[2] || null,
+          withReviews: matches[0] || null,
+          withoutReviews: matches[1] || null
+        };
+      }
+    }
+
+    return null;
+  },
+
+  async getTrackRatings(artist, title) {
+    try {
+      return await this._sendToBridge('RZT_GET_RATINGS', { artist, title });
+    } catch (err) {
+      console.error('[RZT] Error getting track ratings:', err);
+      return null;
+    }
+  }
+};
+
+if (typeof window !== 'undefined') {
+  window.RztAPI = RztAPI;
+}
+if (typeof module !== 'undefined') {
+  module.exports = RztAPI;
+}
+
+
+// --- Component: shared/scrobbler.js ---
+// Дефолтные ключи Last.fm (могут быть переопределены пользователем в настройках)
+const LASTFM_DEFAULT_API_KEY = '4d12b2b376510476bfdae3e2c62c96c4';
+const LASTFM_DEFAULT_SECRET = '78e24c2a5e985b67484df24cd76bf349';
+
+function md5Hash(str) {
+  if (typeof window !== 'undefined' && window.md5) return window.md5(str);
+  if (typeof global !== 'undefined' && global.md5) return global.md5(str);
+  throw new Error('MD5 function not found. Ensure md5.js is loaded.');
+}
+
+async function makeHttpRequest(url, options = {}, body = null) {
+  const reqOptions = {
+    method: options.method || 'GET',
+    headers: options.headers || {}
+  };
+
+  if (body) {
+    reqOptions.body = body;
+  }
+
+  const response = await fetch(url, reqOptions);
+  const text = await response.text();
+
+  if (response.ok) {
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      return text;
+    }
+  } else {
+    throw new Error(`HTTP ${response.status}: ${text}`);
+  }
+}
+
+// Генерирует подпись api_sig для Last.fm
+function generateLastFmSignature(params, secret) {
+  const sortedKeys = Object.keys(params).sort();
+  let signatureStr = '';
+  for (const key of sortedKeys) {
+    if (key !== 'format') {
+      signatureStr += key + params[key];
+    }
+  }
+  signatureStr += secret;
+  return md5Hash(signatureStr);
+}
+
+class ScrobblerService {
+  static getSettings() {
+    let settings = {
+      lastfmEnabled: false,
+      lastfmApiKey: '',
+      lastfmSecret: '',
+      lastfmSessionKey: '',
+      lastfmUsername: '',
+      listenbrainzEnabled: false,
+      listenbrainzToken: '',
+      listenbrainzUsername: ''
+    };
+    return settings;
+  }
+
+  // Получить авторизационный токен Last.fm
+  static async lastFmGetToken(customApiKey, customSecret) {
+    const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+    const secret = customSecret || LASTFM_DEFAULT_SECRET;
+
+    const params = {
+      api_key: apiKey,
+      method: 'auth.getToken'
+    };
+    const apiSig = generateLastFmSignature(params, secret);
+    const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getToken&api_key=${apiKey}&api_sig=${apiSig}&format=json`;
+    const data = await makeHttpRequest(url);
+    return data.token;
+  }
+
+  // Получить Session Key по токену Last.fm
+  static async lastFmGetSession(token, customApiKey, customSecret) {
+    const apiKey = customApiKey || LASTFM_DEFAULT_API_KEY;
+    const secret = customSecret || LASTFM_DEFAULT_SECRET;
+    
+    const params = {
+      api_key: apiKey,
+      method: 'auth.getSession',
+      token: token
+    };
+    const apiSig = generateLastFmSignature(params, secret);
+    
+    const url = `https://ws.audioscrobbler.com/2.0/?method=auth.getSession&api_key=${apiKey}&token=${token}&api_sig=${apiSig}&format=json`;
+    const data = await makeHttpRequest(url);
+    if (data.session) {
+      return {
+        sessionKey: data.session.key,
+        username: data.session.name
+      };
+    }
+    throw new Error('Не удалось получить сессию Last.fm');
+  }
+
+  // Обновить "Now Playing" в Last.fm
+  static async lastFmNowPlaying(trackData, config) {
+    if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+    
+    const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+    const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+
+    const params = {
+      api_key: apiKey,
+      artist: trackData.artist,
+      track: trackData.title,
+      method: 'track.updateNowPlaying',
+      sk: config.lastfmSessionKey
+    };
+    if (trackData.album) params.album = trackData.album;
+    if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+
+    const apiSig = generateLastFmSignature(params, secret);
+    params.api_sig = apiSig;
+    params.format = 'json';
+
+    const body = new URLSearchParams(params).toString();
+    const url = 'https://ws.audioscrobbler.com/2.0/';
+    
+    return makeHttpRequest(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }, body);
+  }
+
+  // Заскроблить в Last.fm
+  static async lastFmScrobble(trackData, config) {
+    if (!config.lastfmEnabled || !config.lastfmSessionKey) return;
+
+    const apiKey = config.lastfmApiKey || LASTFM_DEFAULT_API_KEY;
+    const secret = config.lastfmSecret || LASTFM_DEFAULT_SECRET;
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    const params = {
+      api_key: apiKey,
+      artist: trackData.artist,
+      track: trackData.title,
+      timestamp: timestamp,
+      method: 'track.scrobble',
+      sk: config.lastfmSessionKey
+    };
+    if (trackData.album) params.album = trackData.album;
+    if (trackData.durationMs) params.duration = Math.round(trackData.durationMs / 1000);
+
+    const apiSig = generateLastFmSignature(params, secret);
+    params.api_sig = apiSig;
+    params.format = 'json';
+
+    const body = new URLSearchParams(params).toString();
+    const url = 'https://ws.audioscrobbler.com/2.0/';
+
+    return makeHttpRequest(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    }, body);
+  }
+
+  // Отправка Now Playing / Scrobble в ListenBrainz
+  static async listenBrainzSubmit(trackData, config, listenType) {
+    if (!config.listenbrainzEnabled || !config.listenbrainzToken) return;
+
+    const timestamp = Math.floor(Date.now() / 1000);
+    const payload = [
+      {
+        listened_at: listenType === 'scrobble' ? timestamp : undefined,
+        track_metadata: {
+          artist_name: trackData.artist,
+          track_name: trackData.title,
+          release_name: trackData.album || undefined,
+          additional_info: {
+            media_player: 'Yandex Music Sync Client',
+            duration_ms: trackData.durationMs || undefined
+          }
+        }
+      }
+    ];
+
+    console.log(`[LISTENBRAINZ] Отправка статуса '${listenType}' для: ${trackData.artist} - ${trackData.title}`);
+
+    const body = JSON.stringify({
+      listen_type: listenType, // 'playing_now' или 'single' (для скроблинга)
+      payload: payload
+    });
+
+    const url = 'https://api.listenbrainz.org/1/submit-listens';
+    
+    return makeHttpRequest(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Token ${config.listenbrainzToken}`,
+        'Content-Type': 'application/json'
+      }
+    }, body).then(res => {
+      console.log(`[LISTENBRAINZ] Успешно отправлен статус '${listenType}'`);
+      return res;
+    });
+  }
+
+  // Проверить токен ListenBrainz и получить имя пользователя
+  static async listenBrainzValidateToken(token) {
+    const url = 'https://api.listenbrainz.org/1/validate-token';
+    const data = await makeHttpRequest(url, {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    });
+    if (data.valid === true) {
+      return data.user_name;
+    }
+    throw new Error('Недействительный токен ListenBrainz');
+  }
+}
+
+// Экспортируем в preload контекст
+window.ScrobblerService = ScrobblerService;
+
+class ScrobbleManager {
+  constructor() {
+    this.currentTrackId = null;
+    this.currentTrack = null;
+    this.isPlaying = false;
+    this.playtimeMs = 0;
+    this.lastTimestamp = 0;
+    this.nowPlayingSent = false;
+    this.scrobbled = false;
+    
+    // Дефолтные настройки
+    this.config = {
+      lastfmEnabled: false,
+      lastfmApiKey: '',
+      lastfmSecret: '',
+      lastfmSessionKey: '',
+      lastfmUsername: '',
+      listenbrainzEnabled: false,
+      listenbrainzToken: '',
+      listenbrainzUsername: ''
+    };
+  }
+
+  updateConfig(newConfig) {
+    this.config = { ...this.config, ...newConfig };
+    console.log('[SCROBBLER] Конфигурация обновлена:', {
+      lastfmEnabled: this.config.lastfmEnabled,
+      lastfmUsername: this.config.lastfmUsername,
+      listenbrainzEnabled: this.config.listenbrainzEnabled,
+      listenbrainzUsername: this.config.listenbrainzUsername
+    });
+  }
+
+  onStateChange(trackId, isPause, position, metadata) {
+    if (!trackId || !metadata) {
+      this.reset();
+      return;
+    }
+
+    const trackChanged = trackId !== this.currentTrackId;
+
+    if (trackChanged) {
+      // Пытаемся заскроблить предыдущий трек перед переключением, если порог был достигнут
+      this.checkAndScrobble();
+
+      console.log('[SCROBBLER] Обнаружена смена трека:', metadata.artist, '-', metadata.title);
+      
+      const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (typeof window !== 'undefined' ? window.RztAPI : null);
+      if (apiObj) {
+        apiObj.getTrackRatings(metadata.artist, metadata.title)
+          .then(ratings => {
+            if (ratings) {
+              console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}": ` +
+                `Фломастер (РЗТ): ${ratings.flomaster !== null ? ratings.flomaster : '—'} | ` +
+                `Сайт (с рецензиями): ${ratings.withReviews !== null ? ratings.withReviews : '—'} | ` +
+                `Сайт (без рецензий): ${ratings.withoutReviews !== null ? ratings.withoutReviews : '—'}`
+              );
+            } else {
+              console.log(`[RZT] Оценки для "${metadata.artist} - ${metadata.title}" не найдены (возможно, релиз не оценен)`);
+            }
+          })
+          .catch(err => {
+            console.error('[RZT] Ошибка получения оценок:', err.message);
+          });
+      }
+
+      this.currentTrackId = trackId;
+      this.currentTrack = {
+        title: metadata.title,
+        artist: metadata.artist,
+        album: metadata.album || '',
+        durationMs: metadata.durationMs || 0
+      };
+      this.isPlaying = !isPause;
+      this.playtimeMs = 0;
+      this.lastTimestamp = Date.now();
+      this.nowPlayingSent = false;
+      this.scrobbled = false;
+    } else {
+      const now = Date.now();
+      if (this.isPlaying) {
+        const delta = now - this.lastTimestamp;
+        // Предохранитель от больших скачков во времени
+        if (delta > 0 && delta < 5000) {
+          this.playtimeMs += delta;
+        }
+      }
+      this.isPlaying = !isPause;
+      this.lastTimestamp = now;
+    }
+
+    // Отправляем "Слушает сейчас" после 2 секунд чистого воспроизведения
+    if (!this.nowPlayingSent && this.playtimeMs > 2000) {
+      this.sendNowPlaying();
+    }
+
+    // Проверяем условия для скроблинга
+    this.checkAndScrobble();
+  }
+
+  reset() {
+    this.checkAndScrobble();
+    this.currentTrackId = null;
+    this.currentTrack = null;
+    this.isPlaying = false;
+    this.playtimeMs = 0;
+    this.lastTimestamp = 0;
+    this.nowPlayingSent = false;
+    this.scrobbled = false;
+  }
+
+  sendNowPlaying() {
+    if (!this.currentTrack) return;
+    this.nowPlayingSent = true;
+
+    console.log('[SCROBBLER] Отправка статуса Now Playing для:', this.currentTrack.artist, '-', this.currentTrack.title);
+
+    if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+      ScrobblerService.lastFmNowPlaying(this.currentTrack, this.config).catch(err => {
+        console.error('[SCROBBLER] Ошибка Last.fm Now Playing:', err.message);
+      });
+    }
+
+    if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+      ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'playing_now').catch(err => {
+        console.error('[SCROBBLER] Ошибка ListenBrainz Now Playing:', err.message);
+      });
+    }
+  }
+
+  checkAndScrobble() {
+    if (!this.currentTrack || this.scrobbled) return;
+
+    // Условия скробблинга Last.fm / ListenBrainz:
+    // 1. Трек играл не менее 30 секунд.
+    // 2. Прослушано 50% длины трека ИЛИ 4 минуты (240 секунд).
+    const durationMs = this.currentTrack.durationMs || 180000; // По умолчанию 3 минуты, если неизвестно
+    const playtimeSec = this.playtimeMs / 1000;
+    const durationSec = durationMs / 1000;
+    const thresholdSec = Math.min(durationSec / 2, 240);
+
+    if (playtimeSec >= 30 && playtimeSec >= thresholdSec) {
+      this.scrobbled = true;
+      console.log(`[SCROBBLER] Условия скроблинга выполнены (время: ${Math.round(playtimeSec)}с, порог: ${Math.round(thresholdSec)}с). Отправляем скробл.`);
+
+      if (this.config.lastfmEnabled && this.config.lastfmSessionKey) {
+        ScrobblerService.lastFmScrobble(this.currentTrack, this.config).then(() => {
+          console.log('[SCROBBLER] Last.fm Scrobble выполнен успешно');
+        }).catch(err => {
+          console.error('[SCROBBLER] Ошибка Last.fm Scrobble:', err.message);
+        });
+      }
+
+      if (this.config.listenbrainzEnabled && this.config.listenbrainzToken) {
+        ScrobblerService.listenBrainzSubmit(this.currentTrack, this.config, 'scrobble').then(() => {
+          console.log('[SCROBBLER] ListenBrainz Scrobble выполнен успешно');
+        }).catch(err => {
+          console.error('[SCROBBLER] Ошибка ListenBrainz Scrobble:', err.message);
+        });
+      }
+    }
+  }
+}
+
+window.ScrobbleManager = new ScrobbleManager();
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    ScrobblerService,
+    ScrobbleManager: window.ScrobbleManager
+  };
+}
+
+
+
+// --- Component: isolated/scrobbler-init.js ---
+// Инициализация скробблера для браузерного расширения (ISOLATED World)
+window.addEventListener('message', async (event) => {
+  if (event.source !== window || !event.data) return;
+
+  if (event.data.type === 'YM_SCROBBLER_SETTINGS_CHANGED') {
+    if (window.ScrobbleManager) {
+      window.ScrobbleManager.updateConfig(event.data.settings);
+    }
+  } else if (event.data.type === 'YM_SYNC_STATE_CHANGED') {
+    if (window.ScrobbleManager && event.data.state) {
+      const { trackId, isPause, position, metadata } = event.data.state;
+      window.ScrobbleManager.onStateChange(trackId, isPause, position, metadata);
+    }
+  } else if (event.data.type === 'YM_SCROBBLER_API_CALL') {
+    try {
+      if (!window.ScrobblerService || typeof window.ScrobblerService[event.data.method] !== 'function') {
+        throw new Error(`Method ${event.data.method} not found on ScrobblerService`);
+      }
+      const result = await window.ScrobblerService[event.data.method](...event.data.args);
+      window.postMessage({ type: 'YM_SCROBBLER_API_RESPONSE', nonce: event.data.nonce, result: result }, '*');
+    } catch (e) {
+      window.postMessage({ type: 'YM_SCROBBLER_API_RESPONSE', nonce: event.data.nonce, error: e.message }, '*');
+    }
+  }
+});
+
 
 // --- Component: isolated/variables.js ---
 let socket = null;
@@ -2371,7 +3453,11 @@ function parseLrc(lrcText) {
 
 function fetchLyrics(title, artist, durationMs) {
   const requestTrackId = currentLyricsTrackId;
-  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) return;
+  console.log('[LRCLIB] fetchLyrics called:', { title, artist, durationMs, requestTrackId });
+  if (isLyricsLoading && window.ymTrackIdLoadingLyrics === requestTrackId) {
+    console.log('[LRCLIB] Lyrics already loading for this track, skipping invocation');
+    return;
+  }
   
   isLyricsLoading = true;
   window.ymTrackIdLoadingLyrics = requestTrackId;
@@ -2395,13 +3481,17 @@ function fetchLyrics(title, artist, durationMs) {
   if (durationSec > 0) {
     url += `&duration=${durationSec}`;
   }
+  console.log('[LRCLIB] Search URL:', url);
+
   const handleResponseData = data => {
+    console.log('[LRCLIB] Successfully loaded lyrics:', data);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
     displayLyricsData(data);
   };
   const handleFailure = err => {
+    console.warn('[LRCLIB] Failed to load lyrics:', err);
     if (requestTrackId !== currentLyricsTrackId) return;
     isLyricsLoading = false;
     window.ymTrackIdLoadingLyrics = null;
@@ -2411,12 +3501,14 @@ function fetchLyrics(title, artist, durationMs) {
   if (window.__ymSyncBridge && typeof window.__ymSyncBridge.fetchLyrics === 'function') {
     window.__ymSyncBridge.fetchLyrics(url).catch(err => {
       let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+      console.log('[LRCLIB] Primary fetch failed, trying fallback URL:', fallbackUrl);
       return window.__ymSyncBridge.fetchLyrics(fallbackUrl);
     }).then(handleResponseData).catch(handleFailure);
   } else {
     fetch(url).then(res => {
       if (res.status === 404) {
         let fallbackUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(cleanArtist)}&track_name=${encodeURIComponent(cleanTitle)}`;
+        console.log('[LRCLIB] Primary fetch returned 404, trying fallback URL:', fallbackUrl);
         return fetch(fallbackUrl);
       }
       return res;
@@ -3672,6 +4764,17 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       `;
       controlsRoot.appendChild(translateBtn);
     }
+    ymRegisterActiveElement(translateBtn);
+
+    let ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) {
+      ratingsContainer = document.createElement('div');
+      ratingsContainer.className = 'ym-fullscreen-rzt-ratings';
+      controlsRoot.appendChild(ratingsContainer);
+    }
+    ymRegisterActiveElement(ratingsContainer);
+    updateRztRatingsUI(ratingsContainer);
+
     let popover = fullscreenRoot.querySelector('.ym-fullscreen-translate-popover');
     if (!popover) {
       popover = document.createElement('div');
@@ -3758,6 +4861,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         </div>
       `;
       fullscreenRoot.appendChild(popover);
+      ymRegisterActiveElement(popover);
       if (!document.getElementById('ym-translate-switch-style')) {
         const styleEl = document.createElement('style');
         styleEl.id = 'ym-translate-switch-style';
@@ -3819,6 +4923,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         popover.style.transform = 'scale(0.95)';
         setTimeout(() => {
           popover.style.display = 'none';
+          ymStopKeepControlsActive();
         }, 200);
         translateBtn.classList.remove('active');
         translateBtn.style.background = '';
@@ -3833,6 +4938,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
         translateBtn.style.background = '';
         translateBtn.style.borderColor = '';
         translateBtn.style.color = '';
+        ymStartKeepControlsActive();
         const btnRect = translateBtn.getBoundingClientRect();
         const parentRect = fullscreenRoot.getBoundingClientRect();
         const relativeTop = btnRect.top - parentRect.top;
@@ -3858,6 +4964,7 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
             activePopover.style.transform = 'scale(0.95)';
             setTimeout(() => {
               activePopover.style.display = 'none';
+              ymStopKeepControlsActive();
             }, 200);
             if (activeBtn) {
               activeBtn.classList.remove('active');
@@ -3870,6 +4977,173 @@ function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
       });
     }
   }
+}
+
+// Update RZT ratings circles in DOM
+function updateRztRatingsUI(ratingsContainer) {
+  if (!ratingsContainer) {
+    const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+    if (!fullscreenRoot) return;
+    const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+    if (!controlsRoot) return;
+    ratingsContainer = controlsRoot.querySelector('.ym-fullscreen-rzt-ratings');
+    if (!ratingsContainer) return;
+  }
+
+  const ratings = window.ymCurrentRztRatings;
+  const statusStr = ratings ? JSON.stringify(ratings) : '';
+  const trackId = window.ymLastRztTrackId || '';
+  
+  if (ratingsContainer.dataset.renderedTrackId === trackId && ratingsContainer.dataset.renderedStatus === statusStr) {
+    // Already rendered exactly this state, skip updating DOM to prevent hover flickering!
+    return;
+  }
+
+  // Save the state we are about to render
+  ratingsContainer.dataset.renderedTrackId = trackId;
+  ratingsContainer.dataset.renderedStatus = statusStr;
+
+  if (!ratings || ratings.empty || ratings.error) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  if (ratings.loading) {
+    ratingsContainer.style.display = 'flex';
+    ratingsContainer.innerHTML = `
+      <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): Загрузка..." style="opacity: 0.5;">—</div>
+      <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): Загрузка..." style="opacity: 0.5;">—</div>
+    `;
+    return;
+  }
+
+  const hasScores = ratings.withReviews !== null || ratings.withoutReviews !== null || ratings.flomaster !== null;
+  if (!hasScores) {
+    ratingsContainer.style.display = 'none';
+    ratingsContainer.innerHTML = '';
+    return;
+  }
+
+  ratingsContainer.style.display = 'flex';
+  
+  const score1 = ratings.withReviews !== null ? ratings.withReviews : '—';
+  const score2 = ratings.withoutReviews !== null ? ratings.withoutReviews : '—';
+  const score3 = ratings.flomaster !== null ? ratings.flomaster : '—';
+
+  ratingsContainer.innerHTML = `
+    <div class="ym-rzt-rating-circle rzt-blue-solid" data-tooltip="Сайт (Народ с рецензиями): ${score1}">${score1}</div>
+    <div class="ym-rzt-rating-circle rzt-blue-outline" data-tooltip="Сайт (Народ без рецензий): ${score2}">${score2}</div>
+    <div class="ym-rzt-rating-circle rzt-grey-solid" data-tooltip="Фломастер (РЗТ): ${score3}">${score3}</div>
+  `;
+}
+
+// Keep player controls visible helper variables and functions
+let ymKeepControlsActiveInterval = null;
+let ymActiveHoverCount = 0;
+
+function ymTriggerMouseMove() {
+  const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+  if (fullscreenRoot) {
+    const event = new MouseEvent('mousemove', {
+      bubbles: true,
+      cancelable: true,
+      clientX: window.innerWidth / 2,
+      clientY: window.innerHeight / 2
+    });
+    fullscreenRoot.dispatchEvent(event);
+    document.dispatchEvent(event);
+  }
+}
+
+function ymStartKeepControlsActive() {
+  if (!ymKeepControlsActiveInterval) {
+    ymTriggerMouseMove();
+    ymKeepControlsActiveInterval = setInterval(ymTriggerMouseMove, 1000);
+  }
+}
+
+function ymStopKeepControlsActive() {
+  const popover = document.querySelector('.ym-fullscreen-translate-popover');
+  const isPopoverOpen = popover && popover.style.display === 'flex';
+  
+  if (ymActiveHoverCount <= 0 && !isPopoverOpen) {
+    if (ymKeepControlsActiveInterval) {
+      clearInterval(ymKeepControlsActiveInterval);
+      ymKeepControlsActiveInterval = null;
+    }
+  }
+}
+
+function ymRegisterActiveElement(el) {
+  if (!el || el.dataset.ymActiveRegistered === 'true') return;
+  el.dataset.ymActiveRegistered = 'true';
+  
+  el.addEventListener('mouseenter', () => {
+    ymActiveHoverCount++;
+    ymStartKeepControlsActive();
+  });
+  
+  el.addEventListener('mouseleave', () => {
+    ymActiveHoverCount = Math.max(0, ymActiveHoverCount - 1);
+    ymStopKeepControlsActive();
+  });
+}
+
+// Listen to track state change to fetch RZT ratings in page/isolated context
+if (typeof window !== 'undefined') {
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'YM_SYNC_STATE_CHANGED') {
+      const state = event.data.state;
+      if (state && state.trackId && state.trackId !== window.ymLastRztTrackId) {
+        window.ymLastRztTrackId = state.trackId;
+        window.ymCurrentRztRatings = { loading: true };
+        
+        // Update immediately if container is already visible
+        const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+        if (container) {
+          updateRztRatingsUI(container);
+        }
+        
+        const metadata = state.metadata;
+        if (metadata && metadata.title && metadata.artist) {
+          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+          if (apiObj) {
+            apiObj.getTrackRatings(metadata.artist, metadata.title)
+              .then(ratings => {
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = ratings || { empty: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              })
+              .catch(err => {
+                console.error('[RZT-UI] Error getting track ratings:', err);
+                if (window.ymLastRztTrackId === state.trackId) {
+                  window.ymCurrentRztRatings = { error: true };
+                  const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+                  if (container) {
+                    updateRztRatingsUI(container);
+                  }
+                }
+              });
+          } else {
+            console.warn('[RZT-UI] RztAPI not found in window/context');
+            window.ymCurrentRztRatings = { error: true };
+          }
+        } else {
+          window.ymCurrentRztRatings = null;
+          const container = document.querySelector('.ym-fullscreen-rzt-ratings');
+          if (container) {
+            updateRztRatingsUI(container);
+          }
+        }
+      }
+    }
+  });
 }
 
 // --- Component: isolated/socket-client.js ---

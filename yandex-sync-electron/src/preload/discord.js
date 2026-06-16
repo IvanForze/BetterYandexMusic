@@ -252,11 +252,15 @@ function updateDiscordPresencePreload(trackId, isPause, position, metadata) {
     qualityInfo = `${codecStr}${bitrateStr}`;
   }
 
-  const stateText = qualityInfo ? `от ${metadata.artist} • ${qualityInfo}` : `от ${metadata.artist}`;
+  let stateText = qualityInfo ? `от ${metadata.artist} • ${qualityInfo}` : `от ${metadata.artist}`;
+  if (isPause) {
+    stateText = `[Пауза] ${stateText}`;
+  }
 
   const activity = {
     details: metadata.title,
     state: stateText,
+    type: 2, // 2 = Listening (Слушает)
     assets: {
       large_image: metadata.coverUrl,
       large_text: qualityInfo ? `${metadata.title} — ${metadata.artist} [${qualityInfo}]` : `${metadata.title} — ${metadata.artist}`
@@ -269,11 +273,11 @@ function updateDiscordPresencePreload(trackId, isPause, position, metadata) {
   }
 
   if (!isPause && metadata.durationMs > 0) {
-    const startTime = now - Math.round(position * 1000);
-    const endTime = startTime + metadata.durationMs;
+    const startSec = Math.floor((now - Math.round(position * 1000)) / 1000);
+    const endSec = Math.floor((now - Math.round(position * 1000) + metadata.durationMs) / 1000);
     activity.timestamps = {
-      start: startTime,
-      end: endTime
+      start: startSec,
+      end: endSec
     };
   }
 

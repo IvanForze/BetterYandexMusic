@@ -330,7 +330,7 @@ const PlayerFaker = {
             }
         };
 
-        const currentVol = window.CustomAudioController.audioElement ? window.CustomAudioController.audioElement.volume : 0.7;
+        const currentVol = window.getNativeVolume ? window.getNativeVolume() : 0.7;
         volumeSlider.value = currentVol;
         updateSliderStyle(currentVol);
         updateVolumeIcon(currentVol);
@@ -338,7 +338,16 @@ const PlayerFaker = {
         volumeSlider.addEventListener('input', (e) => {
             e.stopPropagation();
             const vol = parseFloat(volumeSlider.value);
+            if (window.logAllVolumes) {
+                window.logAllVolumes(`Драг ползунка: Новое значение = ${vol}`);
+            }
+            // 1. Set volume on native Yandex player (translating slider to native linear scale)
+            if (window.setNativeVolume) {
+                window.setNativeVolume(vol);
+            }
+            // 2. Set volume on custom audio element (same as slider)
             window.CustomAudioController.setVolume(vol);
+
             updateSliderStyle(vol);
             updateVolumeIcon(vol);
         });
@@ -349,12 +358,21 @@ const PlayerFaker = {
             const audio = window.CustomAudioController.audioElement;
             if (audio) {
                 if (audio.volume > 0) {
-                    lastVolume = audio.volume;
+                    // Store current linear volume from slider before muting
+                    lastVolume = parseFloat(volumeSlider.value) || 0.7;
+                    console.log("[VOLUME-DEBUG] Mute clicked. Saving lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(0);
+                    }
                     window.CustomAudioController.setVolume(0);
                     volumeSlider.value = 0;
                     updateSliderStyle(0);
                     updateVolumeIcon(0);
                 } else {
+                    console.log("[VOLUME-DEBUG] Unmute clicked. Restoring lastVolume:", lastVolume);
+                    if (window.setNativeVolume) {
+                        window.setNativeVolume(lastVolume);
+                    }
                     window.CustomAudioController.setVolume(lastVolume);
                     volumeSlider.value = lastVolume;
                     updateSliderStyle(lastVolume);
@@ -389,6 +407,16 @@ const PlayerFaker = {
 
     _tick() {
         if (!this.overlayActive) return;
+
+        // Log volumes every 8 ticks (~2 seconds)
+        if (!this._tickCount) this._tickCount = 0;
+        this._tickCount++;
+        if (this._tickCount % 8 === 0) {
+            if (window.logAllVolumes) {
+                window.logAllVolumes("Периодический тик (2с)");
+            }
+        }
+
         const ac = window.CustomAudioController;
         if (!ac || !ac.audioElement) return;
 

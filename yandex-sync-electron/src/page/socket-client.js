@@ -48,16 +48,26 @@ function connectToServer(serverUrl) {
         const activePlayer = getActivePlayer();
         const currentEntity = activePlayer?.queueController?.queue?.state?.currentEntity?.value;
         const entityData = currentEntity?.entity?.data;
-        localTrackId = entityData?.meta?.id || entityData?.id;
+        const rawId = entityData?.meta?.id || entityData?.id;
+        if (rawId) {
+          localTrackId = String(rawId);
+          const filename = entityData?.meta?.filename || entityData?.filename || '';
+          if ((entityData?.meta?.trackSource === 'UGC' || entityData?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+            const match = filename.match(/soundcloud_(\d+)\.mp3/);
+            if (match) {
+              localTrackId = `soundcloud:${match[1]}`;
+            }
+          }
+        }
       }
 
       isSyncingFromServer = true;
       startSyncSafetyTimeout();
 
       const isServerTrackValid = serverState.trackId &&
-        serverState.trackId !== "undefined" &&
-        serverState.trackId !== "null" &&
-        (!isNaN(Number(serverState.trackId)) || String(serverState.trackId).startsWith("soundcloud:"));
+        String(serverState.trackId).trim() !== "" &&
+        String(serverState.trackId) !== "undefined" &&
+        String(serverState.trackId) !== "null";
 
       const activePlayer = getActivePlayer();
 
@@ -108,7 +118,16 @@ function connectToServer(serverUrl) {
               const trackIndex = list.findIndex(wrapper => {
                 const data = wrapper?.entity?.data || wrapper?.entity?.entityData;
                 const id = data?.meta?.id || data?.id;
-                return String(id) === String(serverState.trackId);
+                
+                let queueTrackId = String(id);
+                const filename = data?.meta?.filename || data?.filename || '';
+                if ((data?.meta?.trackSource === 'UGC' || data?.trackSource === 'UGC') && filename.startsWith('soundcloud_')) {
+                  const match = filename.match(/soundcloud_(\d+)\.mp3/);
+                  if (match) {
+                    queueTrackId = `soundcloud:${match[1]}`;
+                  }
+                }
+                return String(queueTrackId) === String(serverState.trackId);
               });
 
               if (trackIndex !== -1) {
@@ -174,7 +193,7 @@ function connectToServer(serverUrl) {
       }
       // 2. Трек тот же, синхронизируем время/паузу
       else if (isServerTrackValid) {
-        if (String(serverState.trackId).startsWith("soundcloud:")) {
+        if (String(serverState.trackId).startsWith("soundcloud:") && window.isCustomAudioActive) {
           window.CustomAudioController.syncPlay(serverState.trackId, serverState)
             .then(() => {
               clearSyncSafetyTimeout();
