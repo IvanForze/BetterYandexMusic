@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BetterYandexMusic",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Синхронное прослушивание Яндекс Музыки",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
