@@ -276,6 +276,77 @@ if (typeof window !== 'undefined') {
             response: { ok: false, error: err.message }
           }, '*');
         });
+      } else if (type === 'GENIUS_SEARCH') {
+        const query = `${payload.artist} - ${payload.title}`;
+        const url = `https://genius.com/api/search/multi?q=${encodeURIComponent(query)}`;
+        nodeHttpsRequest(url)
+          .then(jsonStr => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, data: JSON.parse(jsonStr) }
+            }, '*');
+          })
+          .catch(err => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
+      } else if (type === 'GENIUS_REFERENTS') {
+        const fetchAll = async () => {
+          let page = 1;
+          let referents = [];
+          while (true) {
+            const url = `https://genius.com/api/referents?song_id=${payload.songId}&text_format=html&per_page=50&page=${page}`;
+            const jsonStr = await nodeHttpsRequest(url);
+            const data = JSON.parse(jsonStr);
+            if (!data || !data.response || !data.response.referents) {
+              break;
+            }
+            const pageRefs = data.response.referents;
+            referents.push(...pageRefs);
+            if (pageRefs.length < 50) {
+              break;
+            }
+            page++;
+            if (page > 5) break;
+          }
+          return { response: { referents } };
+        };
+
+        fetchAll()
+          .then(data => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, data }
+            }, '*');
+          })
+          .catch(err => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
+      } else if (type === 'GENIUS_HTML') {
+        nodeHttpsRequest(payload.url)
+          .then(html => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, data: html }
+            }, '*');
+          })
+          .catch(err => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
       }
     }
   });

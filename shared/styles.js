@@ -1023,6 +1023,321 @@ function injectStyles() {
       --ym-popover-shadow: rgba(0, 0, 0, 0.12);
       --ym-popover-active: #ccaa00;
     }
+
+    /* --- Genius Mode Layout Swaps --- */
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_root"].ym-force-split {
+      grid-template-columns: 1.2fr 1fr !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_additionalContent"].ym-force-split {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      max-width: 650px !important;
+    }
+
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_fullscreenContent"].ym-force-split {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      max-width: 550px !important;
+      width: 100% !important;
+      height: 80vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: stretch !important;
+      position: relative !important;
+    }
+
+    /* Hide standard details in Genius mode */
+    .ym-genius-active [class*="FullscreenPlayerDesktopPoster_root"],
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_info"].ym-force-split {
+      display: none !important;
+    }
+
+    /* Genius Toggle Button styling */
+    .ym-fullscreen-genius-btn {
+      position: absolute !important;
+      top: 108px !important;
+      right: 48px !important;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      background: rgba(26, 26, 26, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 100000 !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      padding: 0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+    .ym-fullscreen-genius-btn svg {
+      fill: currentColor !important;
+      stroke: none !important;
+      width: 20px !important;
+      height: 20px !important;
+      display: block !important;
+    }
+    .ym-fullscreen-genius-btn:hover {
+      background: rgba(40, 40, 40, 0.9) !important;
+      transform: scale(1.05) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    .ym-fullscreen-genius-btn.active,
+    .ym-fullscreen-genius-btn[aria-pressed="true"] {
+      background: #ffdb4d !important;
+      border-color: #ffdb4d !important;
+      color: #000000 !important;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.5) !important;
+    }
+    .ym-fullscreen-genius-btn svg {
+      display: block !important;
+    }
+
+    /* Custom Sync Lyrics Toggle Button */
+    .ym-custom-sync-lyrics-btn {
+      position: absolute !important;
+      bottom: 100px !important;
+      right: 92px !important;
+      width: 56px !important;
+      height: 56px !important;
+      border-radius: 50% !important;
+      background: rgba(26, 26, 26, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 100000 !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      padding: 0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+    .ym-custom-sync-lyrics-btn:hover {
+      background: rgba(40, 40, 40, 0.9) !important;
+      transform: scale(1.05) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    .ym-custom-sync-lyrics-btn.active,
+    .ym-custom-sync-lyrics-btn[aria-pressed="true"] {
+      background: #ffdb4d !important;
+      border-color: #ffdb4d !important;
+      color: #000000 !important;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.5) !important;
+    }
+    .ym-custom-sync-lyrics-btn svg {
+      display: block !important;
+    }
+
+    /* Genius Panel Exit Button */
+    .ym-genius-panel-exit-btn {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 20px !important;
+      color: #fff !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      padding: 6px 14px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      font-family: "YS Text", sans-serif !important;
+      outline: none !important;
+    }
+    .ym-genius-panel-exit-btn:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      transform: scale(1.02) !important;
+    }
+    .ym-genius-panel-exit-btn:active {
+      transform: scale(0.98) !important;
+    }
+
+    /* Annotated Lyrics Line styles */
+    .ym-fullscreen-lyric-line.ym-lyric-annotated {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 10px 18px;
+      box-sizing: border-box;
+      display: inline-block;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+    .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
+      background: rgba(255, 219, 77, 0.1);
+      border-color: rgba(255, 219, 77, 0.2);
+    }
+    .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.2) !important;
+      border-color: #ffdb4d !important;
+      color: #ffffff !important;
+      opacity: 1 !important;
+      box-shadow: 0 4px 20px rgba(255, 219, 77, 0.15) !important;
+      transform: scale(1.05) !important;
+    }
+
+    .ym-genius-lyric-line {
+      display: block !important;
+      margin-bottom: 28px !important;
+    }
+
+    /* Inline Genius lyrics anchors (base styles) */
+    a.ym-lyric-annotated {
+      color: #fff !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer !important;
+    }
+
+    /* Normal inline highlights (when there is no nested block line inside the anchor) */
+    a.ym-lyric-annotated:not(:has(.ym-genius-lyric-line)) {
+      background: rgba(255, 219, 77, 0.15) !important;
+      border-bottom: 2px solid rgba(255, 219, 77, 0.4) !important;
+      padding: 2px 4px !important;
+      border-radius: 4px !important;
+      display: inline !important;
+    }
+    a.ym-lyric-annotated:not(:has(.ym-genius-lyric-line)):hover {
+      background: rgba(255, 219, 77, 0.3) !important;
+      border-color: #ffdb4d !important;
+    }
+
+    /* Block highlights (when the anchor wraps whole lines of lyrics) */
+    a.ym-lyric-annotated:has(.ym-genius-lyric-line) {
+      display: contents !important; /* Prevents inline tag border-bottom collapse/artifacts */
+    }
+
+    /* The actual visual frame for block-level annotated lines */
+    a.ym-lyric-annotated .ym-genius-lyric-line {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.03) !important;
+      border-radius: 12px;
+      padding: 10px 18px !important;
+      box-sizing: border-box;
+      display: inline-block !important;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    a.ym-lyric-annotated:hover .ym-genius-lyric-line {
+      background: rgba(255, 255, 255, 0.12) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Highlight matching active state and selection states on block frames */
+    a.ym-lyric-annotated .ym-genius-lyric-line.active {
+      background: rgba(255, 219, 77, 0.1) !important;
+      border-color: rgba(255, 219, 77, 0.2) !important;
+    }
+    a.ym-lyric-annotated .ym-genius-lyric-line.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.2) !important;
+      border-color: #ffdb4d !important;
+      box-shadow: 0 4px 20px rgba(255, 219, 77, 0.15) !important;
+      transform: scale(1.05) !important;
+    }
+    a.ym-lyric-annotated.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.45) !important;
+      border-color: #ffdb4d !important;
+      box-shadow: 0 0 10px rgba(255, 219, 77, 0.3) !important;
+      color: #ffffff !important;
+    }
+
+    /* Glassmorphic Annotation Panel */
+    .ym-genius-annotation-panel {
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      max-height: 600px;
+      position: relative !important;
+      z-index: 10000 !important;
+      background: rgba(20, 20, 20, 0.35);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 28px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      color: #ffffff;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      text-align: left;
+    }
+    .ym-genius-annotation-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    .ym-genius-annotation-welcome {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+      opacity: 0.85;
+    }
+
+    .ym-genius-annotation-body {
+      font-size: 15px;
+      line-height: 1.6;
+      font-family: "YS Text", sans-serif;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .ym-genius-annotation-body p {
+      margin: 0 0 16px 0;
+    }
+    .ym-genius-annotation-body p:last-child {
+      margin-bottom: 0;
+    }
+    .ym-genius-annotation-body a {
+      color: #ffdb4d;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255, 219, 77, 0.4);
+      transition: all 0.2s ease;
+    }
+    .ym-genius-annotation-body a:hover {
+      color: #ffe880;
+      border-bottom-color: #ffe880;
+    }
+    .ym-genius-annotation-body blockquote {
+      border-left: 3px solid #ffdb4d;
+      margin: 0 0 16px 0;
+      padding: 4px 0 4px 16px;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 0 8px 8px 0;
+    }
+    .ym-genius-annotation-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin: 14px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ym-hidden {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 }

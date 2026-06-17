@@ -28,6 +28,7 @@ function buildElectron() {
   const pageFiles = [
     'shared/styles.js',
     'shared/rzt-api.js',
+    'shared/genius-api.js',
     'page/variables.js',
     'shared/themes.js',
     'shared/navbar-sync.js',
@@ -116,6 +117,7 @@ function buildExtension() {
     'shared/styles.js',
     'shared/md5.js',
     'shared/rzt-api.js',
+    'shared/genius-api.js',
     'shared/scrobbler.js',
     'isolated/scrobbler-init.js',
     'isolated/variables.js',

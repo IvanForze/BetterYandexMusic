@@ -135,6 +135,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     .catch(err => sendResponse({ ok: false, error: err.message }));
     return true; // async response
   }
+
+  if (request.type === 'GENIUS_SEARCH') {
+    const query = `${request.artist} - ${request.title}`;
+    const url = `https://genius.com/api/search/multi?q=${encodeURIComponent(query)}`;
+    fetch(url, { credentials: 'omit' })
+      .then(res => res.json())
+      .then(data => sendResponse({ ok: true, data }))
+      .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true; // async response
+  }
+
+  if (request.type === 'GENIUS_REFERENTS') {
+    (async () => {
+      try {
+        let page = 1;
+        let referents = [];
+        while (true) {
+          const url = `https://genius.com/api/referents?song_id=${request.songId}&text_format=html&per_page=50&page=${page}`;
+          const res = await fetch(url, { credentials: 'omit' });
+          const data = await res.json();
+          if (!data || !data.response || !data.response.referents) {
+            break;
+          }
+          const pageRefs = data.response.referents;
+          referents.push(...pageRefs);
+          if (pageRefs.length < 50) {
+            break;
+          }
+          page++;
+          if (page > 5) break;
+        }
+        sendResponse({ ok: true, data: { response: { referents } } });
+      } catch (err) {
+        sendResponse({ ok: false, error: err.message });
+      }
+    })();
+    return true; // async response
+  }
+
+  if (request.type === 'GENIUS_HTML') {
+    fetch(request.url, { credentials: 'omit' })
+      .then(res => res.text())
+      .then(html => sendResponse({ ok: true, data: html }))
+      .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true; // async response
+  }
 });
 
 function rztNormalizeText(text) {

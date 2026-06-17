@@ -2072,6 +2072,77 @@
                 response: { ok: false, error: err.message }
               }, '*');
             });
+          } else if (type === 'GENIUS_SEARCH') {
+            const query = `${payload.artist} - ${payload.title}`;
+            const url = `https://genius.com/api/search/multi?q=${encodeURIComponent(query)}`;
+            nodeHttpsRequest(url)
+              .then(jsonStr => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: true, data: JSON.parse(jsonStr) }
+                }, '*');
+              })
+              .catch(err => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: false, error: err.message }
+                }, '*');
+              });
+          } else if (type === 'GENIUS_REFERENTS') {
+            const fetchAll = async () => {
+              let page = 1;
+              let referents = [];
+              while (true) {
+                const url = `https://genius.com/api/referents?song_id=${payload.songId}&text_format=html&per_page=50&page=${page}`;
+                const jsonStr = await nodeHttpsRequest(url);
+                const data = JSON.parse(jsonStr);
+                if (!data || !data.response || !data.response.referents) {
+                  break;
+                }
+                const pageRefs = data.response.referents;
+                referents.push(...pageRefs);
+                if (pageRefs.length < 50) {
+                  break;
+                }
+                page++;
+                if (page > 5) break;
+              }
+              return { response: { referents } };
+            };
+    
+            fetchAll()
+              .then(data => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: true, data }
+                }, '*');
+              })
+              .catch(err => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: false, error: err.message }
+                }, '*');
+              });
+          } else if (type === 'GENIUS_HTML') {
+            nodeHttpsRequest(payload.url)
+              .then(html => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: true, data: html }
+                }, '*');
+              })
+              .catch(err => {
+                window.postMessage({
+                  __ym_sc_bridge_response: true,
+                  requestId,
+                  response: { ok: false, error: err.message }
+                }, '*');
+              });
           }
         }
       });
@@ -3127,6 +3198,321 @@ function injectStyles() {
       --ym-popover-shadow: rgba(0, 0, 0, 0.12);
       --ym-popover-active: #ccaa00;
     }
+
+    /* --- Genius Mode Layout Swaps --- */
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_root"].ym-force-split {
+      grid-template-columns: 1.2fr 1fr !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_additionalContent"].ym-force-split {
+      grid-column: 1 !important;
+      grid-row: 1 !important;
+      max-width: 650px !important;
+    }
+
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_fullscreenContent"].ym-force-split {
+      grid-column: 2 !important;
+      grid-row: 1 !important;
+      max-width: 550px !important;
+      width: 100% !important;
+      height: 80vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      align-items: stretch !important;
+      position: relative !important;
+    }
+
+    /* Hide standard details in Genius mode */
+    .ym-genius-active [class*="FullscreenPlayerDesktopPoster_root"],
+    .ym-genius-active [class*="FullscreenPlayerDesktopContent_info"].ym-force-split {
+      display: none !important;
+    }
+
+    /* Genius Toggle Button styling */
+    .ym-fullscreen-genius-btn {
+      position: absolute !important;
+      top: 108px !important;
+      right: 48px !important;
+      width: 40px !important;
+      height: 40px !important;
+      border-radius: 50% !important;
+      background: rgba(26, 26, 26, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 100000 !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      padding: 0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+    .ym-fullscreen-genius-btn svg {
+      fill: currentColor !important;
+      stroke: none !important;
+      width: 20px !important;
+      height: 20px !important;
+      display: block !important;
+    }
+    .ym-fullscreen-genius-btn:hover {
+      background: rgba(40, 40, 40, 0.9) !important;
+      transform: scale(1.05) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    .ym-fullscreen-genius-btn.active,
+    .ym-fullscreen-genius-btn[aria-pressed="true"] {
+      background: #ffdb4d !important;
+      border-color: #ffdb4d !important;
+      color: #000000 !important;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.5) !important;
+    }
+    .ym-fullscreen-genius-btn svg {
+      display: block !important;
+    }
+
+    /* Custom Sync Lyrics Toggle Button */
+    .ym-custom-sync-lyrics-btn {
+      position: absolute !important;
+      bottom: 100px !important;
+      right: 92px !important;
+      width: 56px !important;
+      height: 56px !important;
+      border-radius: 50% !important;
+      background: rgba(26, 26, 26, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      color: #fff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      z-index: 100000 !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      padding: 0 !important;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+    }
+    .ym-custom-sync-lyrics-btn:hover {
+      background: rgba(40, 40, 40, 0.9) !important;
+      transform: scale(1.05) !important;
+      border-color: rgba(255, 255, 255, 0.25) !important;
+    }
+    .ym-custom-sync-lyrics-btn.active,
+    .ym-custom-sync-lyrics-btn[aria-pressed="true"] {
+      background: #ffdb4d !important;
+      border-color: #ffdb4d !important;
+      color: #000000 !important;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.5) !important;
+    }
+    .ym-custom-sync-lyrics-btn svg {
+      display: block !important;
+    }
+
+    /* Genius Panel Exit Button */
+    .ym-genius-panel-exit-btn {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 20px !important;
+      color: #fff !important;
+      font-size: 12px !important;
+      font-weight: 600 !important;
+      padding: 6px 14px !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      font-family: "YS Text", sans-serif !important;
+      outline: none !important;
+    }
+    .ym-genius-panel-exit-btn:hover {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      transform: scale(1.02) !important;
+    }
+    .ym-genius-panel-exit-btn:active {
+      transform: scale(0.98) !important;
+    }
+
+    /* Annotated Lyrics Line styles */
+    .ym-fullscreen-lyric-line.ym-lyric-annotated {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 10px 18px;
+      box-sizing: border-box;
+      display: inline-block;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+    .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+    }
+    .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
+      background: rgba(255, 219, 77, 0.1);
+      border-color: rgba(255, 219, 77, 0.2);
+    }
+    .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.2) !important;
+      border-color: #ffdb4d !important;
+      color: #ffffff !important;
+      opacity: 1 !important;
+      box-shadow: 0 4px 20px rgba(255, 219, 77, 0.15) !important;
+      transform: scale(1.05) !important;
+    }
+
+    .ym-genius-lyric-line {
+      display: block !important;
+      margin-bottom: 28px !important;
+    }
+
+    /* Inline Genius lyrics anchors (base styles) */
+    a.ym-lyric-annotated {
+      color: #fff !important;
+      text-decoration: none !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer !important;
+    }
+
+    /* Normal inline highlights (when there is no nested block line inside the anchor) */
+    a.ym-lyric-annotated:not(:has(.ym-genius-lyric-line)) {
+      background: rgba(255, 219, 77, 0.15) !important;
+      border-bottom: 2px solid rgba(255, 219, 77, 0.4) !important;
+      padding: 2px 4px !important;
+      border-radius: 4px !important;
+      display: inline !important;
+    }
+    a.ym-lyric-annotated:not(:has(.ym-genius-lyric-line)):hover {
+      background: rgba(255, 219, 77, 0.3) !important;
+      border-color: #ffdb4d !important;
+    }
+
+    /* Block highlights (when the anchor wraps whole lines of lyrics) */
+    a.ym-lyric-annotated:has(.ym-genius-lyric-line) {
+      display: contents !important; /* Prevents inline tag border-bottom collapse/artifacts */
+    }
+
+    /* The actual visual frame for block-level annotated lines */
+    a.ym-lyric-annotated .ym-genius-lyric-line {
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.03) !important;
+      border-radius: 12px;
+      padding: 10px 18px !important;
+      box-sizing: border-box;
+      display: inline-block !important;
+      margin-left: auto;
+      margin-right: auto;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    a.ym-lyric-annotated:hover .ym-genius-lyric-line {
+      background: rgba(255, 255, 255, 0.12) !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      transform: translateY(-1px);
+    }
+
+    /* Highlight matching active state and selection states on block frames */
+    a.ym-lyric-annotated .ym-genius-lyric-line.active {
+      background: rgba(255, 219, 77, 0.1) !important;
+      border-color: rgba(255, 219, 77, 0.2) !important;
+    }
+    a.ym-lyric-annotated .ym-genius-lyric-line.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.2) !important;
+      border-color: #ffdb4d !important;
+      box-shadow: 0 4px 20px rgba(255, 219, 77, 0.15) !important;
+      transform: scale(1.05) !important;
+    }
+    a.ym-lyric-annotated.ym-genius-annotation-selected {
+      background: rgba(255, 219, 77, 0.45) !important;
+      border-color: #ffdb4d !important;
+      box-shadow: 0 0 10px rgba(255, 219, 77, 0.3) !important;
+      color: #ffffff !important;
+    }
+
+    /* Glassmorphic Annotation Panel */
+    .ym-genius-annotation-panel {
+      display: flex;
+      flex-direction: column;
+      height: 80vh;
+      max-height: 600px;
+      position: relative !important;
+      z-index: 10000 !important;
+      background: rgba(20, 20, 20, 0.35);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 28px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      color: #ffffff;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      text-align: left;
+    }
+    .ym-genius-annotation-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 3px;
+    }
+
+    .ym-genius-annotation-welcome {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      text-align: center;
+      opacity: 0.85;
+    }
+
+    .ym-genius-annotation-body {
+      font-size: 15px;
+      line-height: 1.6;
+      font-family: "YS Text", sans-serif;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .ym-genius-annotation-body p {
+      margin: 0 0 16px 0;
+    }
+    .ym-genius-annotation-body p:last-child {
+      margin-bottom: 0;
+    }
+    .ym-genius-annotation-body a {
+      color: #ffdb4d;
+      text-decoration: none;
+      border-bottom: 1px dashed rgba(255, 219, 77, 0.4);
+      transition: all 0.2s ease;
+    }
+    .ym-genius-annotation-body a:hover {
+      color: #ffe880;
+      border-bottom-color: #ffe880;
+    }
+    .ym-genius-annotation-body blockquote {
+      border-left: 3px solid #ffdb4d;
+      margin: 0 0 16px 0;
+      padding: 4px 0 4px 16px;
+      font-style: italic;
+      color: rgba(255, 255, 255, 0.7);
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 0 8px 8px 0;
+    }
+    .ym-genius-annotation-body img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      margin: 14px 0;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .ym-hidden {
+      display: none !important;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -3298,6 +3684,212 @@ if (typeof window !== 'undefined') {
 }
 if (typeof module !== 'undefined') {
   module.exports = RztAPI;
+}
+
+
+// --- Component: shared/genius-api.js ---
+// ==========================================
+// GENIUS API & SECURE LYRICS ANNOTATIONS LAYER
+// ==========================================
+
+const GeniusAPI = {
+  _pendingRequests: {},
+  _initialized: false,
+
+  _init() {
+    if (this._initialized) return;
+    this._initialized = true;
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('message', (event) => {
+        if (!event.data || !event.data.__ym_sc_bridge_response) return;
+        const { requestId, response } = event.data;
+        const pending = this._pendingRequests[requestId];
+        if (pending) {
+          delete this._pendingRequests[requestId];
+          if (response && response.ok) {
+            pending.resolve(response.data || response.result || response.html);
+          } else {
+            pending.reject(new Error(response && response.error ? response.error : 'Unknown bridge error'));
+          }
+        }
+      });
+    }
+  },
+
+  _sendToBridge(type, payload) {
+    this._init();
+    return new Promise((resolve, reject) => {
+      const requestId = `genius_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      this._pendingRequests[requestId] = { resolve, reject };
+
+      // Timeout safety
+      setTimeout(() => {
+        if (this._pendingRequests[requestId]) {
+          delete this._pendingRequests[requestId];
+          reject(new Error('Genius bridge request timed out'));
+        }
+      }, 15000);
+
+      window.postMessage({
+        __ym_sc_bridge: true,
+        requestId,
+        type,
+        payload
+      }, '*');
+    });
+  },
+
+  async searchSong(title, artist) {
+    try {
+      return await this._sendToBridge('GENIUS_SEARCH', { title, artist });
+    } catch (err) {
+      console.error('[GENIUS-API] Error searching song:', err);
+      return null;
+    }
+  },
+
+  async getReferents(songId) {
+    try {
+      return await this._sendToBridge('GENIUS_REFERENTS', { songId });
+    } catch (err) {
+      console.error('[GENIUS-API] Error fetching referents:', err);
+      return null;
+    }
+  },
+
+  async getSongHtml(url) {
+    try {
+      return await this._sendToBridge('GENIUS_HTML', { url });
+    } catch (err) {
+      console.error('[GENIUS-API] Error fetching song html:', err);
+      return null;
+    }
+  }
+};
+
+// Text normalization helper to match lyrics lines with Genius annotations
+function normalizeLyricsText(text) {
+  if (!text) return '';
+  let normalized = text.normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // strip accents (combining diacritical marks)
+    .toLowerCase();
+
+  // Map Belarusian/Ukrainian characters to Russian equivalents
+  const charMap = {
+    'э': 'е',
+    'ў': 'у',
+    'і': 'и',
+    'є': 'е',
+    'ї': 'и',
+    'ґ': 'г'
+  };
+  normalized = normalized.replace(/[эўієїґ]/g, m => charMap[m]);
+
+  return normalized
+    .replace(/[\s\p{P}]/gu, '') // strip all spaces and punctuation (unicode-aware)
+    .replace(/[ё]/g, 'е')
+    .replace(/[й]/g, 'и')
+    .trim();
+}
+
+// Secure HTML Sanitizer/Renderer utilizing DOMParser and document.createElement (no innerHTML)
+function renderSafeHtmlInto(container, htmlString) {
+  container.replaceChildren(); // Safe equivalent to innerHTML = ''
+
+  if (!htmlString) return;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, 'text/html');
+
+  function sanitizeAndAppend(srcNode, destParent) {
+    for (const child of srcNode.childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        destParent.appendChild(document.createTextNode(child.textContent));
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const tagName = child.tagName.toLowerCase();
+        
+        // Whitelist of allowed HTML formatting tags
+        const allowedTags = ['p', 'a', 'b', 'i', 'strong', 'em', 'br', 'blockquote', 'img', 'hr', 'div', 'span'];
+        if (allowedTags.includes(tagName)) {
+          const newEl = document.createElement(tagName);
+          
+          // Whitelist and sanitize safe attributes
+          if (tagName === 'a') {
+            let href = child.getAttribute('href') || '';
+            let refId = null;
+            
+            // Match relative or absolute Genius referent URLs (e.g. /36301397/Maybe-baby-instasamka-not-like-us)
+            const refMatch = href.match(/^\/(\d+)(?:\/|$)/) || href.match(/^https:\/\/genius\.com\/(\d+)(?:\/|$)/);
+            if (refMatch) {
+              refId = refMatch[1];
+            }
+            
+            if (refId) {
+              newEl.setAttribute('data-id', refId);
+              newEl.className = 'ym-lyric-annotated';
+              newEl.setAttribute('href', href.startsWith('http') ? href : 'https://genius.com' + href);
+            } else if (href) {
+              if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('mailto:')) {
+                newEl.setAttribute('href', href);
+              } else if (href.startsWith('/')) {
+                newEl.setAttribute('href', 'https://genius.com' + href);
+              }
+            }
+            
+            const dataId = child.getAttribute('data-id');
+            if (dataId) {
+              newEl.setAttribute('data-id', dataId);
+              newEl.className = 'ym-lyric-annotated';
+            }
+            
+            newEl.setAttribute('target', '_blank');
+            newEl.setAttribute('rel', 'noopener noreferrer');
+          } else if (tagName === 'img') {
+            const src = child.getAttribute('src');
+            if (src && (src.startsWith('http://') || src.startsWith('https://'))) {
+              newEl.setAttribute('src', src);
+            }
+            const alt = child.getAttribute('alt');
+            if (alt) newEl.setAttribute('alt', alt);
+            const width = child.getAttribute('width');
+            if (width) newEl.setAttribute('width', width);
+            const height = child.getAttribute('height');
+            if (height) newEl.setAttribute('height', height);
+          } else if (tagName === 'span' || tagName === 'div') {
+            const className = child.getAttribute('class');
+            if (className) {
+              const allowedClasses = className.split(' ').filter(c => c.startsWith('ym-'));
+              if (allowedClasses.length > 0) {
+                newEl.className = allowedClasses.join(' ');
+              }
+            }
+            const dataIdx = child.getAttribute('data-idx');
+            if (dataIdx) {
+              newEl.setAttribute('data-idx', dataIdx);
+            }
+          }
+          
+          sanitizeAndAppend(child, newEl);
+          destParent.appendChild(newEl);
+        } else {
+          // Skip the tag but process its child nodes recursively
+          sanitizeAndAppend(child, destParent);
+        }
+      }
+    }
+  }
+
+  sanitizeAndAppend(doc.body, container);
+}
+
+if (typeof window !== 'undefined') {
+  window.GeniusAPI = GeniusAPI;
+  window.normalizeLyricsText = normalizeLyricsText;
+  window.renderSafeHtmlInto = renderSafeHtmlInto;
+}
+if (typeof module !== 'undefined') {
+  module.exports = { GeniusAPI, normalizeLyricsText, renderSafeHtmlInto };
 }
 
 
@@ -5742,7 +6334,9 @@ function updateLyricsHighlight(position) {
       if (fsActiveEl) {
         fsActiveEl.classList.add('active');
         const containerHeight = fsContainer.clientHeight;
-        const activeTop = fsActiveEl.offsetTop;
+        const activeRect = fsActiveEl.getBoundingClientRect();
+        const containerRect = fsContainer.getBoundingClientRect();
+        const activeTop = activeRect.top - containerRect.top + fsContainer.scrollTop;
         const activeHeight = fsActiveEl.clientHeight;
         if (Date.now() - lastFsUserInteractionTime > 7000) {
           fsContainer.scrollTo({
@@ -6013,30 +6607,660 @@ if (typeof window !== 'undefined' && !window.ymContextMenuObserver) {
 }
 
 // --- Component: shared/fullscreen/fullscreen-lyrics.js ---
+// ==========================================
+// FULLSCREEN LYRICS AND GENIUS MODE
+// ==========================================
+
+let currentGeniusTrackId = null;
+let currentGeniusSongId = null;
+let isGeniusLoading = false;
+let currentGeniusReferents = [];
+let currentGeniusLyricsHtml = null;
+let lastSelectedReferentId = null;
+
+function resetGeniusData() {
+  currentGeniusTrackId = null;
+  currentGeniusSongId = null;
+  isGeniusLoading = false;
+  currentGeniusReferents = [];
+  currentGeniusLyricsHtml = null;
+  lastSelectedReferentId = null;
+}
+
+function processGeniusLyricsDom(rootEl, currentLyricsLines) {
+  function findClosestLyricsLine(text, lrclibLines) {
+    if (!text || !lrclibLines) return -1;
+    const cleanGenius = text.trim().toLowerCase().replace(/[ёЁ]/g, 'е').replace(/[йЙ]/g, 'и');
+    const normGenius = window.normalizeLyricsText(cleanGenius);
+    if (!normGenius) return -1;
+
+    // 1. Exact match
+    let matchedIdx = lrclibLines.findIndex(l => window.normalizeLyricsText(l.text) === normGenius);
+    if (matchedIdx !== -1) return matchedIdx;
+
+    // 2. Substring match
+    matchedIdx = lrclibLines.findIndex(l => {
+      const lNorm = window.normalizeLyricsText(l.text);
+      return lNorm && (lNorm.includes(normGenius) || normGenius.includes(lNorm));
+    });
+    if (matchedIdx !== -1) return matchedIdx;
+
+    // 3. Word-based Jaccard similarity (highly accurate, prevents matching unrelated lines)
+    const getWords = (str) => {
+      let val = str.toLowerCase();
+      // Map Belarusian/Ukrainian characters to Russian equivalents
+      const charMap = {
+        'э': 'е',
+        'ў': 'у',
+        'і': 'и',
+        'є': 'е',
+        'ї': 'и',
+        'ґ': 'г'
+      };
+      val = val.replace(/[эўієїґ]/g, m => charMap[m]);
+      return val
+        .replace(/[ёЁ]/g, 'е')
+        .replace(/[йЙ]/g, 'и')
+        .replace(/[^\w\sа-яё]/gi, '')
+        .split(/\s+/)
+        .filter(w => w.length > 1);
+    };
+
+    const wordsGenius = getWords(text);
+    if (wordsGenius.length === 0) return -1;
+
+    let bestIdx = -1;
+    let bestScore = 0;
+
+    for (let i = 0; i < lrclibLines.length; i++) {
+      const wordsLrc = getWords(lrclibLines[i].text);
+      if (wordsLrc.length === 0) continue;
+
+      const setLrc = new Set(wordsLrc);
+      let intersection = 0;
+      for (const w of wordsGenius) {
+        if (setLrc.has(w)) intersection++;
+      }
+
+      const union = new Set([...wordsGenius, ...wordsLrc]).size;
+      const score = intersection / union;
+
+      if (score > 0.45 && score > bestScore) {
+        bestScore = score;
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx !== -1) return bestIdx;
+
+    // 4. Fallback: Levenshtein distance on normalized strings
+    // (This catches cases where spelling/language differences like Belarusian vs Russian drop Jaccard score)
+    function getLevenshteinDistance(s1, s2) {
+      if (s1 === s2) return 0;
+      if (s1.length === 0) return s2.length;
+      if (s2.length === 0) return s1.length;
+      
+      const track = Array(s2.length + 1).fill(null).map(() => Array(s1.length + 1).fill(null));
+      for (let i = 0; i <= s1.length; i += 1) {
+        track[0][i] = i;
+      }
+      for (let j = 0; j <= s2.length; j += 1) {
+        track[j][0] = j;
+      }
+      for (let j = 1; j <= s2.length; j += 1) {
+        for (let i = 1; i <= s1.length; i += 1) {
+          const indicator = s1[i - 1] === s2[j - 1] ? 0 : 1;
+          track[j][i] = Math.min(
+            track[j][i - 1] + 1,
+            track[j - 1][i] + 1,
+            track[j - 1][i - 1] + indicator
+          );
+        }
+      }
+      return track[s2.length][s1.length];
+    }
+
+    let bestLevIdx = -1;
+    let bestLevScore = 0;
+
+    for (let i = 0; i < lrclibLines.length; i++) {
+      const normLrc = window.normalizeLyricsText(lrclibLines[i].text);
+      if (!normLrc) continue;
+
+      const distance = getLevenshteinDistance(normGenius, normLrc);
+      const maxLength = Math.max(normGenius.length, normLrc.length);
+      if (maxLength === 0) continue;
+      const score = 1 - (distance / maxLength);
+
+      // Require at least 50% similarity for Levenshtein fallback
+      if (score > 0.50 && score > bestLevScore) {
+        bestLevScore = score;
+        bestLevIdx = i;
+      }
+    }
+
+    if (bestLevIdx !== -1) {
+      console.log(`[GENIUS-SYNC] Levenshtein matched with score ${bestLevScore.toFixed(2)}: "${text.trim()}" -> "${lrclibLines[bestLevIdx].text}"`);
+      return bestLevIdx;
+    }
+
+    return -1;
+  }
+
+  let matchedCount = 0;
+  let unmatchedCount = 0;
+
+  function traverse(element) {
+    const childNodes = Array.from(element.childNodes);
+    for (const child of childNodes) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const text = child.textContent;
+        const trimmed = text.trim();
+        if (!trimmed) continue;
+        
+        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+          console.log(`[GENIUS-SYNC] Removing header node: "${trimmed}"`);
+          child.remove();
+          continue;
+        }
+
+        const matchedIdx = findClosestLyricsLine(text, currentLyricsLines);
+        if (matchedIdx !== -1) {
+          matchedCount++;
+          const span = document.createElement('span');
+          span.className = 'ym-genius-lyric-line ym-fullscreen-lyric-line';
+          span.setAttribute('data-idx', matchedIdx);
+          span.textContent = text;
+          element.replaceChild(span, child);
+          console.log(`[GENIUS-SYNC] MATCHED: "${trimmed.substring(0, 30)}..." -> index ${matchedIdx} ("${currentLyricsLines[matchedIdx].text.substring(0, 30)}...")`);
+        } else {
+          unmatchedCount++;
+          console.warn(`[GENIUS-SYNC] Removing unmatched text node: "${trimmed.substring(0, 45)}..."`);
+          child.remove();
+        }
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        if (child.classList.contains('ym-genius-lyric-line')) continue;
+        traverse(child);
+      }
+    }
+  }
+
+  function cleanupEmptyElements(root) {
+    const tags = ['a', 'span', 'b', 'i', 'strong', 'em', 'p'];
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const tag of tags) {
+        const els = Array.from(root.querySelectorAll(tag));
+        for (const el of els) {
+          if (!el.parentNode) continue;
+          const hasImage = !!el.querySelector('img');
+          const hasLine = !!el.querySelector('.ym-genius-lyric-line');
+          if (!el.textContent.trim() && !hasImage && !hasLine) {
+            el.remove();
+            changed = true;
+          }
+        }
+      }
+    }
+  }
+
+  function cleanupBrElements(root) {
+    const brs = Array.from(root.querySelectorAll('br'));
+    for (const br of brs) {
+      if (!br.parentNode) continue;
+
+      let prev = br.previousSibling;
+      let isFirst = true;
+      while (prev) {
+        if (prev.nodeType === Node.ELEMENT_NODE) {
+          isFirst = false;
+          break;
+        } else if (prev.nodeType === Node.TEXT_NODE) {
+          if (prev.textContent.trim()) {
+            isFirst = false;
+            break;
+          }
+        }
+        prev = prev.previousSibling;
+      }
+      if (isFirst) {
+        br.remove();
+        continue;
+      }
+
+      let next = br.nextSibling;
+      let hasConsecutiveBr = false;
+      while (next) {
+        if (next.nodeType === Node.ELEMENT_NODE) {
+          if (next.tagName.toLowerCase() === 'br') {
+            hasConsecutiveBr = true;
+          }
+          break;
+        } else if (next.nodeType === Node.TEXT_NODE) {
+          if (next.textContent.trim()) {
+            break;
+          }
+        }
+        next = next.nextSibling;
+      }
+      if (hasConsecutiveBr) {
+        br.remove();
+      }
+    }
+  }
+
+  console.log(`[GENIUS-SYNC] Starting DOM lyrics alignment with ${currentLyricsLines?.length || 0} LRCLIB lines.`);
+  traverse(rootEl);
+  cleanupEmptyElements(rootEl);
+  cleanupBrElements(rootEl);
+  console.log(`[GENIUS-SYNC] Alignment finished: ${matchedCount} matched, ${unmatchedCount} unmatched text nodes.`);
+}
+
+function findGeniusReferentForLine(lineText, referents) {
+  if (!lineText || !referents || referents.length === 0) return null;
+  
+  const normYandex = window.normalizeLyricsText(lineText);
+  if (!normYandex) return null;
+
+  // 1. First pass: try exact match on normalized lines
+  for (const ref of referents) {
+    if (!ref.fragment) continue;
+    const refLines = ref.fragment.split('\n');
+    for (const refLine of refLines) {
+      const normRefLine = window.normalizeLyricsText(refLine);
+      if (normRefLine === normYandex) {
+        return ref;
+      }
+    }
+  }
+
+  // 2. Second pass: try substring match (only if length >= 6)
+  for (const ref of referents) {
+    if (!ref.fragment) continue;
+    
+    const refLines = ref.fragment.split('\n');
+    for (const refLine of refLines) {
+      const normRefLine = window.normalizeLyricsText(refLine);
+      if (!normRefLine) continue;
+      
+      if (normRefLine.length >= 6) {
+        if (normYandex.includes(normRefLine) || normRefLine.includes(normYandex)) {
+          return ref;
+        }
+      }
+    }
+    
+    // Also try matching the entire (joined) normalized fragment
+    const normFullRef = window.normalizeLyricsText(ref.fragment);
+    if (normFullRef && normFullRef.length >= 8) {
+      if (normYandex.includes(normFullRef) || normFullRef.includes(normYandex)) {
+        return ref;
+      }
+    }
+  }
+
+  return null;
+}
+
+function renderGeniusPanelStructure(panel) {
+  if (!panel) return;
+  panel.replaceChildren();
+
+  // Header
+  const header = document.createElement('div');
+  header.className = 'ym-genius-panel-header';
+  header.style.cssText = `
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  `;
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size: 16px; font-weight: 700; color: #ffdb4d; font-family: "YSMusic Headline", sans-serif;';
+  title.textContent = 'Genius';
+
+  const exitBtn = document.createElement('button');
+  exitBtn.className = 'ym-genius-panel-exit-btn';
+  exitBtn.textContent = 'Вернуться';
+  exitBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    localStorage.setItem('ymGeniusMode', 'false');
+    handleFullscreenPlayer();
+  });
+
+  header.appendChild(title);
+  header.appendChild(exitBtn);
+  panel.appendChild(header);
+
+  // Body container
+  const body = document.createElement('div');
+  body.className = 'ym-genius-panel-body';
+  body.style.cssText = `
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  `;
+  panel.appendChild(body);
+
+  resetAnnotationPanelBody(body);
+}
+
+function resetAnnotationPanelBody(body) {
+  if (!body) return;
+  body.replaceChildren();
+
+  const welcomeDiv = document.createElement('div');
+  welcomeDiv.className = 'ym-genius-annotation-welcome';
+  welcomeDiv.style.cssText = `
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+    opacity: 0.85;
+    padding: 20px 0;
+  `;
+
+  const titleDiv = document.createElement('div');
+  titleDiv.style.cssText = 'font-size: 18px; font-weight: 700; margin-bottom: 12px; color: #ffffff; font-family: "YSMusic Headline", sans-serif;';
+  titleDiv.textContent = 'Смыслы и отсылки';
+
+  const descDiv = document.createElement('div');
+  descDiv.style.cssText = 'font-size: 14px; opacity: 0.7; line-height: 1.5; font-family: "YS Text", sans-serif; max-width: 300px; margin: 0 auto;';
+  descDiv.textContent = 'Нажмите на любую выделенную строчку текста песни слева, чтобы прочитать описание отсылки.';
+
+  welcomeDiv.appendChild(titleDiv);
+  welcomeDiv.appendChild(descDiv);
+  body.appendChild(welcomeDiv);
+}
+
+function resetAnnotationPanel(panel) {
+  renderGeniusPanelStructure(panel);
+}
+
+function extractGeniusSongId(searchResponse) {
+  if (!searchResponse || !searchResponse.response || !searchResponse.response.sections) return null;
+  const sections = searchResponse.response.sections;
+  for (const sec of sections) {
+    if (sec.hits) {
+      for (const hit of sec.hits) {
+        if (hit.type === 'song' || hit.index === 'song') {
+          if (hit.result && hit.result.id) {
+            return hit.result.id;
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+async function loadGeniusDataForTrack(trackId, title, artist) {
+  if (isGeniusLoading) return;
+  resetGeniusData();
+  currentGeniusTrackId = trackId;
+  isGeniusLoading = true;
+
+  console.log(`[GENIUS] Loading annotations and lyrics for ${artist} - ${title}...`);
+  
+  const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+  if (fsRoot) {
+    const body = fsRoot.querySelector('.ym-genius-panel-body');
+    if (body) {
+      resetAnnotationPanelBody(body);
+    } else {
+      const panel = fsRoot.querySelector('.ym-genius-annotation-panel');
+      if (panel) resetAnnotationPanel(panel);
+    }
+  }
+
+  try {
+    const searchData = await window.GeniusAPI.searchSong(title, artist);
+    const songId = extractGeniusSongId(searchData);
+    if (!songId) {
+      console.warn('[GENIUS] No matching song found on Genius.');
+      isGeniusLoading = false;
+      return;
+    }
+    currentGeniusSongId = songId;
+
+    // Find song page URL from hits
+    let songUrl = null;
+    if (searchData && searchData.response && searchData.response.sections) {
+      for (const sec of searchData.response.sections) {
+        if (sec.hits) {
+          const hit = sec.hits.find(h => (h.type === 'song' || h.index === 'song') && h.result && h.result.id === songId);
+          if (hit) {
+            songUrl = hit.result.url;
+            break;
+          }
+        }
+      }
+    }
+    
+    console.log(`[GENIUS] Found song ID: ${songId}, URL: ${songUrl}. Fetching referents and HTML page...`);
+
+    const promises = [
+      window.GeniusAPI.getReferents(songId)
+    ];
+    if (songUrl) {
+      promises.push(window.GeniusAPI.getSongHtml(songUrl));
+    }
+
+    const [referentsData, songHtml] = await Promise.all(promises);
+
+    // 1. Process referents
+    if (referentsData && referentsData.response && referentsData.response.referents) {
+      const referents = referentsData.response.referents;
+      currentGeniusReferents = referents.map(ref => {
+        if (!ref.fragment || !ref.annotations || ref.annotations.length === 0) return null;
+        const body = ref.annotations[0].body;
+        if (!body || !body.html) return null;
+        
+        const authors = ref.annotations[0].authors || [];
+        const authorNames = authors.map(a => a.user ? a.user.name || a.user.login : '').filter(Boolean).join(', ');
+
+        return {
+          id: ref.id,
+          fragment: ref.fragment,
+          html: body.html,
+          authorNames: authorNames
+        };
+      }).filter(Boolean);
+      console.log(`[GENIUS] Loaded ${currentGeniusReferents.length} valid referents.`);
+    }
+
+    // 2. Process HTML page to extract lyrics
+    if (songHtml) {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(songHtml, 'text/html');
+      const containers = doc.querySelectorAll('[data-lyrics-container="true"]');
+      if (containers.length > 0) {
+        const wrapper = document.createElement('div');
+        containers.forEach(c => {
+          const clone = c.cloneNode(true);
+          
+          // Remove Genius metadata headers / translation widgets
+          const excludeSelectors = [
+            '[class*="LyricsHeader__Container"]',
+            '[data-exclude-from-selection="true"]',
+            '[class*="ContributorsCreditSong__Container"]',
+            '[class*="Dropdown__Container"]'
+          ];
+          excludeSelectors.forEach(sel => {
+            clone.querySelectorAll(sel).forEach(el => el.remove());
+          });
+
+          wrapper.appendChild(clone);
+        });
+        currentGeniusLyricsHtml = wrapper.innerHTML;
+        console.log('[GENIUS] Extracted lyrics from containers successfully.');
+      } else {
+        const lyricsDiv = doc.querySelector('.lyrics');
+        if (lyricsDiv) {
+          currentGeniusLyricsHtml = lyricsDiv.innerHTML;
+          console.log('[GENIUS] Extracted lyrics from fallback class successfully.');
+        }
+      }
+    }
+
+    const fsContainer = document.querySelector('.ym-fullscreen-lyrics-container');
+    if (fsContainer && fsContainer.dataset.trackId === trackId) {
+      renderFullscreenLyricsLines(fsContainer);
+    }
+  } catch (err) {
+    console.error('[GENIUS] Failed to load Genius data:', err);
+  } finally {
+    isGeniusLoading = false;
+  }
+}
+
 function renderFullscreenLyricsLines(container) {
   container.dataset.trackId = currentLyricsTrackId;
-  container.innerHTML = '';
+  container.replaceChildren();
+
   if (isLyricsLoading) {
-    container.innerHTML = `<div class="ym-fullscreen-lyrics-empty">Загрузка текста...</div>`;
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'ym-fullscreen-lyrics-empty';
+    emptyEl.textContent = 'Загрузка текста...';
+    container.appendChild(emptyEl);
     return;
   }
+
   const targetLang = localStorage.getItem('ymTargetLang') || 'ru';
   const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
+
   if (isTranslationEnabled) {
     container.classList.add('ym-has-translation');
   } else {
     container.classList.remove('ym-has-translation');
   }
+  if (isGeniusMode && currentGeniusLyricsHtml) {
+    const lyricsWrapper = document.createElement('div');
+    lyricsWrapper.className = 'ym-genius-lyrics-rendered';
+    lyricsWrapper.style.cssText = `
+      text-align: center;
+      font-size: 22px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.95);
+      font-family: "YS Text", sans-serif;
+      padding: 12px;
+    `;
+
+    // Render the original safe HTML
+    window.renderSafeHtmlInto(lyricsWrapper, currentGeniusLyricsHtml);
+
+    // Synchronize by aligning text nodes in the DOM with timestamped lyrics
+    processGeniusLyricsDom(lyricsWrapper, currentLyricsLines);
+
+    // Set up click events on links
+    const links = lyricsWrapper.querySelectorAll('.ym-lyric-annotated');
+    console.log(`[GENIUS] Total HTML annotations found on page: ${links.length}`);
+    links.forEach((linkEl, idx) => {
+      const textSample = linkEl.textContent.trim().substring(0, 45);
+      console.log(`[GENIUS] Annotation #${idx + 1} (ID: ${linkEl.getAttribute('data-id')}): "${textSample}..."`);
+    });
+
+    links.forEach(linkEl => {
+      const refId = linkEl.getAttribute('data-id');
+      const geniusRef = currentGeniusReferents.find(r => String(r.id) === String(refId));
+
+      if (lastSelectedReferentId === String(refId)) {
+        linkEl.classList.add('ym-genius-annotation-selected');
+      }
+
+      linkEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        lastFsUserInteractionTime = Date.now() - 6000;
+
+        const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+        const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
+
+        if (body) {
+          const allSelected = container.querySelectorAll('.ym-genius-annotation-selected');
+          allSelected.forEach(el => el.classList.remove('ym-genius-annotation-selected'));
+
+          const matchingLinks = container.querySelectorAll(`.ym-lyric-annotated[data-id="${refId}"]`);
+          matchingLinks.forEach(el => el.classList.add('ym-genius-annotation-selected'));
+
+          body.replaceChildren();
+
+          if (geniusRef) {
+            lastSelectedReferentId = String(refId);
+
+            const headerDiv = document.createElement('div');
+            headerDiv.style.cssText = 'font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #ffdb4d; margin-bottom: 12px; font-weight: 700; font-family: "YSMusic Headline", sans-serif;';
+            headerDiv.textContent = 'Объяснение строчки';
+
+            const quoteDiv = document.createElement('div');
+            quoteDiv.style.cssText = 'font-size: 16px; font-style: italic; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px; border-left: 2px solid rgba(255, 255, 255, 0.2); padding-left: 12px; font-family: "YS Text", sans-serif;';
+            quoteDiv.textContent = `«${linkEl.textContent.trim()}»`;
+
+            const bodyDiv = document.createElement('div');
+            bodyDiv.className = 'ym-genius-annotation-body';
+            window.renderSafeHtmlInto(bodyDiv, geniusRef.html);
+
+            body.appendChild(headerDiv);
+            body.appendChild(quoteDiv);
+            body.appendChild(bodyDiv);
+
+            if (geniusRef.authorNames) {
+              const authorsDiv = document.createElement('div');
+              authorsDiv.style.cssText = 'font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; font-family: "YS Text", sans-serif;';
+              authorsDiv.textContent = 'Контрибьюторы Genius: ';
+              const strongVal = document.createElement('strong');
+              strongVal.textContent = geniusRef.authorNames;
+              authorsDiv.appendChild(strongVal);
+              body.appendChild(authorsDiv);
+            }
+          } else {
+            lastSelectedReferentId = null;
+            body.replaceChildren();
+            const noInfoDiv = document.createElement('div');
+            noInfoDiv.style.cssText = 'font-size: 16px; opacity: 0.6; padding: 20px; text-align: center; font-family: "YS Text", sans-serif;';
+            noInfoDiv.textContent = 'Нет описания для этой строчки.';
+            body.appendChild(noInfoDiv);
+          }
+        }
+      });
+    });
+
+    container.appendChild(lyricsWrapper);
+    return;
+  }
+
   if (isSyncedLyrics && currentLyricsLines && currentLyricsLines.length > 0) {
     currentLyricsLines.forEach((line, idx) => {
       const lineEl = document.createElement('div');
       lineEl.className = 'ym-fullscreen-lyric-line';
       lineEl.dataset.idx = idx;
       lineEl.dataset.time = line.time;
+
+      const geniusRef = findGeniusReferentForLine(line.text, currentGeniusReferents);
+      if (geniusRef) {
+        lineEl.classList.add('ym-lyric-annotated');
+        lineEl.dataset.referentId = geniusRef.id;
+        lineEl.dataset.annotationHtml = geniusRef.html;
+        lineEl.dataset.annotationAuthors = geniusRef.authorNames;
+        if (lastSelectedReferentId === geniusRef.id) {
+          lineEl.classList.add('ym-genius-annotation-selected');
+        }
+      }
+
       const originalTextEl = document.createElement('div');
       originalTextEl.className = 'ym-fullscreen-lyric-original';
       originalTextEl.textContent = line.text || '...';
       lineEl.appendChild(originalTextEl);
+
       const translationEl = document.createElement('div');
       translationEl.className = 'ym-fullscreen-lyric-translation';
       translationEl.style.cssText = `
@@ -6050,6 +7274,7 @@ function renderFullscreenLyricsLines(container) {
         display: none;
       `;
       lineEl.appendChild(translationEl);
+
       lineEl.addEventListener('click', () => {
         lastFsUserInteractionTime = 0;
         window.postMessage({
@@ -6070,6 +7295,58 @@ function renderFullscreenLyricsLines(container) {
             }
           }
         } catch (e) {}
+
+        if (isGeniusMode) {
+          const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+          const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
+          
+          if (body) {
+            const allSelected = container.querySelectorAll('.ym-genius-annotation-selected');
+            allSelected.forEach(el => el.classList.remove('ym-genius-annotation-selected'));
+
+            if (geniusRef) {
+              lastSelectedReferentId = geniusRef.id;
+              
+              const matchingLines = container.querySelectorAll(`.ym-fullscreen-lyric-line[data-referent-id="${geniusRef.id}"]`);
+              matchingLines.forEach(el => el.classList.add('ym-genius-annotation-selected'));
+
+              body.replaceChildren();
+
+              const headerDiv = document.createElement('div');
+              headerDiv.style.cssText = 'font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #ffdb4d; margin-bottom: 12px; font-weight: 700; font-family: "YSMusic Headline", sans-serif;';
+              headerDiv.textContent = 'Объяснение строчки';
+
+              const quoteDiv = document.createElement('div');
+              quoteDiv.style.cssText = 'font-size: 16px; font-style: italic; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px; border-left: 2px solid rgba(255, 255, 255, 0.2); padding-left: 12px; font-family: "YS Text", sans-serif;';
+              quoteDiv.textContent = `«${line.text}»`;
+
+              const bodyDiv = document.createElement('div');
+              bodyDiv.className = 'ym-genius-annotation-body';
+              window.renderSafeHtmlInto(bodyDiv, geniusRef.html);
+
+              body.appendChild(headerDiv);
+              body.appendChild(quoteDiv);
+              body.appendChild(bodyDiv);
+
+              if (geniusRef.authorNames) {
+                const authorsDiv = document.createElement('div');
+                authorsDiv.style.cssText = 'font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; font-family: "YS Text", sans-serif;';
+                authorsDiv.textContent = 'Контрибьюторы Genius: ';
+                const strongVal = document.createElement('strong');
+                strongVal.textContent = geniusRef.authorNames;
+                authorsDiv.appendChild(strongVal);
+                body.appendChild(authorsDiv);
+              }
+            } else {
+              lastSelectedReferentId = null;
+              body.replaceChildren();
+              const noInfoDiv = document.createElement('div');
+              noInfoDiv.style.cssText = 'font-size: 16px; opacity: 0.6; padding: 20px; text-align: center; font-family: "YS Text", sans-serif;';
+              noInfoDiv.textContent = 'Нет описания для этой строчки.';
+              body.appendChild(noInfoDiv);
+            }
+          }
+        }
       });
       container.appendChild(lineEl);
     });
@@ -6080,10 +7357,12 @@ function renderFullscreenLyricsLines(container) {
       lineEl.className = 'ym-fullscreen-lyric-line';
       lineEl.style.color = 'rgba(255, 255, 255, 0.8)';
       lineEl.style.cursor = 'default';
+
       const originalTextEl = document.createElement('div');
       originalTextEl.className = 'ym-fullscreen-lyric-original';
       originalTextEl.textContent = line.trim() || ' ';
       lineEl.appendChild(originalTextEl);
+
       const translationEl = document.createElement('div');
       translationEl.className = 'ym-fullscreen-lyric-translation';
       translationEl.style.cssText = `
@@ -6100,8 +7379,12 @@ function renderFullscreenLyricsLines(container) {
       container.appendChild(lineEl);
     });
   } else {
-    container.innerHTML = `<div class="ym-fullscreen-lyrics-empty">Текст песни отсутствует</div>`;
+    const emptyEl = document.createElement('div');
+    emptyEl.className = 'ym-fullscreen-lyrics-empty';
+    emptyEl.textContent = 'Текст песни отсутствует';
+    container.appendChild(emptyEl);
   }
+
   if (isTranslationEnabled) {
     applyTranslation(container, currentLyricsTrackId, targetLang);
   }
@@ -6208,6 +7491,71 @@ function handleFullscreenPlayer() {
     }
   }
 
+  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
+
+  // Centralized cleanup: if Genius mode is off, make sure the annotation panel is removed
+  if (!isGeniusMode) {
+    const annotationPanel = fullscreenContent.querySelector('.ym-genius-annotation-panel');
+    if (annotationPanel) {
+      annotationPanel.remove();
+    }
+  }
+
+  // Inject or update Genius Toggle Button (direct child of fullscreenRoot, right under close button)
+  let geniusToggle = fullscreenRoot.querySelector('.ym-fullscreen-genius-btn');
+  if (!geniusToggle) {
+    geniusToggle = document.createElement('button');
+    geniusToggle.className = 'ym-fullscreen-genius-btn';
+    geniusToggle.type = 'button';
+    
+    geniusToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentGenius = localStorage.getItem('ymGeniusMode') === 'true';
+      const newGenius = !currentGenius;
+      localStorage.setItem('ymGeniusMode', newGenius ? 'true' : 'false');
+      
+      geniusToggle.setAttribute('aria-pressed', newGenius ? 'true' : 'false');
+      if (newGenius) {
+        geniusToggle.classList.add('active');
+      } else {
+        geniusToggle.classList.remove('active');
+      }
+      
+      handleFullscreenPlayer();
+    });
+    
+    fullscreenRoot.appendChild(geniusToggle);
+    if (typeof ymRegisterActiveElement === 'function') {
+      ymRegisterActiveElement(geniusToggle);
+    }
+  }
+
+  // Set attributes and active class depending on isGeniusMode
+  geniusToggle.setAttribute('aria-label', 'Genius');
+  geniusToggle.setAttribute('aria-pressed', isGeniusMode ? 'true' : 'false');
+  if (isGeniusMode) {
+    geniusToggle.classList.add('active');
+  } else {
+    geniusToggle.classList.remove('active');
+  }
+
+  // Always ensure the correct SVG is inside the button (replaces old one if present)
+  let svgEl = geniusToggle.querySelector('svg');
+  if (!svgEl || !svgEl.querySelector('path[d^="M12.897"]')) {
+    geniusToggle.replaceChildren(); // clear any text or old SVG
+    const parser = new DOMParser();
+    const svgStr = `
+      <svg xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+        <path d="M12.897 1.235c-.36.001-.722.013-1.08.017-.218-.028-.371.225-.352.416-.035 1.012.023 2.025-.016 3.036-.037.841-.555 1.596-1.224 2.08-.5.345-1.118.435-1.671.663.121.78.434 1.556 1.057 2.07 1.189 1.053 3.224.86 4.17-.426.945-1.071.453-2.573.603-3.854.286-.48.937-.132 1.317-.49-.34-1.249-.81-2.529-1.725-3.472a11.125 11.125 0 00-1.08-.04zm-10.42.006C.53 2.992-.386 5.797.154 8.361c.384 2.052 1.682 3.893 3.45 4.997.134-.23.23-.476.09-.73-.95-2.814-.138-6.119 1.986-8.19.014-.986.043-1.976-.003-2.961l-.188-.214c-1.003-.051-2.008 0-3.01-.022zm17.88.055l-.205.356c.265.938.6 1.862.72 2.834.58 3.546-.402 7.313-2.614 10.14-1.816 2.353-4.441 4.074-7.334 4.773-2.66.66-5.514.45-8.064-.543-.068.079-.207.237-.275.318 2.664 2.629 6.543 3.969 10.259 3.498 3.075-.327 5.995-1.865 8.023-4.195 1.935-2.187 3.083-5.07 3.125-7.992.122-3.384-1.207-6.819-3.636-9.19z"/>
+      </svg>
+    `;
+    const parsedSvg = parser.parseFromString(svgStr, 'image/svg+xml').documentElement;
+    geniusToggle.appendChild(parsedSvg);
+  }
+
+  // Toggle .ym-hidden class depending on isGeniusMode (forces display: none !important)
+  geniusToggle.classList.toggle('ym-hidden', isGeniusMode);
+
   if (!window.hadLoggedFsEvaluation) {
     console.log('[SYNC-DEBUG] handleFullscreenPlayer evaluation:', {
       hasNativeSyncedLyrics,
@@ -6219,7 +7567,17 @@ function handleFullscreenPlayer() {
     window.hadLoggedFsEvaluation = true;
   }
 
-  if (hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) {
+  const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+
+  if (controlsRoot) {
+    const computedStyle = window.getComputedStyle(controlsRoot);
+    if (computedStyle.position === 'static') {
+      controlsRoot.style.position = 'relative';
+    }
+  }
+
+  // If track has native lyrics and we are NOT forcing Genius mode, fallback to Yandex's native interface
+  if ((hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) && !isGeniusMode) {
     if (!window.hadLoggedFsDecision) {
       console.log('[SYNC-DEBUG] handleFullscreenPlayer: Decided to return early (native lyrics mode). Reason:', {
         hasNativeSyncedLyrics,
@@ -6228,11 +7586,12 @@ function handleFullscreenPlayer() {
       });
       window.hadLoggedFsDecision = true;
     }
-    const customToggle = fullscreenRoot.querySelector('.ym-custom-sync-lyrics-btn');
+    const customToggle = controlsRoot ? controlsRoot.querySelector('.ym-custom-sync-lyrics-btn') : null;
     if (customToggle) customToggle.remove();
 
     contentRoot.classList.remove('ym-force-split');
     fullscreenContent.classList.remove('ym-force-split');
+    fullscreenRoot.classList.remove('ym-genius-active');
     if (infoContainer) infoContainer.classList.remove('ym-force-split');
     let additionalContent = contentRoot.querySelector('[class*="FullscreenPlayerDesktopContent_additionalContent"]');
     if (additionalContent) additionalContent.classList.remove('ym-force-split');
@@ -6256,76 +7615,66 @@ function handleFullscreenPlayer() {
     contentRoot.appendChild(additionalContent);
   }
 
-  const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+  // Inject or update custom sync lyrics button (only shown if not in native-only view)
   if (controlsRoot) {
-    const btnClass = getSyncLyricsButtonClass();
-    const iconClass = getSyncLyricsIconClass();
-    const activeClass = getSyncLyricsIconActiveClass();
-
     let customToggle = controlsRoot.querySelector('.ym-custom-sync-lyrics-btn');
     if (!customToggle) {
       customToggle = document.createElement('button');
-      customToggle.className = `cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 zIMibMuH7wcqUoW7KH1B IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 SGYcNjvjmMsXeEVGUV2Z qU2apWBO1yyEK0lZ3lPO undefined ${btnClass} ym-custom-sync-lyrics-btn`;
+      customToggle.className = 'ym-custom-sync-lyrics-btn';
       customToggle.type = 'button';
       customToggle.setAttribute('aria-label', 'Включить текстомузыку');
-      customToggle.setAttribute('aria-live', 'off');
-      customToggle.setAttribute('aria-busy', 'false');
       
       const isVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
       customToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+      if (isVisible) {
+        customToggle.classList.add('active');
+      }
       
       customToggle.innerHTML = `
-        <span class="JjlbHZ4FaP9EAcR_1DxF">
-          <svg class="J9wTKytjOWG73QMoN5WP ${iconClass} ${isVisible ? activeClass : ''} o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
-            <use xlink:href="/icons/sprite.svg#syncLyrics_m"></use>
-          </svg>
-        </span>
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+          <path d="M12 20h9"></path>
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+        </svg>
       `;
       
-      customToggle.addEventListener('click', () => {
+      customToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
         const currentVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
         const newVisible = !currentVisible;
         localStorage.setItem('ymCustomLyricsVisible', newVisible ? 'true' : 'false');
         
         customToggle.setAttribute('aria-pressed', newVisible ? 'true' : 'false');
-        const svg = customToggle.querySelector('svg');
-        if (svg) {
-          if (newVisible) {
-            svg.setAttribute('class', `J9wTKytjOWG73QMoN5WP ${iconClass} ${activeClass} o_v2ds2BaqtzAsRuCVjw`);
-          } else {
-            svg.setAttribute('class', `J9wTKytjOWG73QMoN5WP ${iconClass} o_v2ds2BaqtzAsRuCVjw`);
-          }
+        if (newVisible) {
+          customToggle.classList.add('active');
+        } else {
+          customToggle.classList.remove('active');
         }
         
         handleFullscreenPlayer();
       });
       
-      const rightWrapper = controlsRoot.querySelector('[class*="FullscreenPlayerDesktopControls_bottomRightButtonsWrapper"]');
-      if (rightWrapper) {
-        controlsRoot.insertBefore(customToggle, rightWrapper);
-      } else {
-        controlsRoot.appendChild(customToggle);
+      controlsRoot.appendChild(customToggle);
+      if (typeof ymRegisterActiveElement === 'function') {
+        ymRegisterActiveElement(customToggle);
       }
     } else {
       const isVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
-      customToggle.className = `cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 zIMibMuH7wcqUoW7KH1B IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 SGYcNjvjmMsXeEVGUV2Z qU2apWBO1yyEK0lZ3lPO undefined ${btnClass} ym-custom-sync-lyrics-btn`;
       customToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
-      const svg = customToggle.querySelector('svg');
-      if (svg) {
-        if (isVisible) {
-          svg.setAttribute('class', `J9wTKytjOWG73QMoN5WP ${iconClass} ${activeClass} o_v2ds2BaqtzAsRuCVjw`);
-        } else {
-          svg.setAttribute('class', `J9wTKytjOWG73QMoN5WP ${iconClass} o_v2ds2BaqtzAsRuCVjw`);
-        }
+      if (isVisible) {
+        customToggle.classList.add('active');
+      } else {
+        customToggle.classList.remove('active');
       }
     }
   }
 
-  const isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
+  // Determine custom lyrics visibility (active either by custom toggle or forced by Genius mode)
+  const isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false' || isGeniusMode;
+  
   if (!isCustomLyricsVisible) {
-    // Remove split classes to animate cover art back to center
     contentRoot.classList.remove('ym-force-split');
     fullscreenContent.classList.remove('ym-force-split');
+    fullscreenRoot.classList.remove('ym-genius-active');
     if (infoContainer) infoContainer.classList.remove('ym-force-split');
     
     additionalContent.classList.remove('ym-force-split');
@@ -6342,12 +7691,18 @@ function handleFullscreenPlayer() {
     return;
   }
 
-  // Restore split classes and displays if visible
   additionalContent.style.display = '';
   const transControl = contentRoot.querySelector('.ym-translation-control');
   if (transControl) transControl.style.display = '';
   const transBtn = fullscreenRoot.querySelector('.ym-fullscreen-translate-btn');
   if (transBtn) transBtn.style.display = '';
+
+  // Toggle layout class for Genius mode
+  if (isGeniusMode) {
+    fullscreenRoot.classList.add('ym-genius-active');
+  } else {
+    fullscreenRoot.classList.remove('ym-genius-active');
+  }
 
   // Force layout split
   contentRoot.classList.add('ym-force-split');
@@ -6355,26 +7710,50 @@ function handleFullscreenPlayer() {
   additionalContent.classList.add('ym-force-split');
   if (infoContainer) infoContainer.classList.add('ym-force-split');
 
+  // Inject Genius Annotations Panel
+  let annotationPanel = fullscreenContent.querySelector('.ym-genius-annotation-panel');
+  if (isGeniusMode) {
+    if (!annotationPanel) {
+      annotationPanel = document.createElement('div');
+      annotationPanel.className = 'ym-genius-annotation-panel';
+      fullscreenContent.appendChild(annotationPanel);
+      resetAnnotationPanel(annotationPanel);
+    }
+  } else {
+    if (annotationPanel) {
+      annotationPanel.remove();
+    }
+  }
+
+  // Load Genius referents/annotations if track changed
+  if (currentLyricsTrackId && currentGeniusTrackId !== currentLyricsTrackId) {
+    const meta = currentTrackMetadata;
+    if (meta && meta.title && meta.artist) {
+      loadGeniusDataForTrack(currentLyricsTrackId, meta.title, meta.artist);
+    }
+  }
+
   let customLyricsContainer = additionalContent.querySelector('.ym-fullscreen-lyrics-container');
   if (!customLyricsContainer) {
     customLyricsContainer = document.createElement('div');
     customLyricsContainer.className = 'ym-fullscreen-lyrics-container';
     customLyricsContainer.style.display = '';
-    const updateInteraction = () => {
-      lastFsUserInteractionTime = Date.now();
+    const updateScrollInteraction = () => {
+      lastFsUserInteractionTime = Date.now(); // 7 seconds pause on scroll
     };
-    customLyricsContainer.addEventListener('wheel', updateInteraction, {
+    const updateClickInteraction = () => {
+      lastFsUserInteractionTime = Date.now() - 6000; // 1 second pause on click
+    };
+    customLyricsContainer.addEventListener('wheel', updateScrollInteraction, {
       passive: true
     });
-    customLyricsContainer.addEventListener('touchmove', updateInteraction, {
+    customLyricsContainer.addEventListener('touchmove', updateScrollInteraction, {
       passive: true
     });
-    customLyricsContainer.addEventListener('mousedown', updateInteraction, {
+    customLyricsContainer.addEventListener('mousedown', updateClickInteraction, {
       passive: true
     });
-    if (!additionalContent.contains(customLyricsContainer)) {
-      additionalContent.appendChild(customLyricsContainer);
-    }
+    additionalContent.appendChild(customLyricsContainer);
     renderFullscreenLyricsLines(customLyricsContainer);
   } else {
     customLyricsContainer.style.display = '';
@@ -6383,7 +7762,7 @@ function handleFullscreenPlayer() {
     }
   }
 
-  // Inject or update translation controls (Round Button + Popover aligned with Close Button)
+  // Inject or update translation controls
   ensureTranslateControls(fullscreenRoot, customLyricsContainer);
 
   // Always sync the active class and scroll when fullscreen handler runs
@@ -6394,8 +7773,11 @@ function handleFullscreenPlayer() {
       fsLineElements.forEach(el => el.classList.remove('active'));
       fsActiveEl.classList.add('active');
       const containerHeight = customLyricsContainer.clientHeight;
-      const activeTop = fsActiveEl.offsetTop;
+      const activeRect = fsActiveEl.getBoundingClientRect();
+      const containerRect = customLyricsContainer.getBoundingClientRect();
+      const activeTop = activeRect.top - containerRect.top + customLyricsContainer.scrollTop;
       const activeHeight = fsActiveEl.clientHeight;
+      
       if (Date.now() - lastFsUserInteractionTime > 7000) {
         customLyricsContainer.scrollTo({
           top: activeTop - containerHeight / 2 + activeHeight / 2,

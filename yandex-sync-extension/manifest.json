@@ -16,7 +16,9 @@
     "https://translate.googleapis.com/*",
     "https://ws.audioscrobbler.com/*",
     "https://api.listenbrainz.org/*",
-    "https://risazatvorchestvo.com/*"
+    "https://risazatvorchestvo.com/*",
+    "https://genius.com/*",
+    "https://*.genius.com/*"
   ],
   "background": {
     "service_worker": "background.js"

@@ -38,7 +38,9 @@ function updateLyricsHighlight(position) {
       if (fsActiveEl) {
         fsActiveEl.classList.add('active');
         const containerHeight = fsContainer.clientHeight;
-        const activeTop = fsActiveEl.offsetTop;
+        const activeRect = fsActiveEl.getBoundingClientRect();
+        const containerRect = fsContainer.getBoundingClientRect();
+        const activeTop = activeRect.top - containerRect.top + fsContainer.scrollTop;
         const activeHeight = fsActiveEl.clientHeight;
         if (Date.now() - lastFsUserInteractionTime > 7000) {
           fsContainer.scrollTo({
