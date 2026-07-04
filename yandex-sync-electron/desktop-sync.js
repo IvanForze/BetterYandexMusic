@@ -2920,6 +2920,36 @@ function injectStyles() {
       opacity: 0.6 !important;
     }
 
+    /* Genius mode header labels [Verse 1], [Chorus], etc. */
+    .ym-genius-header-label {
+      display: block !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.12em !important;
+      opacity: 0.45 !important;
+      margin-top: 28px !important;
+      margin-bottom: 20px !important;
+      cursor: default !important;
+      transform: none !important;
+    }
+    .ym-genius-header-label:hover {
+      opacity: 0.45 !important;
+      transform: none !important;
+    }
+
+    /* Genius mode static fallback lyric lines */
+    .ym-fullscreen-lyric-line.static {
+      opacity: 0.85 !important;
+      cursor: default;
+    }
+    .ym-fullscreen-lyric-line.static:hover {
+      opacity: 1 !important;
+    }
+    a.ym-lyric-annotated .ym-fullscreen-lyric-line.static {
+      cursor: pointer !important;
+    }
+
     .ym-fullscreen-lyrics-empty {
       display: flex;
       flex-direction: column;
@@ -6750,6 +6780,26 @@ function processGeniusLyricsDom(rootEl, currentLyricsLines) {
   let matchedCount = 0;
   let unmatchedCount = 0;
 
+  let hasAnyMatches = false;
+  if (currentLyricsLines && currentLyricsLines.length > 0) {
+    const walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent.trim();
+      if (text && !(text.startsWith('[') && text.endsWith(']'))) {
+        if (findClosestLyricsLine(text, currentLyricsLines) !== -1) {
+          hasAnyMatches = true;
+          break;
+        }
+      }
+    }
+  }
+
+  const isStaticFallback = !hasAnyMatches;
+  if (isStaticFallback) {
+    console.log('[GENIUS-SYNC] No matches found or LRCLIB empty. Falling back to static mode.');
+  }
+
   function traverse(element) {
     const childNodes = Array.from(element.childNodes);
     for (const child of childNodes) {
@@ -6759,24 +6809,33 @@ function processGeniusLyricsDom(rootEl, currentLyricsLines) {
         if (!trimmed) continue;
         
         if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-          console.log(`[GENIUS-SYNC] Removing header node: "${trimmed}"`);
-          child.remove();
+          const span = document.createElement('span');
+          span.className = 'ym-genius-header-label ym-genius-lyric-line ym-fullscreen-lyric-line';
+          span.textContent = text;
+          element.replaceChild(span, child);
           continue;
         }
 
-        const matchedIdx = findClosestLyricsLine(text, currentLyricsLines);
-        if (matchedIdx !== -1) {
-          matchedCount++;
+        if (isStaticFallback) {
           const span = document.createElement('span');
-          span.className = 'ym-genius-lyric-line ym-fullscreen-lyric-line';
-          span.setAttribute('data-idx', matchedIdx);
+          span.className = 'ym-genius-lyric-line ym-fullscreen-lyric-line static';
           span.textContent = text;
           element.replaceChild(span, child);
-          console.log(`[GENIUS-SYNC] MATCHED: "${trimmed.substring(0, 30)}..." -> index ${matchedIdx} ("${currentLyricsLines[matchedIdx].text.substring(0, 30)}...")`);
         } else {
-          unmatchedCount++;
-          console.warn(`[GENIUS-SYNC] Removing unmatched text node: "${trimmed.substring(0, 45)}..."`);
-          child.remove();
+          const matchedIdx = findClosestLyricsLine(text, currentLyricsLines);
+          if (matchedIdx !== -1) {
+            matchedCount++;
+            const span = document.createElement('span');
+            span.className = 'ym-genius-lyric-line ym-fullscreen-lyric-line';
+            span.setAttribute('data-idx', matchedIdx);
+            span.textContent = text;
+            element.replaceChild(span, child);
+            console.log(`[GENIUS-SYNC] MATCHED: "${trimmed.substring(0, 30)}..." -> index ${matchedIdx}`);
+          } else {
+            unmatchedCount++;
+            console.warn(`[GENIUS-SYNC] Removing unmatched text node: "${trimmed.substring(0, 45)}..."`);
+            child.remove();
+          }
         }
       } else if (child.nodeType === Node.ELEMENT_NODE) {
         if (child.classList.contains('ym-genius-lyric-line')) continue;
@@ -6984,19 +7043,62 @@ function resetAnnotationPanel(panel) {
   renderGeniusPanelStructure(panel);
 }
 
-function extractGeniusSongId(searchResponse) {
+function extractGeniusSongId(searchResponse, searchTitleText, searchArtistText) {
   if (!searchResponse || !searchResponse.response || !searchResponse.response.sections) return null;
-  const sections = searchResponse.response.sections;
-  for (const sec of sections) {
-    if (sec.hits) {
-      for (const hit of sec.hits) {
-        if (hit.type === 'song' || hit.index === 'song') {
-          if (hit.result && hit.result.id) {
-            return hit.result.id;
+  
+  let bestHit = null;
+  let bestScore = -999;
+  
+  const cleanStr = (s) => (s || '').toLowerCase().replace(/[^\w\sа-яё]/gi, '');
+  const searchArtist = cleanStr(searchArtistText);
+  const searchTitle = cleanStr(searchTitleText);
+
+  for (const sec of searchResponse.response.sections) {
+    if (!sec.hits) continue;
+    for (const hit of sec.hits) {
+      if ((hit.type === 'song' || hit.index === 'song') && hit.result && hit.result.id) {
+        const hitArtist = cleanStr(hit.result.primary_artist?.name);
+        const hitTitle = cleanStr(hit.result.title);
+        
+        let score = 0;
+        
+        // Artist matching
+        if (hitArtist && searchArtist) {
+          if (hitArtist === searchArtist) score += 10;
+          else if (searchArtist.includes(hitArtist) || hitArtist.includes(searchArtist)) score += 5;
+          
+          const searchArtistsParts = searchArtist.split(/(?:и|and|feat|ft)/);
+          for (const p of searchArtistsParts) {
+            if (p.length > 2 && hitArtist.includes(p)) score += 3;
           }
+        }
+        
+        // Title matching
+        if (hitTitle && searchTitle) {
+          if (hitTitle === searchTitle) score += 10;
+          else if (searchTitle.includes(hitTitle) || hitTitle.includes(searchTitle)) score += 5;
+        }
+
+        // Penalize completely unrelated meta-pages from Genius
+        if (hitTitle.includes('tracklist') || hitTitle.includes('calendar') || 
+            hitTitle.includes('annotated') || hitArtist.includes('genius')) {
+          score -= 50;
+        }
+
+        // Bonus for having annotations
+        if (hit.result.annotation_count > 0) score += 2;
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestHit = hit.result;
         }
       }
     }
+  }
+  
+  if (bestHit) {
+    console.log(`[GENIUS-SEARCH] Selected Best Hit: "${bestHit.title}" by "${bestHit.primary_artist?.name}" (Score: ${bestScore})`);
+    return bestHit.id;
   }
   return null;
 }
@@ -7022,7 +7124,7 @@ async function loadGeniusDataForTrack(trackId, title, artist) {
 
   try {
     const searchData = await window.GeniusAPI.searchSong(title, artist);
-    const songId = extractGeniusSongId(searchData);
+    const songId = extractGeniusSongId(searchData, title, artist);
     if (!songId) {
       console.warn('[GENIUS] No matching song found on Genius.');
       isGeniusLoading = false;
@@ -7463,17 +7565,51 @@ function getSyncLyricsIconActiveClass() {
 function handleFullscreenPlayer() {
   const fullscreenRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
   if (!fullscreenRoot) {
+    if (window.ymFsObserver) {
+      window.ymFsObserver.disconnect();
+      window.ymFsObserver = null;
+    }
     const prevForcedRoots = document.querySelectorAll('.ym-force-split');
     prevForcedRoots.forEach(el => el.classList.remove('ym-force-split'));
     return;
   }
+
+  // Setup observer to react instantly to Yandex Music's internal layout changes
+  if (!window.ymFsObserver) {
+    window.ymFsObserver = new MutationObserver(() => {
+      if (window.ymFsObserver) {
+        window.ymFsObserver.disconnect();
+      }
+      handleFullscreenPlayer();
+      if (window.ymFsObserver && document.body.contains(fullscreenRoot)) {
+        window.ymFsObserver.observe(fullscreenRoot, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['class', 'style']
+        });
+      }
+    });
+    window.ymFsObserver.observe(fullscreenRoot, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+  }
+
   const contentRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopContent_root"]');
   if (!contentRoot) return;
   const fullscreenContent = contentRoot.querySelector('[class*="FullscreenPlayerDesktopContent_fullscreenContent"]');
   if (!fullscreenContent) return;
   const infoContainer = contentRoot.querySelector('[class*="FullscreenPlayerDesktopContent_info"]');
   const hasNativeSyncedLyrics = !!contentRoot.querySelector('[class*="SyncLyrics_root"]');
+  if (hasNativeSyncedLyrics) {
+    window.ymCurrentTrackHasLyrics = true;
+  }
   const trackHasLyrics = typeof window.ymCurrentTrackHasLyrics !== 'undefined' ? window.ymCurrentTrackHasLyrics : null;
+
+  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
 
   let hasNativeLyrics = false;
   if (trackHasLyrics !== null) {
@@ -7490,8 +7626,6 @@ function handleFullscreenPlayer() {
       hasNativeLyrics = !isNativelyDisabled;
     }
   }
-
-  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
 
   // Centralized cleanup: if Genius mode is off, make sure the annotation panel is removed
   if (!isGeniusMode) {
@@ -7668,8 +7802,27 @@ function handleFullscreenPlayer() {
     }
   }
 
+  const nativeBtn = findLyricsButton();
+  const isPressed = nativeBtn && (nativeBtn.getAttribute('aria-pressed') === 'true' || nativeBtn.classList.contains('active'));
+  const hasActiveIcon = !!document.querySelector('[class*="SyncLyricsButton_icon_active"]');
+  const isNativelyWithLyrics = !!(isPressed || hasActiveIcon);
+
   // Determine custom lyrics visibility (active either by custom toggle or forced by Genius mode)
-  const isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false' || isGeniusMode;
+  let isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false' || isGeniusMode;
+  
+  // If track has native lyrics and they are currently closed in native UI, force custom lyrics to be hidden
+  if ((hasNativeLyrics || trackHasLyrics === true) && !isNativelyWithLyrics && !isGeniusMode) {
+    isCustomLyricsVisible = false;
+  }
+
+  console.log('[DEBUG-LYRICS] final visibility check:', {
+    isPressed,
+    hasActiveIcon,
+    isNativelyWithLyrics,
+    isCustomLyricsVisible,
+    hasNativeLyrics,
+    trackHasLyrics
+  });
   
   if (!isCustomLyricsVisible) {
     contentRoot.classList.remove('ym-force-split');
@@ -7752,6 +7905,22 @@ function handleFullscreenPlayer() {
     });
     customLyricsContainer.addEventListener('mousedown', updateClickInteraction, {
       passive: true
+    });
+    customLyricsContainer.addEventListener('click', (e) => {
+      // Don't close if clicking an interactive element (link, translation control, buttons, etc.)
+      if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.ym-translation-control') || e.target.closest('.ym-genius-annotation-panel') || e.target.closest('.ym-genius-panel-exit-btn')) {
+        return;
+      }
+      
+      // Don't close if the user is currently selecting text
+      const selection = window.getSelection();
+      if (selection && selection.toString()) {
+        return;
+      }
+
+      localStorage.setItem('ymGeniusMode', 'false');
+      localStorage.setItem('ymCustomLyricsVisible', 'false');
+      handleFullscreenPlayer();
     });
     additionalContent.appendChild(customLyricsContainer);
     renderFullscreenLyricsLines(customLyricsContainer);
@@ -7864,32 +8033,42 @@ async function applyTranslation(container, trackId, targetLang) {
 function handleNativeLyricsTranslation(contentRoot) {
   const targetLang = localStorage.getItem('ymTargetLang') || 'ru';
   const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  
+  const nativeBtn = document.querySelector('[class*="syncLyricsButton"]');
+  const isPressed = nativeBtn && (nativeBtn.getAttribute('aria-pressed') === 'true' || nativeBtn.classList.contains('active'));
+  const hasActiveIcon = !!document.querySelector('[class*="SyncLyricsButton_icon_active"]');
+  const isNativelyWithLyrics = !!(isPressed || hasActiveIcon);
+
+  // Inject global CSS for translations once
+  let styleEl = document.getElementById('ym-native-translation-styles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'ym-native-translation-styles';
+    styleEl.textContent = `
+      .ym-translation-active [class*="SyncLyricsLine_root"] {
+        font-weight: 500 !important;
+        transform: scale(0.9) !important;
+        transform-origin: center !important;
+        display: inline-block !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
   if (!isTranslationEnabled) {
+    contentRoot.classList.remove('ym-translation-active');
     const translationEls = contentRoot.querySelectorAll('.ym-native-lyrics-translation');
     translationEls.forEach(el => el.style.display = 'none');
-
-    // Reset originalSpan styling when translation is disabled
-    const nativeLines = contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]');
-    nativeLines.forEach(lineEl => {
-      const originalSpan = lineEl.querySelector('[class*="SyncLyricsLine_root"]');
-      if (originalSpan) {
-        originalSpan.style.fontWeight = '';
-        originalSpan.style.fontSize = '';
-        originalSpan.style.transform = '';
-        originalSpan.style.transformOrigin = '';
-        originalSpan.style.display = '';
-      }
-    });
-
-    // Trigger Swiper recalculation
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
     return;
   }
+
+  // Apply active class to enforce scale(0.9) on original text via CSS
+  contentRoot.classList.add('ym-translation-active');
+
   const nativeLines = contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]');
   if (!nativeLines || nativeLines.length === 0) return;
-  const cacheKey = `${currentLyricsTrackId}_${targetLang}`;
+  const trackId = typeof window.ymCurrentTrackId !== 'undefined' ? window.ymCurrentTrackId : 'unknown';
+  const cacheKey = `${trackId}_${targetLang}`;
   const translations = ymLyricsTranslationCache[cacheKey];
   if (translations) {
     applyTranslationsToNativeLines(nativeLines, translations);
@@ -7905,7 +8084,7 @@ function handleNativeLyricsTranslation(contentRoot) {
     ymIsTranslating = true;
     translateLyrics(linesToTranslate, targetLang).then(res => {
       ymLyricsTranslationCache[cacheKey] = res;
-      applyTranslationsToNativeLines(nativeLines, res);
+      applyTranslationsToNativeLines(contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]'), res);
     }).catch(err => {
       console.error('[SYNC] Native lyrics translation error:', err);
     }).finally(() => {
@@ -7915,17 +8094,9 @@ function handleNativeLyricsTranslation(contentRoot) {
 }
 
 function applyTranslationsToNativeLines(nativeLines, translations) {
-  if (!translations) return;
-  const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  if (!translations || translations.length === 0) return;
+  const numTranslations = translations.length;
   nativeLines.forEach((lineEl, idx) => {
-    const originalSpan = lineEl.querySelector('[class*="SyncLyricsLine_root"]');
-    if (!originalSpan) return;
-
-    // Reset previous flex changes to avoid breaking swiper height calculations
-    lineEl.style.display = '';
-    lineEl.style.flexDirection = '';
-    lineEl.style.alignItems = '';
-
     // Ensure relative positioning on the parent container
     lineEl.style.position = 'relative';
     let translationEl = lineEl.querySelector('.ym-native-lyrics-translation');
@@ -7950,32 +8121,14 @@ function applyTranslationsToNativeLines(nativeLines, translations) {
       `;
       lineEl.appendChild(translationEl);
     }
-    const translationText = translations[idx];
-    if (translationText && isTranslationEnabled) {
+    const translationText = translations[idx % numTranslations];
+    if (translationText) {
       translationEl.textContent = translationText;
       translationEl.style.display = 'block';
-
-      // Update original lyrics font weight to 500 (medium) and scale down visually to keep container size intact
-      originalSpan.style.fontWeight = '500';
-      originalSpan.style.transform = 'scale(0.9)';
-      originalSpan.style.transformOrigin = 'center';
-      originalSpan.style.display = 'inline-block';
     } else {
       translationEl.style.display = 'none';
-
-      // Restore original styling
-      originalSpan.style.fontWeight = '';
-      originalSpan.style.fontSize = '';
-      originalSpan.style.transform = '';
-      originalSpan.style.transformOrigin = '';
-      originalSpan.style.display = '';
     }
   });
-
-  // Trigger Swiper recalculation
-  setTimeout(() => {
-    window.dispatchEvent(new Event('resize'));
-  }, 100);
 }
 
 function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {

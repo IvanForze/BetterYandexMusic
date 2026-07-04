@@ -745,6 +745,36 @@ function injectStyles() {
       opacity: 0.6 !important;
     }
 
+    /* Genius mode header labels [Verse 1], [Chorus], etc. */
+    .ym-genius-header-label {
+      display: block !important;
+      font-size: 16px !important;
+      font-weight: 600 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.12em !important;
+      opacity: 0.45 !important;
+      margin-top: 28px !important;
+      margin-bottom: 20px !important;
+      cursor: default !important;
+      transform: none !important;
+    }
+    .ym-genius-header-label:hover {
+      opacity: 0.45 !important;
+      transform: none !important;
+    }
+
+    /* Genius mode static fallback lyric lines */
+    .ym-fullscreen-lyric-line.static {
+      opacity: 0.85 !important;
+      cursor: default;
+    }
+    .ym-fullscreen-lyric-line.static:hover {
+      opacity: 1 !important;
+    }
+    a.ym-lyric-annotated .ym-fullscreen-lyric-line.static {
+      cursor: pointer !important;
+    }
+
     .ym-fullscreen-lyrics-empty {
       display: flex;
       flex-direction: column;

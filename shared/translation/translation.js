@@ -73,32 +73,42 @@ async function applyTranslation(container, trackId, targetLang) {
 function handleNativeLyricsTranslation(contentRoot) {
   const targetLang = localStorage.getItem('ymTargetLang') || 'ru';
   const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  
+  const nativeBtn = document.querySelector('[class*="syncLyricsButton"]');
+  const isPressed = nativeBtn && (nativeBtn.getAttribute('aria-pressed') === 'true' || nativeBtn.classList.contains('active'));
+  const hasActiveIcon = !!document.querySelector('[class*="SyncLyricsButton_icon_active"]');
+  const isNativelyWithLyrics = !!(isPressed || hasActiveIcon);
+
+  // Inject global CSS for translations once
+  let styleEl = document.getElementById('ym-native-translation-styles');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'ym-native-translation-styles';
+    styleEl.textContent = `
+      .ym-translation-active [class*="SyncLyricsLine_root"] {
+        font-weight: 500 !important;
+        transform: scale(0.9) !important;
+        transform-origin: center !important;
+        display: inline-block !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
   if (!isTranslationEnabled) {
+    contentRoot.classList.remove('ym-translation-active');
     const translationEls = contentRoot.querySelectorAll('.ym-native-lyrics-translation');
     translationEls.forEach(el => el.style.display = 'none');
-
-    // Reset originalSpan styling when translation is disabled
-    const nativeLines = contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]');
-    nativeLines.forEach(lineEl => {
-      const originalSpan = lineEl.querySelector('[class*="SyncLyricsLine_root"]');
-      if (originalSpan) {
-        originalSpan.style.fontWeight = '';
-        originalSpan.style.fontSize = '';
-        originalSpan.style.transform = '';
-        originalSpan.style.transformOrigin = '';
-        originalSpan.style.display = '';
-      }
-    });
-
-    // Trigger Swiper recalculation
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-    }, 100);
     return;
   }
+
+  // Apply active class to enforce scale(0.9) on original text via CSS
+  contentRoot.classList.add('ym-translation-active');
+
   const nativeLines = contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]');
   if (!nativeLines || nativeLines.length === 0) return;
-  const cacheKey = `${currentLyricsTrackId}_${targetLang}`;
+  const trackId = typeof window.ymCurrentTrackId !== 'undefined' ? window.ymCurrentTrackId : 'unknown';
+  const cacheKey = `${trackId}_${targetLang}`;
   const translations = ymLyricsTranslationCache[cacheKey];
   if (translations) {
     applyTranslationsToNativeLines(nativeLines, translations);
@@ -114,7 +124,7 @@ function handleNativeLyricsTranslation(contentRoot) {
     ymIsTranslating = true;
     translateLyrics(linesToTranslate, targetLang).then(res => {
       ymLyricsTranslationCache[cacheKey] = res;
-      applyTranslationsToNativeLines(nativeLines, res);
+      applyTranslationsToNativeLines(contentRoot.querySelectorAll('[class*="SyncLyricsScroller_line"]'), res);
     }).catch(err => {
       console.error('[SYNC] Native lyrics translation error:', err);
     }).finally(() => {
@@ -124,17 +134,9 @@ function handleNativeLyricsTranslation(contentRoot) {
 }
 
 function applyTranslationsToNativeLines(nativeLines, translations) {
-  if (!translations) return;
-  const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  if (!translations || translations.length === 0) return;
+  const numTranslations = translations.length;
   nativeLines.forEach((lineEl, idx) => {
-    const originalSpan = lineEl.querySelector('[class*="SyncLyricsLine_root"]');
-    if (!originalSpan) return;
-
-    // Reset previous flex changes to avoid breaking swiper height calculations
-    lineEl.style.display = '';
-    lineEl.style.flexDirection = '';
-    lineEl.style.alignItems = '';
-
     // Ensure relative positioning on the parent container
     lineEl.style.position = 'relative';
     let translationEl = lineEl.querySelector('.ym-native-lyrics-translation');
@@ -159,32 +161,14 @@ function applyTranslationsToNativeLines(nativeLines, translations) {
       `;
       lineEl.appendChild(translationEl);
     }
-    const translationText = translations[idx];
-    if (translationText && isTranslationEnabled) {
+    const translationText = translations[idx % numTranslations];
+    if (translationText) {
       translationEl.textContent = translationText;
       translationEl.style.display = 'block';
-
-      // Update original lyrics font weight to 500 (medium) and scale down visually to keep container size intact
-      originalSpan.style.fontWeight = '500';
-      originalSpan.style.transform = 'scale(0.9)';
-      originalSpan.style.transformOrigin = 'center';
-      originalSpan.style.display = 'inline-block';
     } else {
       translationEl.style.display = 'none';
-
-      // Restore original styling
-      originalSpan.style.fontWeight = '';
-      originalSpan.style.fontSize = '';
-      originalSpan.style.transform = '';
-      originalSpan.style.transformOrigin = '';
-      originalSpan.style.display = '';
     }
   });
-
-  // Trigger Swiper recalculation
-  setTimeout(() => {
-    window.dispatchEvent(new Event('resize'));
-  }, 100);
 }
 
 function ensureTranslateControls(fullscreenRoot, customLyricsContainer) {
