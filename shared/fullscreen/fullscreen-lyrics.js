@@ -740,26 +740,30 @@ function renderFullscreenLyricsLines(container) {
 
       lineEl.addEventListener('click', () => {
         lastFsUserInteractionTime = 0;
-        window.postMessage({
-          type: 'FROM_ISOLATED',
-          action: 'SYNC_STATE',
-          state: {
-            time: line.time,
-            trackId: currentLyricsTrackId,
-            isPause: false
-          }
-        }, '*');
-        try {
-          if (typeof getActivePlayer === 'function') {
-            const player = getActivePlayer();
-            if (player) {
-              player.setProgress(line.time);
-              if (typeof player.resume === 'function') player.resume();
+        const currentIsGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
+        
+        if (!currentIsGeniusMode) {
+          window.postMessage({
+            type: 'FROM_ISOLATED',
+            action: 'SYNC_STATE',
+            state: {
+              time: line.time,
+              trackId: currentLyricsTrackId,
+              isPause: false
             }
-          }
-        } catch (e) {}
+          }, '*');
+          try {
+            if (typeof getActivePlayer === 'function') {
+              const player = getActivePlayer();
+              if (player) {
+                player.setProgress(line.time);
+                if (typeof player.resume === 'function') player.resume();
+              }
+            }
+          } catch (e) {}
+        }
 
-        if (isGeniusMode) {
+        if (currentIsGeniusMode) {
           const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
           const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
           
@@ -767,10 +771,13 @@ function renderFullscreenLyricsLines(container) {
             const allSelected = container.querySelectorAll('.ym-genius-annotation-selected');
             allSelected.forEach(el => el.classList.remove('ym-genius-annotation-selected'));
 
-            if (geniusRef) {
-              lastSelectedReferentId = geniusRef.id;
+            const currentRefId = lineEl.dataset.referentId;
+            const currentGeniusRef = currentRefId ? currentGeniusReferents.find(r => String(r.id) === String(currentRefId)) : null;
+
+            if (currentGeniusRef) {
+              lastSelectedReferentId = currentGeniusRef.id;
               
-              const matchingLines = container.querySelectorAll(`.ym-fullscreen-lyric-line[data-referent-id="${geniusRef.id}"]`);
+              const matchingLines = container.querySelectorAll(`.ym-fullscreen-lyric-line[data-referent-id="${currentGeniusRef.id}"]`);
               matchingLines.forEach(el => el.classList.add('ym-genius-annotation-selected'));
 
               body.replaceChildren();
@@ -785,18 +792,18 @@ function renderFullscreenLyricsLines(container) {
 
               const bodyDiv = document.createElement('div');
               bodyDiv.className = 'ym-genius-annotation-body';
-              window.renderSafeHtmlInto(bodyDiv, geniusRef.html);
+              window.renderSafeHtmlInto(bodyDiv, currentGeniusRef.html);
 
               body.appendChild(headerDiv);
               body.appendChild(quoteDiv);
               body.appendChild(bodyDiv);
 
-              if (geniusRef.authorNames) {
+              if (currentGeniusRef.authorNames) {
                 const authorsDiv = document.createElement('div');
                 authorsDiv.style.cssText = 'font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; font-family: "YS Text", sans-serif;';
                 authorsDiv.textContent = 'Контрибьюторы Genius: ';
                 const strongVal = document.createElement('strong');
-                strongVal.textContent = geniusRef.authorNames;
+                strongVal.textContent = currentGeniusRef.authorNames;
                 authorsDiv.appendChild(strongVal);
                 body.appendChild(authorsDiv);
               }

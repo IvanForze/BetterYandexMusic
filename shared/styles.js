@@ -1166,7 +1166,7 @@ function injectStyles() {
     }
 
     /* Annotated Lyrics Line styles */
-    .ym-fullscreen-lyric-line.ym-lyric-annotated {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       padding: 10px 18px;
@@ -1177,16 +1177,16 @@ function injectStyles() {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid rgba(255, 255, 255, 0.03);
     }
-    .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
       background: rgba(255, 255, 255, 0.12);
       border-color: rgba(255, 255, 255, 0.08);
       transform: translateY(-1px);
     }
-    .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
       background: rgba(255, 219, 77, 0.1);
       border-color: rgba(255, 219, 77, 0.2);
     }
-    .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
       background: rgba(255, 219, 77, 0.2) !important;
       border-color: #ffdb4d !important;
       color: #ffffff !important;

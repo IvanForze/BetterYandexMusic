@@ -3341,7 +3341,7 @@ function injectStyles() {
     }
 
     /* Annotated Lyrics Line styles */
-    .ym-fullscreen-lyric-line.ym-lyric-annotated {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated {
       background: rgba(255, 255, 255, 0.05);
       border-radius: 12px;
       padding: 10px 18px;
@@ -3352,16 +3352,16 @@ function injectStyles() {
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       border: 1px solid rgba(255, 255, 255, 0.03);
     }
-    .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated:hover {
       background: rgba(255, 255, 255, 0.12);
       border-color: rgba(255, 255, 255, 0.08);
       transform: translateY(-1px);
     }
-    .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-lyric-annotated.active {
       background: rgba(255, 219, 77, 0.1);
       border-color: rgba(255, 219, 77, 0.2);
     }
-    .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
+    .ym-genius-active .ym-fullscreen-lyric-line.ym-genius-annotation-selected {
       background: rgba(255, 219, 77, 0.2) !important;
       border-color: #ffdb4d !important;
       color: #ffffff !important;
@@ -7199,12 +7199,7 @@ async function loadGeniusDataForTrack(trackId, title, artist) {
 }
 
 function renderFullscreenLyricsLines(container) {
-  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
-  const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
-  const geniusLoaded = !!currentGeniusLyricsHtml;
-  const renderKey = `${currentLyricsTrackId}_${isGeniusMode}_${isTranslationEnabled}_${isLyricsLoading}_${geniusLoaded}_${currentGeniusReferents.length}`;
   container.dataset.trackId = currentLyricsTrackId;
-  container.dataset.renderKey = renderKey;
   container.replaceChildren();
 
   if (isLyricsLoading) {
@@ -7227,12 +7222,6 @@ function renderFullscreenLyricsLines(container) {
   if (isGeniusMode && currentGeniusLyricsHtml) {
     const lyricsWrapper = document.createElement('div');
     lyricsWrapper.className = 'ym-genius-lyrics-rendered';
-    lyricsWrapper.addEventListener('click', (e) => {
-      if (!e.target.closest('.ym-lyric-annotated')) {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
     lyricsWrapper.style.cssText = `
       text-align: center;
       font-size: 22px;
@@ -7363,63 +7352,11 @@ function renderFullscreenLyricsLines(container) {
       `;
       lineEl.appendChild(translationEl);
 
-      lineEl.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        if (isGeniusMode) {
-          lastFsUserInteractionTime = Date.now() - 6000;
-
-          const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
-          const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
-          
-          if (body) {
-            const allSelected = container.querySelectorAll('.ym-genius-annotation-selected');
-            allSelected.forEach(el => el.classList.remove('ym-genius-annotation-selected'));
-
-            if (geniusRef) {
-              lastSelectedReferentId = geniusRef.id;
-              
-              const matchingLines = container.querySelectorAll(`.ym-fullscreen-lyric-line[data-referent-id="${geniusRef.id}"]`);
-              matchingLines.forEach(el => el.classList.add('ym-genius-annotation-selected'));
-
-              body.replaceChildren();
-
-              const headerDiv = document.createElement('div');
-              headerDiv.style.cssText = 'font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #ffdb4d; margin-bottom: 12px; font-weight: 700; font-family: "YSMusic Headline", sans-serif;';
-              headerDiv.textContent = 'Объяснение строчки';
-
-              const quoteDiv = document.createElement('div');
-              quoteDiv.style.cssText = 'font-size: 16px; font-style: italic; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px; border-left: 2px solid rgba(255, 255, 255, 0.2); padding-left: 12px; font-family: "YS Text", sans-serif;';
-              quoteDiv.textContent = `«${line.text}»`;
-
-              const bodyDiv = document.createElement('div');
-              bodyDiv.className = 'ym-genius-annotation-body';
-              window.renderSafeHtmlInto(bodyDiv, geniusRef.html);
-
-              body.appendChild(headerDiv);
-              body.appendChild(quoteDiv);
-              body.appendChild(bodyDiv);
-
-              if (geniusRef.authorNames) {
-                const authorsDiv = document.createElement('div');
-                authorsDiv.style.cssText = 'font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; font-family: "YS Text", sans-serif;';
-                authorsDiv.textContent = 'Контрибьюторы Genius: ';
-                const strongVal = document.createElement('strong');
-                strongVal.textContent = geniusRef.authorNames;
-                authorsDiv.appendChild(strongVal);
-                body.appendChild(authorsDiv);
-              }
-            } else {
-              lastSelectedReferentId = null;
-              body.replaceChildren();
-              const noInfoDiv = document.createElement('div');
-              noInfoDiv.style.cssText = 'font-size: 16px; opacity: 0.6; padding: 20px; text-align: center; font-family: "YS Text", sans-serif;';
-              noInfoDiv.textContent = 'Нет описания для этой строчки.';
-              body.appendChild(noInfoDiv);
-            }
-          }
-        } else {
-          lastFsUserInteractionTime = 0;
+      lineEl.addEventListener('click', () => {
+        lastFsUserInteractionTime = 0;
+        const currentIsGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
+        
+        if (!currentIsGeniusMode) {
           window.postMessage({
             type: 'FROM_ISOLATED',
             action: 'SYNC_STATE',
@@ -7438,6 +7375,61 @@ function renderFullscreenLyricsLines(container) {
               }
             }
           } catch (e) {}
+        }
+
+        if (currentIsGeniusMode) {
+          const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+          const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
+          
+          if (body) {
+            const allSelected = container.querySelectorAll('.ym-genius-annotation-selected');
+            allSelected.forEach(el => el.classList.remove('ym-genius-annotation-selected'));
+
+            const currentRefId = lineEl.dataset.referentId;
+            const currentGeniusRef = currentRefId ? currentGeniusReferents.find(r => String(r.id) === String(currentRefId)) : null;
+
+            if (currentGeniusRef) {
+              lastSelectedReferentId = currentGeniusRef.id;
+              
+              const matchingLines = container.querySelectorAll(`.ym-fullscreen-lyric-line[data-referent-id="${currentGeniusRef.id}"]`);
+              matchingLines.forEach(el => el.classList.add('ym-genius-annotation-selected'));
+
+              body.replaceChildren();
+
+              const headerDiv = document.createElement('div');
+              headerDiv.style.cssText = 'font-size: 13px; text-transform: uppercase; letter-spacing: 1px; color: #ffdb4d; margin-bottom: 12px; font-weight: 700; font-family: "YSMusic Headline", sans-serif;';
+              headerDiv.textContent = 'Объяснение строчки';
+
+              const quoteDiv = document.createElement('div');
+              quoteDiv.style.cssText = 'font-size: 16px; font-style: italic; color: rgba(255, 255, 255, 0.6); margin-bottom: 20px; border-left: 2px solid rgba(255, 255, 255, 0.2); padding-left: 12px; font-family: "YS Text", sans-serif;';
+              quoteDiv.textContent = `«${line.text}»`;
+
+              const bodyDiv = document.createElement('div');
+              bodyDiv.className = 'ym-genius-annotation-body';
+              window.renderSafeHtmlInto(bodyDiv, currentGeniusRef.html);
+
+              body.appendChild(headerDiv);
+              body.appendChild(quoteDiv);
+              body.appendChild(bodyDiv);
+
+              if (currentGeniusRef.authorNames) {
+                const authorsDiv = document.createElement('div');
+                authorsDiv.style.cssText = 'font-size: 11px; color: rgba(255, 255, 255, 0.4); margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 12px; font-family: "YS Text", sans-serif;';
+                authorsDiv.textContent = 'Контрибьюторы Genius: ';
+                const strongVal = document.createElement('strong');
+                strongVal.textContent = currentGeniusRef.authorNames;
+                authorsDiv.appendChild(strongVal);
+                body.appendChild(authorsDiv);
+              }
+            } else {
+              lastSelectedReferentId = null;
+              body.replaceChildren();
+              const noInfoDiv = document.createElement('div');
+              noInfoDiv.style.cssText = 'font-size: 16px; opacity: 0.6; padding: 20px; text-align: center; font-family: "YS Text", sans-serif;';
+              noInfoDiv.textContent = 'Нет описания для этой строчки.';
+              body.appendChild(noInfoDiv);
+            }
+          }
         }
       });
       container.appendChild(lineEl);
@@ -7934,10 +7926,7 @@ function handleFullscreenPlayer() {
     renderFullscreenLyricsLines(customLyricsContainer);
   } else {
     customLyricsContainer.style.display = '';
-    const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
-    const geniusLoaded = !!currentGeniusLyricsHtml;
-    const currentRenderKey = `${currentLyricsTrackId}_${isGeniusMode}_${isTranslationEnabled}_${isLyricsLoading}_${geniusLoaded}_${currentGeniusReferents.length}`;
-    if (customLyricsContainer.dataset.renderKey !== currentRenderKey) {
+    if (customLyricsContainer.dataset.trackId !== currentLyricsTrackId) {
       renderFullscreenLyricsLines(customLyricsContainer);
     }
   }
