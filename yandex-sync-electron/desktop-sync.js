@@ -7199,7 +7199,12 @@ async function loadGeniusDataForTrack(trackId, title, artist) {
 }
 
 function renderFullscreenLyricsLines(container) {
+  const isGeniusMode = localStorage.getItem('ymGeniusMode') === 'true';
+  const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+  const geniusLoaded = !!currentGeniusLyricsHtml;
+  const renderKey = `${currentLyricsTrackId}_${isGeniusMode}_${isTranslationEnabled}_${isLyricsLoading}_${geniusLoaded}_${currentGeniusReferents.length}`;
   container.dataset.trackId = currentLyricsTrackId;
+  container.dataset.renderKey = renderKey;
   container.replaceChildren();
 
   if (isLyricsLoading) {
@@ -7222,6 +7227,12 @@ function renderFullscreenLyricsLines(container) {
   if (isGeniusMode && currentGeniusLyricsHtml) {
     const lyricsWrapper = document.createElement('div');
     lyricsWrapper.className = 'ym-genius-lyrics-rendered';
+    lyricsWrapper.addEventListener('click', (e) => {
+      if (!e.target.closest('.ym-lyric-annotated')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
     lyricsWrapper.style.cssText = `
       text-align: center;
       font-size: 22px;
@@ -7352,28 +7363,12 @@ function renderFullscreenLyricsLines(container) {
       `;
       lineEl.appendChild(translationEl);
 
-      lineEl.addEventListener('click', () => {
-        lastFsUserInteractionTime = 0;
-        window.postMessage({
-          type: 'FROM_ISOLATED',
-          action: 'SYNC_STATE',
-          state: {
-            time: line.time,
-            trackId: currentLyricsTrackId,
-            isPause: false
-          }
-        }, '*');
-        try {
-          if (typeof getActivePlayer === 'function') {
-            const player = getActivePlayer();
-            if (player) {
-              player.setProgress(line.time);
-              if (typeof player.resume === 'function') player.resume();
-            }
-          }
-        } catch (e) {}
-
+      lineEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         if (isGeniusMode) {
+          lastFsUserInteractionTime = Date.now() - 6000;
+
           const fsRoot = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
           const body = fsRoot ? fsRoot.querySelector('.ym-genius-panel-body') : null;
           
@@ -7423,6 +7418,26 @@ function renderFullscreenLyricsLines(container) {
               body.appendChild(noInfoDiv);
             }
           }
+        } else {
+          lastFsUserInteractionTime = 0;
+          window.postMessage({
+            type: 'FROM_ISOLATED',
+            action: 'SYNC_STATE',
+            state: {
+              time: line.time,
+              trackId: currentLyricsTrackId,
+              isPause: false
+            }
+          }, '*');
+          try {
+            if (typeof getActivePlayer === 'function') {
+              const player = getActivePlayer();
+              if (player) {
+                player.setProgress(line.time);
+                if (typeof player.resume === 'function') player.resume();
+              }
+            }
+          } catch (e) {}
         }
       });
       container.appendChild(lineEl);
@@ -7919,7 +7934,10 @@ function handleFullscreenPlayer() {
     renderFullscreenLyricsLines(customLyricsContainer);
   } else {
     customLyricsContainer.style.display = '';
-    if (customLyricsContainer.dataset.trackId !== currentLyricsTrackId) {
+    const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
+    const geniusLoaded = !!currentGeniusLyricsHtml;
+    const currentRenderKey = `${currentLyricsTrackId}_${isGeniusMode}_${isTranslationEnabled}_${isLyricsLoading}_${geniusLoaded}_${currentGeniusReferents.length}`;
+    if (customLyricsContainer.dataset.renderKey !== currentRenderKey) {
       renderFullscreenLyricsLines(customLyricsContainer);
     }
   }
