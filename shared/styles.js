@@ -1132,36 +1132,11 @@ function injectStyles() {
 
     /* Custom Sync Lyrics Toggle Button */
     .ym-custom-sync-lyrics-btn {
-      position: absolute !important;
-      bottom: 100px !important;
-      right: 92px !important;
-      width: 56px !important;
-      height: 56px !important;
-      border-radius: 50% !important;
-      background: rgba(26, 26, 26, 0.9) !important;
-      border: 1px solid rgba(255, 255, 255, 0.1) !important;
-      color: #fff !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
+      display: inline-flex !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      pointer-events: auto !important;
       cursor: pointer !important;
-      z-index: 100000 !important;
-      transition: all 0.2s ease !important;
-      outline: none !important;
-      padding: 0 !important;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-    }
-    .ym-custom-sync-lyrics-btn:hover {
-      background: rgba(40, 40, 40, 0.9) !important;
-      transform: scale(1.05) !important;
-      border-color: rgba(255, 255, 255, 0.25) !important;
-    }
-    .ym-custom-sync-lyrics-btn.active,
-    .ym-custom-sync-lyrics-btn[aria-pressed="true"] {
-      background: #ffdb4d !important;
-      border-color: #ffdb4d !important;
-      color: #000000 !important;
-      box-shadow: 0 0 12px rgba(255, 219, 77, 0.5) !important;
     }
     .ym-custom-sync-lyrics-btn svg {
       display: block !important;

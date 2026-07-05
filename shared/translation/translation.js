@@ -74,7 +74,7 @@ function handleNativeLyricsTranslation(contentRoot) {
   const targetLang = localStorage.getItem('ymTargetLang') || 'ru';
   const isTranslationEnabled = localStorage.getItem('ymTranslationEnabled') !== 'false';
   
-  const nativeBtn = document.querySelector('[class*="syncLyricsButton"]');
+  const nativeBtn = document.querySelector('[class*="syncLyricsButton"]:not(.ym-custom-sync-lyrics-btn)');
   const isPressed = nativeBtn && (nativeBtn.getAttribute('aria-pressed') === 'true' || nativeBtn.classList.contains('active'));
   const hasActiveIcon = !!document.querySelector('[class*="SyncLyricsButton_icon_active"]');
   const isNativelyWithLyrics = !!(isPressed || hasActiveIcon);

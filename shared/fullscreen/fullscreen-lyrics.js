@@ -961,6 +961,11 @@ function handleFullscreenPlayer() {
 
   const contentRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopContent_root"]');
   if (!contentRoot) return;
+  const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
+  const nativeFsBtn = controlsRoot ? controlsRoot.querySelector('[class*="FullscreenPlayerDesktopControls_syncLyricsButton"]:not(.ym-custom-sync-lyrics-btn)') : null;
+  if (nativeFsBtn) {
+    nativeFsBtn.style.removeProperty('display');
+  }
   const fullscreenContent = contentRoot.querySelector('[class*="FullscreenPlayerDesktopContent_fullscreenContent"]');
   if (!fullscreenContent) return;
   const infoContainer = contentRoot.querySelector('[class*="FullscreenPlayerDesktopContent_info"]');
@@ -1062,8 +1067,6 @@ function handleFullscreenPlayer() {
     window.hadLoggedFsEvaluation = true;
   }
 
-  const controlsRoot = fullscreenRoot.querySelector('[class*="FullscreenPlayerDesktopControls_root"]');
-
   if (controlsRoot) {
     const computedStyle = window.getComputedStyle(controlsRoot);
     if (computedStyle.position === 'static') {
@@ -1113,53 +1116,90 @@ function handleFullscreenPlayer() {
   // Inject or update custom sync lyrics button (only shown if not in native-only view)
   if (controlsRoot) {
     let customToggle = controlsRoot.querySelector('.ym-custom-sync-lyrics-btn');
+    const isVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
+    const iconClass = isVisible ? getSyncLyricsIconActiveClass() : getSyncLyricsIconClass();
+
     if (!customToggle) {
       customToggle = document.createElement('button');
-      customToggle.className = 'ym-custom-sync-lyrics-btn';
       customToggle.type = 'button';
-      customToggle.setAttribute('aria-label', 'Включить текстомузыку');
-      
-      const isVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
-      customToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
-      if (isVisible) {
-        customToggle.classList.add('active');
-      }
-      
-      customToggle.innerHTML = `
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
-          <path d="M12 20h9"></path>
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-        </svg>
-      `;
+      customToggle.setAttribute('aria-label', 'Включить текстомузыку Может нарушить доступность');
+      customToggle.setAttribute('aria-live', 'off');
+      customToggle.setAttribute('aria-busy', 'false');
       
       customToggle.addEventListener('click', (e) => {
         e.stopPropagation();
         const currentVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
         const newVisible = !currentVisible;
         localStorage.setItem('ymCustomLyricsVisible', newVisible ? 'true' : 'false');
-        
-        customToggle.setAttribute('aria-pressed', newVisible ? 'true' : 'false');
-        if (newVisible) {
-          customToggle.classList.add('active');
-        } else {
-          customToggle.classList.remove('active');
-        }
-        
         handleFullscreenPlayer();
       });
       
-      controlsRoot.appendChild(customToggle);
+      if (nativeFsBtn) {
+        nativeFsBtn.parentNode.insertBefore(customToggle, nativeFsBtn);
+      } else {
+        controlsRoot.appendChild(customToggle);
+      }
       if (typeof ymRegisterActiveElement === 'function') {
         ymRegisterActiveElement(customToggle);
       }
+    }
+
+    // Copy classes dynamically from native button, or fallback to another native button's classes in the controls container
+    let classList = ['ym-custom-sync-lyrics-btn'];
+    let baseButton = nativeFsBtn;
+    if (!baseButton && controlsRoot) {
+      baseButton = controlsRoot.querySelector('button[class*="FullscreenPlayerDesktopControls_"]');
+    }
+
+    if (baseButton) {
+      baseButton.classList.forEach(cls => {
+        const lower = cls.toLowerCase();
+        if (cls !== 'ym-custom-sync-lyrics-btn' && 
+            !lower.includes('disabled') && 
+            !lower.includes('hidden') &&
+            !lower.includes('playqueue') &&
+            !lower.includes('menu') &&
+            !lower.includes('like') &&
+            !lower.includes('synclyrics')) {
+          classList.push(cls);
+        }
+      });
+    }
+
+    // Add the specific syncLyrics class and ensure fallback if none found
+    if (classList.length <= 1) {
+      classList.push(
+        'cpeagBA1_PblpJn8Xgtv',
+        'iJVAJMgccD4vj4E4o068',
+        'zIMibMuH7wcqUoW7KH1B',
+        'IlG7b1K0AD7E7AMx6F5p',
+        'nHWc2sto1C6Gm0Dpw_l0',
+        'SGYcNjvjmMsXeEVGUV2Z',
+        'qU2apWBO1yyEK0lZ3lPO',
+        getSyncLyricsButtonClass()
+      );
     } else {
-      const isVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
-      customToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
-      if (isVisible) {
-        customToggle.classList.add('active');
-      } else {
-        customToggle.classList.remove('active');
-      }
+      classList.push(getSyncLyricsButtonClass());
+    }
+    customToggle.className = classList.join(' ');
+
+    customToggle.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+    if (isVisible) {
+      customToggle.classList.add('active');
+    } else {
+      customToggle.classList.remove('active');
+    }
+
+    customToggle.innerHTML = `
+      <span class="JjlbHZ4FaP9EAcR_1DxF">
+        <svg class="J9wTKytjOWG73QMoN5WP ${iconClass} o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
+          <use xlink:href="/icons/sprite.svg#syncLyrics_m"></use>
+        </svg>
+      </span>
+    `;
+
+    if (nativeFsBtn) {
+      nativeFsBtn.style.setProperty('display', 'none', 'important');
     }
   }
 
@@ -1260,22 +1300,7 @@ function handleFullscreenPlayer() {
     customLyricsContainer.addEventListener('mousedown', updateClickInteraction, {
       passive: true
     });
-    customLyricsContainer.addEventListener('click', (e) => {
-      // Don't close if clicking an interactive element (link, translation control, buttons, etc.)
-      if (e.target.closest('a') || e.target.closest('button') || e.target.closest('.ym-translation-control') || e.target.closest('.ym-genius-annotation-panel') || e.target.closest('.ym-genius-panel-exit-btn')) {
-        return;
-      }
-      
-      // Don't close if the user is currently selecting text
-      const selection = window.getSelection();
-      if (selection && selection.toString()) {
-        return;
-      }
 
-      localStorage.setItem('ymGeniusMode', 'false');
-      localStorage.setItem('ymCustomLyricsVisible', 'false');
-      handleFullscreenPlayer();
-    });
     additionalContent.appendChild(customLyricsContainer);
     renderFullscreenLyricsLines(customLyricsContainer);
   } else {
