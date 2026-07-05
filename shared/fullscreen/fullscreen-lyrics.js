@@ -1019,6 +1019,13 @@ function handleFullscreenPlayer() {
       e.stopPropagation();
       const currentGenius = localStorage.getItem('ymGeniusMode') === 'true';
       const newGenius = !currentGenius;
+
+      // Close play queue if it's open, since we want to see lyrics/annotations
+      const playQueueBtn = document.querySelector('[class*="FullscreenPlayerDesktopControls_playQueueButton"]');
+      if (playQueueBtn && playQueueBtn.getAttribute('aria-pressed') === 'true') {
+        playQueueBtn.click();
+      }
+
       localStorage.setItem('ymGeniusMode', newGenius ? 'true' : 'false');
       
       geniusToggle.setAttribute('aria-pressed', newGenius ? 'true' : 'false');

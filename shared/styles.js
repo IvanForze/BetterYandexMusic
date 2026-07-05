@@ -687,6 +687,18 @@ function injectStyles() {
       box-sizing: border-box;
       mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
       -webkit-mask-image: linear-gradient(to bottom, transparent 0%, white 15%, white 85%, transparent 100%);
+      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Hide custom lyrics and panels when Play Queue is active */
+    [class*="FullscreenPlayerDesktop_root"]:has([class*="FullscreenPlayerDesktopControls_playQueueButton"][aria-pressed="true"]) .ym-fullscreen-lyrics-container,
+    [class*="FullscreenPlayerDesktop_root"]:has([class*="FullscreenPlayerDesktopControls_playQueueButton"][aria-pressed="true"]) .ym-fullscreen-genius-content,
+    [class*="FullscreenPlayerDesktop_root"]:has([class*="FullscreenPlayerDesktopControls_playQueueButton"][aria-pressed="true"]) .ym-genius-annotation-panel,
+    [class*="FullscreenPlayerDesktop_root"]:has([class*="FullscreenPlayerDesktopControls_playQueueButton"][aria-pressed="true"]) .ym-translate-controls {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transform: translateX(-20px) !important;
     }
 
     .ym-fullscreen-lyric-original {
