@@ -19,7 +19,7 @@ window.logAllVolumes = function(contextMessage = "") {
     } catch(e) {}
 
     try {
-        const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+        const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio), video:not(#ym-sync-custom-audio)');
         if (nativeAudio) {
             nativeAudioVol = nativeAudio.volume;
         }
@@ -51,11 +51,25 @@ window.logAllVolumes = function(contextMessage = "") {
 
 // Helper to get native Yandex Music player volume (returns exponent volume which aligns with the UI slider)
 window.getNativeVolume = function() {
-    // 1. Try Sonata player exponent volume state (UI slider position)
+    // 1. Try Sonata player exponent volume state
     try {
         const activePlayer = window.getActivePlayer && window.getActivePlayer();
         if (activePlayer && activePlayer.playbackState?.playerState?.exponentVolume) {
             const vol = activePlayer.playbackState.playerState.exponentVolume.value;
+            if (typeof vol === 'number') return vol;
+        } else if (window.getSonataCore) {
+            const core = window.getSonataCore();
+            if (core?.playbackController?.volumeControl) {
+                const vol = core.playbackController.volumeControl.volume;
+                if (typeof vol === 'number') return vol;
+            } else if (core?.playbackController?.volume) {
+                const vol = core.playbackController.volume;
+                if (typeof vol === 'number') return vol;
+            }
+        }
+        
+        if (window.externalAPI && typeof window.externalAPI.getVolume === 'function') {
+            const vol = window.externalAPI.getVolume();
             if (typeof vol === 'number') return vol;
         }
     } catch (e) {
@@ -63,7 +77,7 @@ window.getNativeVolume = function() {
     }
 
     // 2. Try native audio element volume
-    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio), video:not(#ym-sync-custom-audio)');
     if (nativeAudio) {
         return nativeAudio.volume;
     }
@@ -104,13 +118,26 @@ window.setNativeVolume = function(vol) {
         const activePlayer = window.getActivePlayer && window.getActivePlayer();
         if (activePlayer && typeof activePlayer.setVolume === 'function') {
             activePlayer.setVolume(translatedVol);
+        } else if (window.getSonataCore) {
+            const core = window.getSonataCore();
+            if (core?.playbackController) {
+                if (typeof core.playbackController.setVolume === 'function') {
+                    core.playbackController.setVolume(translatedVol);
+                } else if (core.playbackController.volumeControl && typeof core.playbackController.volumeControl.setVolume === 'function') {
+                    core.playbackController.volumeControl.setVolume(translatedVol);
+                }
+            }
+        }
+        
+        if (window.externalAPI && typeof window.externalAPI.setVolume === 'function') {
+            window.externalAPI.setVolume(translatedVol);
         }
     } catch (e) {
         console.error("[VOLUME-DEBUG] setNativeVolume error:", e);
     }
 
     // 2. Set on native audio element
-    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio)');
+    const nativeAudio = document.querySelector('audio:not(#ym-sync-custom-audio), video:not(#ym-sync-custom-audio)');
     if (nativeAudio) {
         nativeAudio.volume = vol;
     }

@@ -60,9 +60,11 @@ setInterval(() => {
   if (container) {
     if (typeof injectSyncButton === 'function') injectSyncButton();
     if (typeof injectThemeButton === 'function') injectThemeButton();
+    if (typeof injectSleepTimerButton === 'function') injectSleepTimerButton();
     if (typeof syncButtonCollapsedState === 'function') {
       syncButtonCollapsedState('ym-sync-button');
       syncButtonCollapsedState('ym-theme-button');
+      syncButtonCollapsedState('ym-sleep-timer-button');
     }
   }
 

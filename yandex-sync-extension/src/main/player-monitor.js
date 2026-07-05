@@ -113,6 +113,7 @@ function getActivePlayer() {
   return activePlaybackWrapper.value || null;
 }
 
+window.getSonataCore = getSonataCore;
 window.getActivePlayer = getActivePlayer;
 
 function getTrackMetadata(activePlayer) {

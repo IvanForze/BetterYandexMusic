@@ -212,5 +212,65 @@ window.addEventListener("message", (event) => {
       targetTrackIdToSync = null;
       targetServerStateToSync = null;
     }
+  } else if (event.data.action === "SLEEP_TIMER_ACTION") {
+    if (event.data.command === "FADE_VOLUME") {
+      if (typeof window.sleepTimerOriginalVolume === 'undefined') {
+        window.sleepTimerOriginalVolume = typeof window.getNativeVolume === 'function' ? window.getNativeVolume() : 0.5;
+      }
+      
+      const newVol = window.sleepTimerOriginalVolume * event.data.progress;
+      if (typeof window.setNativeVolume === 'function') {
+        window.setNativeVolume(newVol);
+      }
+      if (window.CustomAudioController && typeof window.CustomAudioController.setVolume === 'function') {
+        window.CustomAudioController.setVolume(newVol);
+      }
+    } else if (event.data.command === "RESTORE_VOLUME") {
+      if (typeof window.sleepTimerOriginalVolume !== 'undefined') {
+        if (typeof window.setNativeVolume === 'function') {
+          window.setNativeVolume(window.sleepTimerOriginalVolume);
+        }
+        if (window.CustomAudioController && typeof window.CustomAudioController.setVolume === 'function') {
+          window.CustomAudioController.setVolume(window.sleepTimerOriginalVolume);
+        }
+        window.sleepTimerOriginalVolume = undefined;
+      }
+    } else if (event.data.command === "SET_VOLUME") {
+      if (typeof window.setNativeVolume === 'function') {
+        window.setNativeVolume(event.data.volume);
+      }
+      if (window.CustomAudioController && typeof window.CustomAudioController.setVolume === 'function') {
+        window.CustomAudioController.setVolume(event.data.volume);
+      }
+    } else if (event.data.command === "PAUSE") {
+      const activePlayer = window.getActivePlayer ? window.getActivePlayer() : null;
+      let paused = false;
+      
+      if (activePlayer && typeof activePlayer.pause === 'function') {
+        activePlayer.pause();
+        paused = true;
+      } else if (window.getSonataCore) {
+        const core = window.getSonataCore();
+        if (core?.playbackController && typeof core.playbackController.pause === 'function') {
+          core.playbackController.pause();
+          paused = true;
+        }
+      }
+      
+      if (!paused && window.externalAPI && typeof window.externalAPI.pause === 'function') {
+        window.externalAPI.pause();
+        paused = true;
+      } 
+      
+      if (!paused) {
+        const pauseBtn = document.querySelector('[class*="BaseSonataControlsDesktop_playButton"], [aria-label="Пауза"], [aria-label="Pause"]');
+        if (pauseBtn) {
+          pauseBtn.click();
+        }
+      }
+      if (window.CustomAudioController && typeof window.CustomAudioController.stop === 'function') {
+        window.CustomAudioController.stop();
+      }
+    }
   }
 });
