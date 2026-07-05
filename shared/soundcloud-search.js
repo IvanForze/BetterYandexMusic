@@ -241,9 +241,9 @@ const SoundCloudSearchInjector = {
                     
                     <!-- Кнопка импорта в BetterYandexMusic -->
                     <button class="ym-sync-sc-add-btn" data-add-index="${index}" style="
-                        width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,0.06);
+                        width:32px; height:32px; border-radius:50%; background:var(--ym-sync-btn-bg, rgba(128, 128, 128, 0.15));
                         display:flex; align-items:center; justify-content:center;
-                        flex-shrink:0; border:none; cursor:pointer; color:#fff;
+                        flex-shrink:0; border:none; cursor:pointer; color:inherit;
                         transition:background 0.2s, transform 0.2s; margin-left:4px;
                         padding:0; outline:none; z-index:5;
                     }" title="Добавить в плейлист BetterYandexMusic">
@@ -357,13 +357,13 @@ const SoundCloudSearchInjector = {
 
             btn.addEventListener('mouseenter', (e) => {
                 e.stopPropagation();
-                btn.style.background = 'rgba(255,255,255,0.16)';
+                btn.style.background = 'var(--ym-sync-btn-bg-hover, rgba(128, 128, 128, 0.25))';
                 btn.style.transform = 'scale(1.1)';
             });
 
             btn.addEventListener('mouseleave', (e) => {
                 e.stopPropagation();
-                btn.style.background = 'rgba(255,255,255,0.06)';
+                btn.style.background = 'var(--ym-sync-btn-bg, rgba(128, 128, 128, 0.15))';
                 btn.style.transform = 'scale(1)';
             });
         });
@@ -562,7 +562,7 @@ const SoundCloudSearchInjector = {
                 if (btn && btn.disabled === false) {
                     btn.innerHTML = originalHtml;
                     btn.title = 'Добавить в плейлист BetterYandexMusic';
-                    btn.style.background = 'rgba(255,255,255,0.06)';
+                    btn.style.background = 'var(--ym-sync-btn-bg, rgba(128, 128, 128, 0.15))';
                 }
             }, 5000);
         }

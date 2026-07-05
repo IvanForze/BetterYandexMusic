@@ -989,9 +989,9 @@ function injectStyles() {
     .ym-rzt-rating-circle::after {
       content: attr(data-tooltip);
       position: absolute;
-      bottom: 100%;
+      top: 100%;
       left: 50%;
-      transform: translateX(-50%) translateY(-6px);
+      transform: translateX(-50%) translateY(6px);
       background: rgba(28, 28, 32, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.15);
       color: #ffffff;
@@ -1010,7 +1010,7 @@ function injectStyles() {
 
     .ym-rzt-rating-circle:hover::after {
       opacity: 1;
-      transform: translateX(-50%) translateY(-2px);
+      transform: translateX(-50%) translateY(2px);
     }
 
     .ym-rzt-rating-circle.rzt-blue-solid {
