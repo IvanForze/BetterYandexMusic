@@ -5930,14 +5930,7 @@ function handleFullscreenPlayer() {
     isCustomLyricsVisible = false;
   }
 
-  console.log('[DEBUG-LYRICS] final visibility check:', {
-    isPressed,
-    hasActiveIcon,
-    isNativelyWithLyrics,
-    isCustomLyricsVisible,
-    hasNativeLyrics,
-    trackHasLyrics
-  });
+
   
   if (!isCustomLyricsVisible) {
     contentRoot.classList.remove('ym-force-split');
