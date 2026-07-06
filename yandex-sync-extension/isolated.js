@@ -3877,6 +3877,7 @@ function injectSleepTimerButton() {
   textWrapper.className = 'nxMXCBiVfgH4oxds3f2y';
   
   const textSpan = document.createElement('span');
+  textSpan.id = 'ym-sleep-timer-nav-text';
   textSpan.className = '_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA _3_Mxw7Si7j2g4kWjlpR';
   textSpan.style.webkitLineClamp = '1';
   textSpan.textContent = 'Сон';
@@ -4095,7 +4096,7 @@ function stopSleepTimer() {
 function updateSleepTimerUI() {
   const statusLabel = document.getElementById('ym-sleep-timer-status');
   const cancelBtn = document.getElementById('ym-sleep-timer-cancel');
-  if (!statusLabel || !cancelBtn) return;
+  const navText = document.getElementById('ym-sleep-timer-nav-text');
 
   const endTimeStr = localStorage.getItem('ymSleepTimerEnd');
   if (endTimeStr) {
@@ -4103,14 +4104,21 @@ function updateSleepTimerUI() {
     if (remaining > 0) {
       const minutes = Math.floor(remaining / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
-      statusLabel.textContent = `Осталось: ${minutes}м ${seconds}с`;
-      cancelBtn.style.display = 'block';
+      
+      if (statusLabel) statusLabel.textContent = `Осталось: ${minutes}м ${seconds}с`;
+      if (cancelBtn) cancelBtn.style.display = 'block';
+      if (navText) {
+        const formattedMins = minutes.toString().padStart(2, '0');
+        const formattedSecs = seconds.toString().padStart(2, '0');
+        navText.textContent = `${formattedMins}:${formattedSecs}`;
+      }
       return;
     }
   }
   
-  statusLabel.textContent = 'Таймер выключен';
-  cancelBtn.style.display = 'none';
+  if (statusLabel) statusLabel.textContent = 'Таймер выключен';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (navText) navText.textContent = 'Сон';
 }
 
 function initSleepTimerLoop() {
@@ -4156,11 +4164,28 @@ function initSleepTimerLoop() {
       stopSleepTimer();
       
       // Ставим на паузу локально (для Electron)
-      if (window.externalAPI && typeof window.externalAPI.pause === 'function') {
+      let paused = false;
+      const activePlayer = window.getActivePlayer ? window.getActivePlayer() : null;
+      
+      if (activePlayer && typeof activePlayer.pause === 'function') {
+        activePlayer.pause();
+        paused = true;
+      } else if (window.getSonataCore) {
+        const core = window.getSonataCore();
+        if (core?.playbackController && typeof core.playbackController.pause === 'function') {
+          core.playbackController.pause();
+          paused = true;
+        }
+      }
+      
+      if (!paused && window.externalAPI && typeof window.externalAPI.pause === 'function') {
         window.externalAPI.pause();
-      } else {
-        const pauseBtn = document.querySelector('[class*="BaseSonataControlsDesktop_playButton"]');
-        if (pauseBtn && pauseBtn.getAttribute('aria-label') === 'Пауза') {
+        paused = true;
+      }
+      
+      if (!paused) {
+        const pauseBtn = document.querySelector('[class*="BaseSonataControlsDesktop_playButton"], [aria-label="Пауза"], [aria-label="Pause"]');
+        if (pauseBtn && (pauseBtn.getAttribute('aria-label') === 'Пауза' || pauseBtn.getAttribute('aria-label') === 'Pause' || pauseBtn.innerHTML.includes('pause'))) {
           pauseBtn.click();
         }
       }
@@ -4899,6 +4924,9 @@ function handleLocalStateUpdate(state) {
     if (container) container.innerHTML = `<div class="ym-lyrics-empty">Включите трек для просмотра текста</div>`;
     return;
   }
+
+  const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+
   if (trackId !== currentLyricsTrackId) {
     currentLyricsTrackId = trackId;
     currentLyricsLines = null;
@@ -4906,8 +4934,17 @@ function handleLocalStateUpdate(state) {
     isSyncedLyrics = false;
     lastLyricsActiveIndex = -1;
     window.ymHasFailedLyricsSearch = false;
+
+    if (customLyricsMode === 'disabled') {
+      return;
+    }
+
     if (metadata && metadata.title) {
-      fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      // Если mode === 'always', всегда ищем текст
+      // Если 'fallback', ищем только если нет текста от Яндекса
+      if (customLyricsMode === 'always' || !metadata.hasLyrics) {
+        fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      }
     } else {
       const container = document.getElementById('ym-lyrics-container');
       const infoEl = document.getElementById('ym-lyrics-track-info');
@@ -4915,8 +4952,10 @@ function handleLocalStateUpdate(state) {
       if (container) container.innerHTML = `<div class="ym-lyrics-empty">Загрузка информации...</div>`;
     }
   } else {
-    if (metadata && metadata.title && !currentLyricsLines && !currentLyricsPlain && (!isLyricsLoading || window.ymTrackIdLoadingLyrics !== currentLyricsTrackId) && !window.ymHasFailedLyricsSearch) {
-      fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+    if (customLyricsMode !== 'disabled' && metadata && metadata.title && !currentLyricsLines && !currentLyricsPlain && (!isLyricsLoading || window.ymTrackIdLoadingLyrics !== currentLyricsTrackId) && !window.ymHasFailedLyricsSearch) {
+      if (customLyricsMode === 'always' || !metadata.hasLyrics) {
+        fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      }
     }
   }
   if (position && !isPause) {
@@ -6202,16 +6241,10 @@ function handleFullscreenPlayer() {
     }
   }
 
-  // If track has native lyrics and we are NOT forcing Genius mode, fallback to Yandex's native interface
-  if ((hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) && !isGeniusMode) {
-    if (!window.hadLoggedFsDecision) {
-      console.log('[SYNC-DEBUG] handleFullscreenPlayer: Decided to return early (native lyrics mode). Reason:', {
-        hasNativeSyncedLyrics,
-        hasNativeLyrics,
-        trackHasLyricsTrue: (trackHasLyrics === true)
-      });
-      window.hadLoggedFsDecision = true;
-    }
+  const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+
+  // Функция очистки кастомного интерфейса (когда выключаем наш UI)
+  const cleanupCustomLyricsUI = () => {
     const customToggle = controlsRoot ? controlsRoot.querySelector('.ym-custom-sync-lyrics-btn') : null;
     if (customToggle) customToggle.remove();
 
@@ -6227,6 +6260,25 @@ function handleFullscreenPlayer() {
     if (transControl) transControl.remove();
     ensureTranslateControls(fullscreenRoot, null);
     handleNativeLyricsTranslation(contentRoot);
+  };
+
+  // Если кастомные тексты полностью выключены — очищаем всё и выходим
+  if (customLyricsMode === 'disabled' && !isGeniusMode) {
+    cleanupCustomLyricsUI();
+    return;
+  }
+
+  // If track has native lyrics and we are NOT forcing Genius mode AND mode is NOT 'always', fallback to Yandex's native interface
+  if ((hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) && !isGeniusMode && customLyricsMode !== 'always') {
+    if (!window.hadLoggedFsDecision) {
+      console.log('[SYNC-DEBUG] handleFullscreenPlayer: Decided to return early (native lyrics mode). Reason:', {
+        hasNativeSyncedLyrics,
+        hasNativeLyrics,
+        trackHasLyricsTrue: (trackHasLyrics === true)
+      });
+      window.hadLoggedFsDecision = true;
+    }
+    cleanupCustomLyricsUI();
     return;
   }
 
@@ -6259,6 +6311,19 @@ function handleFullscreenPlayer() {
         const currentVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
         const newVisible = !currentVisible;
         localStorage.setItem('ymCustomLyricsVisible', newVisible ? 'true' : 'false');
+        
+        // Синхронизируем состояние нативной кнопки, если мы в режиме "always",
+        // чтобы Яндекс корректно отработал свои анимации постера и split-режим.
+        const mode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+        if (mode === 'always' && nativeFsBtn) {
+          const isNativePressed = nativeFsBtn.getAttribute('aria-pressed') === 'true' || nativeFsBtn.classList.contains('active');
+          if (isNativePressed && !newVisible) {
+             nativeFsBtn.click(); // Выключаем нативные тексты
+          } else if (!isNativePressed && newVisible) {
+             nativeFsBtn.click(); // Включаем нативные тексты
+          }
+        }
+        
         handleFullscreenPlayer();
       });
       
@@ -6340,7 +6405,8 @@ function handleFullscreenPlayer() {
   let isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false' || isGeniusMode;
   
   // If track has native lyrics and they are currently closed in native UI, force custom lyrics to be hidden
-  if ((hasNativeLyrics || trackHasLyrics === true) && !isNativelyWithLyrics && !isGeniusMode) {
+  // Only apply this logic if we are not forcing always mode
+  if ((hasNativeLyrics || trackHasLyrics === true) && !isNativelyWithLyrics && !isGeniusMode && customLyricsMode !== 'always') {
     isCustomLyricsVisible = false;
   }
 
@@ -6384,6 +6450,14 @@ function handleFullscreenPlayer() {
   fullscreenContent.classList.add('ym-force-split');
   additionalContent.classList.add('ym-force-split');
   if (infoContainer) infoContainer.classList.add('ym-force-split');
+
+  // Hide native lyrics to prevent overlap if we are in "always" mode
+  if (customLyricsMode === 'always') {
+    const nativeSyncLyrics = contentRoot.querySelector('[class*="SyncLyrics_root"]');
+    if (nativeSyncLyrics) {
+      nativeSyncLyrics.style.setProperty('display', 'none', 'important');
+    }
+  }
 
   // Inject Genius Annotations Panel
   let annotationPanel = fullscreenContent.querySelector('.ym-genius-annotation-panel');

@@ -615,23 +615,28 @@ function checkAndInjectSettings() {
     return;
   }
   
-  // Ищем элемент "Офлайн-режим", "О приложении", "Внешний вид", "Язык" чтобы найти список настроек
-  const divs = Array.from(document.querySelectorAll('div, span, p, h2, h3'));
-  const targetTextElement = divs.find(el => {
-    if (el.children.length > 0) return false; // Ищем самый глубокий текстовый узел
-    const text = el.textContent || '';
-    return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении') || text.includes('Внешний вид') || text.includes('Язык') || text.includes('Качество звука');
-  });
+  // Ищем список настроек по data-test-id (надежный способ)
+  let listContainer = document.querySelector('[data-test-id="SETTINGS_LIST"]');
+  
+  if (!listContainer) {
+    // Резервный способ: ищем по тексту элементов
+    const divs = Array.from(document.querySelectorAll('div, span, p, h2, h3'));
+    const targetTextElement = divs.find(el => {
+      if (el.children.length > 0) return false;
+      const text = el.textContent || '';
+      return text.includes('Офлайн-режим') || text.includes('Плавные переходы') || text.includes('О приложении') || text.includes('Внешний вид') || text.includes('Язык') || text.includes('Качество звука');
+    });
 
-  if (!targetTextElement) return;
+    if (!targetTextElement) return;
 
-  // Ищем родительский элемент ряда настроек (Settings Item), который является непосредственным потомком списка
-  let itemNode = targetTextElement;
-  while (itemNode && itemNode.parentElement && itemNode.parentElement.children.length < 3) {
-    itemNode = itemNode.parentElement;
+    let itemNode = targetTextElement;
+    while (itemNode && itemNode.parentElement && itemNode.parentElement.tagName !== 'UL' && itemNode.parentElement.children.length < 3) {
+      itemNode = itemNode.parentElement;
+    }
+
+    listContainer = itemNode ? itemNode.parentElement : null;
   }
 
-  const listContainer = itemNode ? itemNode.parentElement : null;
   if (!listContainer) return;
 
   // Создаем блок настроек скроблинга
@@ -653,9 +658,35 @@ function checkAndInjectSettings() {
   const listenbrainzToken = localStorage.getItem('ymScrobblerListenbrainzToken') || '';
   const listenbrainzUsername = localStorage.getItem('ymScrobblerListenbrainzUsername') || '';
 
+  // Читаем настройку кастомных текстов
+  const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+
   block.innerHTML = `
-    <!-- Заголовок секции, оформленный как нативный -->
-    <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
+    <!-- Заголовок секции BetterYandexMusic -->
+    <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">BetterYandexMusic</div>
+    
+    <!-- Секция Текст Песен -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Текст песен (LRCLib / Genius)</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Замещение официальных текстов песен альтернативными источниками
+        </div>
+        <div style="max-width: 420px; margin-top: 8px;">
+          <select id="ym-custom-lyrics-mode" class="ym-select">
+            <option value="disabled" ${customLyricsMode === 'disabled' ? 'selected' : ''}>Выключить</option>
+            <option value="fallback" ${customLyricsMode === 'fallback' ? 'selected' : ''}>Только если нет текста от Яндекса</option>
+            <option value="always" ${customLyricsMode === 'always' ? 'selected' : ''}>Всегда заменять текст на свой</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Тонкий разделитель между нашими секциями -->
+    <div class="ym-settings-divider" style="height: 1px; margin-top: 14px; margin-bottom: 14px;"></div>
+
+    <!-- Заголовок секции Скробблинг -->
+    <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 8px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
     
     <!-- Секция Last.fm -->
     <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
@@ -843,6 +874,36 @@ function checkAndInjectSettings() {
         background-color: #000000;
       }
 
+      /* Селект */
+      .ym-select {
+        background-color: var(--yp-color-bg-secondary, rgba(255, 255, 255, 0.06)) !important;
+        border: 1px solid var(--yp-color-border-primary, rgba(255, 255, 255, 0.12)) !important;
+        color: var(--yp-color-text-primary, var(--color-text-primary, #ffffff)) !important;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+        font-family: inherit;
+        box-sizing: border-box;
+        width: 100%;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 16px;
+      }
+      .ym-select:focus {
+        border-color: var(--yp-color-brand, #ffdb4d) !important;
+        background-color: var(--yp-color-bg-tertiary, rgba(255, 255, 255, 0.09)) !important;
+      }
+      .ym-select option {
+        background: #202020;
+        color: #fff;
+      }
+
       /* Светлая тема Яндекс Музыки (класс .ym-light-theme, как в themes.js) */
       .ym-light-theme .ym-settings-section-title {
         color: #000000 !important;
@@ -885,6 +946,20 @@ function checkAndInjectSettings() {
       .ym-light-theme .ym-input::placeholder {
         color: rgba(0, 0, 0, 0.4) !important;
       }
+      .ym-light-theme .ym-select {
+        background-color: rgba(0, 0, 0, 0.04) !important;
+        border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        color: #000000 !important;
+        background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBvbHlsaW5lIHBvaW50cz0iNiA5IDEyIDE1IDE4IDkiPjwvcG9seWxpbmU+PC9zdmc+");
+      }
+      .ym-light-theme .ym-select:focus {
+        border-color: rgba(0, 0, 0, 0.4) !important;
+        background-color: rgba(0, 0, 0, 0.07) !important;
+      }
+      .ym-light-theme .ym-select option {
+        background: #ffffff;
+        color: #000000;
+      }
       .ym-light-theme .ym-slider {
         background-color: rgba(0, 0, 0, 0.15) !important;
       }
@@ -901,7 +976,15 @@ function checkAndInjectSettings() {
     listContainer.appendChild(block);
   }
 
-  // Настройка слушателей Last.fm
+  // === Обработчики BetterYandexMusic ===
+  const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
+  if (lyricsModeSelect) {
+    lyricsModeSelect.addEventListener('change', (e) => {
+      localStorage.setItem('ymCustomLyricsMode', e.target.value);
+    });
+  }
+
+  // === Обработчики Last.fm ===
   const lastfmToggle = document.getElementById('ym-lastfm-toggle');
 
   if (lastfmToggle) {

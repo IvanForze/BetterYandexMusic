@@ -37,6 +37,7 @@ function injectSleepTimerButton() {
   textWrapper.className = 'nxMXCBiVfgH4oxds3f2y';
   
   const textSpan = document.createElement('span');
+  textSpan.id = 'ym-sleep-timer-nav-text';
   textSpan.className = '_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA _3_Mxw7Si7j2g4kWjlpR';
   textSpan.style.webkitLineClamp = '1';
   textSpan.textContent = 'Сон';
@@ -255,7 +256,7 @@ function stopSleepTimer() {
 function updateSleepTimerUI() {
   const statusLabel = document.getElementById('ym-sleep-timer-status');
   const cancelBtn = document.getElementById('ym-sleep-timer-cancel');
-  if (!statusLabel || !cancelBtn) return;
+  const navText = document.getElementById('ym-sleep-timer-nav-text');
 
   const endTimeStr = localStorage.getItem('ymSleepTimerEnd');
   if (endTimeStr) {
@@ -263,14 +264,21 @@ function updateSleepTimerUI() {
     if (remaining > 0) {
       const minutes = Math.floor(remaining / 60000);
       const seconds = Math.floor((remaining % 60000) / 1000);
-      statusLabel.textContent = `Осталось: ${minutes}м ${seconds}с`;
-      cancelBtn.style.display = 'block';
+      
+      if (statusLabel) statusLabel.textContent = `Осталось: ${minutes}м ${seconds}с`;
+      if (cancelBtn) cancelBtn.style.display = 'block';
+      if (navText) {
+        const formattedMins = minutes.toString().padStart(2, '0');
+        const formattedSecs = seconds.toString().padStart(2, '0');
+        navText.textContent = `${formattedMins}:${formattedSecs}`;
+      }
       return;
     }
   }
   
-  statusLabel.textContent = 'Таймер выключен';
-  cancelBtn.style.display = 'none';
+  if (statusLabel) statusLabel.textContent = 'Таймер выключен';
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (navText) navText.textContent = 'Сон';
 }
 
 function initSleepTimerLoop() {
@@ -316,11 +324,28 @@ function initSleepTimerLoop() {
       stopSleepTimer();
       
       // Ставим на паузу локально (для Electron)
-      if (window.externalAPI && typeof window.externalAPI.pause === 'function') {
+      let paused = false;
+      const activePlayer = window.getActivePlayer ? window.getActivePlayer() : null;
+      
+      if (activePlayer && typeof activePlayer.pause === 'function') {
+        activePlayer.pause();
+        paused = true;
+      } else if (window.getSonataCore) {
+        const core = window.getSonataCore();
+        if (core?.playbackController && typeof core.playbackController.pause === 'function') {
+          core.playbackController.pause();
+          paused = true;
+        }
+      }
+      
+      if (!paused && window.externalAPI && typeof window.externalAPI.pause === 'function') {
         window.externalAPI.pause();
-      } else {
-        const pauseBtn = document.querySelector('[class*="BaseSonataControlsDesktop_playButton"]');
-        if (pauseBtn && pauseBtn.getAttribute('aria-label') === 'Пауза') {
+        paused = true;
+      }
+      
+      if (!paused) {
+        const pauseBtn = document.querySelector('[class*="BaseSonataControlsDesktop_playButton"], [aria-label="Пауза"], [aria-label="Pause"]');
+        if (pauseBtn && (pauseBtn.getAttribute('aria-label') === 'Пауза' || pauseBtn.getAttribute('aria-label') === 'Pause' || pauseBtn.innerHTML.includes('pause'))) {
           pauseBtn.click();
         }
       }

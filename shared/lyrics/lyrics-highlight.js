@@ -98,6 +98,9 @@ function handleLocalStateUpdate(state) {
     if (container) container.innerHTML = `<div class="ym-lyrics-empty">Включите трек для просмотра текста</div>`;
     return;
   }
+
+  const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+
   if (trackId !== currentLyricsTrackId) {
     currentLyricsTrackId = trackId;
     currentLyricsLines = null;
@@ -105,8 +108,17 @@ function handleLocalStateUpdate(state) {
     isSyncedLyrics = false;
     lastLyricsActiveIndex = -1;
     window.ymHasFailedLyricsSearch = false;
+
+    if (customLyricsMode === 'disabled') {
+      return;
+    }
+
     if (metadata && metadata.title) {
-      fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      // Если mode === 'always', всегда ищем текст
+      // Если 'fallback', ищем только если нет текста от Яндекса
+      if (customLyricsMode === 'always' || !metadata.hasLyrics) {
+        fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      }
     } else {
       const container = document.getElementById('ym-lyrics-container');
       const infoEl = document.getElementById('ym-lyrics-track-info');
@@ -114,8 +126,10 @@ function handleLocalStateUpdate(state) {
       if (container) container.innerHTML = `<div class="ym-lyrics-empty">Загрузка информации...</div>`;
     }
   } else {
-    if (metadata && metadata.title && !currentLyricsLines && !currentLyricsPlain && (!isLyricsLoading || window.ymTrackIdLoadingLyrics !== currentLyricsTrackId) && !window.ymHasFailedLyricsSearch) {
-      fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+    if (customLyricsMode !== 'disabled' && metadata && metadata.title && !currentLyricsLines && !currentLyricsPlain && (!isLyricsLoading || window.ymTrackIdLoadingLyrics !== currentLyricsTrackId) && !window.ymHasFailedLyricsSearch) {
+      if (customLyricsMode === 'always' || !metadata.hasLyrics) {
+        fetchLyrics(metadata.title, metadata.artist, metadata.durationMs);
+      }
     }
   }
   if (position && !isPause) {

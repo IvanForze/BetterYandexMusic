@@ -1088,16 +1088,10 @@ function handleFullscreenPlayer() {
     }
   }
 
-  // If track has native lyrics and we are NOT forcing Genius mode, fallback to Yandex's native interface
-  if ((hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) && !isGeniusMode) {
-    if (!window.hadLoggedFsDecision) {
-      console.log('[SYNC-DEBUG] handleFullscreenPlayer: Decided to return early (native lyrics mode). Reason:', {
-        hasNativeSyncedLyrics,
-        hasNativeLyrics,
-        trackHasLyricsTrue: (trackHasLyrics === true)
-      });
-      window.hadLoggedFsDecision = true;
-    }
+  const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+
+  // Функция очистки кастомного интерфейса (когда выключаем наш UI)
+  const cleanupCustomLyricsUI = () => {
     const customToggle = controlsRoot ? controlsRoot.querySelector('.ym-custom-sync-lyrics-btn') : null;
     if (customToggle) customToggle.remove();
 
@@ -1113,6 +1107,25 @@ function handleFullscreenPlayer() {
     if (transControl) transControl.remove();
     ensureTranslateControls(fullscreenRoot, null);
     handleNativeLyricsTranslation(contentRoot);
+  };
+
+  // Если кастомные тексты полностью выключены — очищаем всё и выходим
+  if (customLyricsMode === 'disabled' && !isGeniusMode) {
+    cleanupCustomLyricsUI();
+    return;
+  }
+
+  // If track has native lyrics and we are NOT forcing Genius mode AND mode is NOT 'always', fallback to Yandex's native interface
+  if ((hasNativeSyncedLyrics || hasNativeLyrics || trackHasLyrics === true) && !isGeniusMode && customLyricsMode !== 'always') {
+    if (!window.hadLoggedFsDecision) {
+      console.log('[SYNC-DEBUG] handleFullscreenPlayer: Decided to return early (native lyrics mode). Reason:', {
+        hasNativeSyncedLyrics,
+        hasNativeLyrics,
+        trackHasLyricsTrue: (trackHasLyrics === true)
+      });
+      window.hadLoggedFsDecision = true;
+    }
+    cleanupCustomLyricsUI();
     return;
   }
 
@@ -1145,6 +1158,19 @@ function handleFullscreenPlayer() {
         const currentVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false';
         const newVisible = !currentVisible;
         localStorage.setItem('ymCustomLyricsVisible', newVisible ? 'true' : 'false');
+        
+        // Синхронизируем состояние нативной кнопки, если мы в режиме "always",
+        // чтобы Яндекс корректно отработал свои анимации постера и split-режим.
+        const mode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+        if (mode === 'always' && nativeFsBtn) {
+          const isNativePressed = nativeFsBtn.getAttribute('aria-pressed') === 'true' || nativeFsBtn.classList.contains('active');
+          if (isNativePressed && !newVisible) {
+             nativeFsBtn.click(); // Выключаем нативные тексты
+          } else if (!isNativePressed && newVisible) {
+             nativeFsBtn.click(); // Включаем нативные тексты
+          }
+        }
+        
         handleFullscreenPlayer();
       });
       
@@ -1226,7 +1252,8 @@ function handleFullscreenPlayer() {
   let isCustomLyricsVisible = localStorage.getItem('ymCustomLyricsVisible') !== 'false' || isGeniusMode;
   
   // If track has native lyrics and they are currently closed in native UI, force custom lyrics to be hidden
-  if ((hasNativeLyrics || trackHasLyrics === true) && !isNativelyWithLyrics && !isGeniusMode) {
+  // Only apply this logic if we are not forcing always mode
+  if ((hasNativeLyrics || trackHasLyrics === true) && !isNativelyWithLyrics && !isGeniusMode && customLyricsMode !== 'always') {
     isCustomLyricsVisible = false;
   }
 
@@ -1270,6 +1297,14 @@ function handleFullscreenPlayer() {
   fullscreenContent.classList.add('ym-force-split');
   additionalContent.classList.add('ym-force-split');
   if (infoContainer) infoContainer.classList.add('ym-force-split');
+
+  // Hide native lyrics to prevent overlap if we are in "always" mode
+  if (customLyricsMode === 'always') {
+    const nativeSyncLyrics = contentRoot.querySelector('[class*="SyncLyrics_root"]');
+    if (nativeSyncLyrics) {
+      nativeSyncLyrics.style.setProperty('display', 'none', 'important');
+    }
+  }
 
   // Inject Genius Annotations Panel
   let annotationPanel = fullscreenContent.querySelector('.ym-genius-annotation-panel');
