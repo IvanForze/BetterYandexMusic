@@ -3674,6 +3674,134 @@ function injectStyles() {
     .ym-hidden {
       display: none !important;
     }
+
+    /* ==========================================
+       WRAPPED UI (Локальная статистика)
+       ========================================== */
+    .ym-wrapped-profile-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: calc(100% - 32px);
+      margin: 8px 16px 16px 16px;
+      padding: 10px 16px;
+      background: rgba(255, 219, 77, 0.1);
+      color: #ffdb4d;
+      border: 1px solid rgba(255, 219, 77, 0.2);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: "YS Text", "Yandex Sans Text", sans-serif;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-profile-btn:hover {
+      background: rgba(255, 219, 77, 0.2);
+      transform: scale(0.98);
+    }
+    
+    #ym-wrapped-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 999999;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    
+    .ym-wrapped-overlay-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .ym-wrapped-overlay-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: all;
+    }
+
+    .ym-wrapped-content {
+      position: relative;
+      width: 90%;
+      max-width: 900px;
+      height: 85vh;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+    
+    .ym-wrapped-overlay-visible .ym-wrapped-content {
+      transform: translateY(0) scale(1);
+    }
+
+    .ym-wrapped-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .ym-wrapped-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1) rotate(90deg);
+    }
+    
+    .ym-wrapped-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .ym-wrapped-header h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #ffdb4d, #ff8c00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+    
+    .ym-wrapped-header p {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .ym-wrapped-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -6421,6 +6549,114 @@ function checkAndInjectSettings() {
 
 // Регулярно сканируем DOM на предмет нахождения на странице настроек
 setInterval(checkAndInjectSettings, 1000);
+
+
+// --- Component: shared/wrapped/wrapped-ui.js ---
+// ==========================================
+// WRAPPED UI INJECTOR (Локальная статистика)
+// ==========================================
+
+let wrappedOverlay = null;
+
+function createWrappedOverlay() {
+  if (wrappedOverlay) return wrappedOverlay;
+
+  wrappedOverlay = document.createElement('div');
+  wrappedOverlay.id = 'ym-wrapped-overlay';
+  wrappedOverlay.className = 'ym-wrapped-overlay-hidden';
+
+  wrappedOverlay.innerHTML = `
+    <div class="ym-wrapped-content">
+      <button class="ym-wrapped-close" aria-label="Закрыть">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <div class="ym-wrapped-header">
+        <h1>Твоя Статистика</h1>
+        <p>Локальный Wrapped (Бета)</p>
+      </div>
+      <div class="ym-wrapped-body">
+        <div style="text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px;">
+          Здесь скоро появятся красивые графики 🚀
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(wrappedOverlay);
+
+  // Закрытие по клику на крестик
+  wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', () => {
+    closeWrapped();
+  });
+
+  // Закрытие по клику вне контента
+  wrappedOverlay.addEventListener('click', (e) => {
+    if (e.target === wrappedOverlay) {
+      closeWrapped();
+    }
+  });
+
+  return wrappedOverlay;
+}
+
+function openWrapped() {
+  const overlay = createWrappedOverlay();
+  overlay.classList.remove('ym-wrapped-overlay-hidden');
+  overlay.classList.add('ym-wrapped-overlay-visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWrapped() {
+  if (!wrappedOverlay) return;
+  wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
+  wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
+  document.body.style.overflow = '';
+}
+
+function initWrappedInjector() {
+  const observer = new MutationObserver((mutations) => {
+    const dialog = document.querySelector('.UserWidget-Dialog_visible');
+    if (dialog) {
+      const content = dialog.querySelector('.UserWidget-Content');
+      if (content && !content.querySelector('#ym-wrapped-btn')) {
+        // Добавляем стили для принудительного расширения модалки Яндекса
+        dialog.style.height = 'auto';
+        dialog.style.maxHeight = '90vh';
+        content.style.display = 'flex';
+        content.style.flexDirection = 'column';
+        content.style.height = 'auto';
+
+        const btn = document.createElement('button');
+        btn.id = 'ym-wrapped-btn';
+        btn.className = 'ym-wrapped-profile-btn';
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right: 8px;">
+            <path d="M18 20V10M12 20V4M6 20v-6"/>
+          </svg>
+          Моя Статистика (Wrapped)
+        `;
+        
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // Закрываем меню профиля эмулируя клик вне него
+          document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+          openWrapped();
+        });
+
+        content.appendChild(btn);
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+if (typeof window !== 'undefined') {
+  initWrappedInjector();
+}
 
 
 // --- Component: shared/quality-indicator.js ---

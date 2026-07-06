@@ -1355,6 +1355,134 @@ function injectStyles() {
     .ym-hidden {
       display: none !important;
     }
+
+    /* ==========================================
+       WRAPPED UI (Локальная статистика)
+       ========================================== */
+    .ym-wrapped-profile-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: calc(100% - 32px);
+      margin: 8px 16px 16px 16px;
+      padding: 10px 16px;
+      background: rgba(255, 219, 77, 0.1);
+      color: #ffdb4d;
+      border: 1px solid rgba(255, 219, 77, 0.2);
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: "YS Text", "Yandex Sans Text", sans-serif;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-profile-btn:hover {
+      background: rgba(255, 219, 77, 0.2);
+      transform: scale(0.98);
+    }
+    
+    #ym-wrapped-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 999999;
+      background: rgba(18, 18, 20, 0.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.4s ease, visibility 0.4s ease;
+    }
+    
+    .ym-wrapped-overlay-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    
+    .ym-wrapped-overlay-visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: all;
+    }
+
+    .ym-wrapped-content {
+      position: relative;
+      width: 90%;
+      max-width: 900px;
+      height: 85vh;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(20px) scale(0.95);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow: hidden;
+    }
+    
+    .ym-wrapped-overlay-visible .ym-wrapped-content {
+      transform: translateY(0) scale(1);
+    }
+
+    .ym-wrapped-close {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      z-index: 10;
+    }
+    .ym-wrapped-close:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: scale(1.1) rotate(90deg);
+    }
+    
+    .ym-wrapped-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    
+    .ym-wrapped-header h1 {
+      font-size: 42px;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      background: linear-gradient(135deg, #ffdb4d, #ff8c00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+    
+    .ym-wrapped-header p {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.6);
+      margin: 0;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    
+    .ym-wrapped-body {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
   `;
   document.head.appendChild(style);
 }

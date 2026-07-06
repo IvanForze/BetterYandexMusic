@@ -1240,6 +1240,114 @@ function checkAndInjectSettings() {
 setInterval(checkAndInjectSettings, 1000);
 
 
+// --- Component: shared/wrapped/wrapped-ui.js ---
+// ==========================================
+// WRAPPED UI INJECTOR (Локальная статистика)
+// ==========================================
+
+let wrappedOverlay = null;
+
+function createWrappedOverlay() {
+  if (wrappedOverlay) return wrappedOverlay;
+
+  wrappedOverlay = document.createElement('div');
+  wrappedOverlay.id = 'ym-wrapped-overlay';
+  wrappedOverlay.className = 'ym-wrapped-overlay-hidden';
+
+  wrappedOverlay.innerHTML = `
+    <div class="ym-wrapped-content">
+      <button class="ym-wrapped-close" aria-label="Закрыть">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+      </button>
+      <div class="ym-wrapped-header">
+        <h1>Твоя Статистика</h1>
+        <p>Локальный Wrapped (Бета)</p>
+      </div>
+      <div class="ym-wrapped-body">
+        <div style="text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px;">
+          Здесь скоро появятся красивые графики 🚀
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(wrappedOverlay);
+
+  // Закрытие по клику на крестик
+  wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', () => {
+    closeWrapped();
+  });
+
+  // Закрытие по клику вне контента
+  wrappedOverlay.addEventListener('click', (e) => {
+    if (e.target === wrappedOverlay) {
+      closeWrapped();
+    }
+  });
+
+  return wrappedOverlay;
+}
+
+function openWrapped() {
+  const overlay = createWrappedOverlay();
+  overlay.classList.remove('ym-wrapped-overlay-hidden');
+  overlay.classList.add('ym-wrapped-overlay-visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeWrapped() {
+  if (!wrappedOverlay) return;
+  wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
+  wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
+  document.body.style.overflow = '';
+}
+
+function initWrappedInjector() {
+  const observer = new MutationObserver((mutations) => {
+    const dialog = document.querySelector('.UserWidget-Dialog_visible');
+    if (dialog) {
+      const content = dialog.querySelector('.UserWidget-Content');
+      if (content && !content.querySelector('#ym-wrapped-btn')) {
+        // Добавляем стили для принудительного расширения модалки Яндекса
+        dialog.style.height = 'auto';
+        dialog.style.maxHeight = '90vh';
+        content.style.display = 'flex';
+        content.style.flexDirection = 'column';
+        content.style.height = 'auto';
+
+        const btn = document.createElement('button');
+        btn.id = 'ym-wrapped-btn';
+        btn.className = 'ym-wrapped-profile-btn';
+        btn.innerHTML = `
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" style="margin-right: 8px;">
+            <path d="M18 20V10M12 20V4M6 20v-6"/>
+          </svg>
+          Моя Статистика (Wrapped)
+        `;
+        
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          // Закрываем меню профиля эмулируя клик вне него
+          document.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+          openWrapped();
+        });
+
+        content.appendChild(btn);
+      }
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
+}
+
+if (typeof window !== 'undefined') {
+  initWrappedInjector();
+}
+
+
 // --- Component: shared/soundcloud-api.js ---
 // ==========================================
 // SOUNDCLOUD API (MAIN world)
