@@ -52,3 +52,4 @@ tunnel.log
 # Установщик
 yandex-sync-installer/dist/
 yandex-sync-installer/node_modules/
+dist/

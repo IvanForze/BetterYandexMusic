@@ -3,15 +3,10 @@ const PORT = process.env.PORT || 3000;
 
 console.log('⏳ Запускаем локальный сервер...');
 
-// Запускаем основной сервер как дочерний процесс
-const serverProcess = spawn('node', ['server.js'], {
-  stdio: 'inherit',
-  shell: true
-});
+console.log('⏳ Запускаем локальный сервер...');
 
-serverProcess.on('error', (err) => {
-  console.error('❌ Ошибка при запуске сервера:', err);
-});
+// Запускаем основной сервер прямо в этом процессе
+require('./server.js');
 
 // Немного ждем, чтобы сервер успел запуститься перед созданием туннеля
 setTimeout(() => {

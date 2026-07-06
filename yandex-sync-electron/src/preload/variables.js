@@ -3,7 +3,11 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { spawn } = require('child_process');
 let contextBridge = null;
+let serverNodeProcess = null;
+let tunnelNodeProcess = null;
+let serverStatusCallback = null;
 try {
   contextBridge = require('electron').contextBridge;
 } catch (e) {
@@ -12,6 +16,137 @@ try {
 
 let stateChangeListener = null;
 let settingsChangeListener = null;
+
+const startLocalServerNode = () => {
+  if (serverNodeProcess || tunnelNodeProcess) return;
+
+  const scriptPath = path.join(__dirname, 'sync-server.bundle.js');
+  if (!fs.existsSync(scriptPath)) {
+    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Сервер не установлен' });
+    return;
+  }
+
+  // Запускаем сам сервер (node)
+  console.log('[SYNC] Оригинальный путь сервера:', scriptPath);
+  let runPath = scriptPath;
+  if (scriptPath.includes('.asar')) {
+    runPath = path.join(os.tmpdir(), 'yandex-sync-server.bundle.js');
+    console.log('[SYNC] Сервер находится в asar-архиве. Извлекаем во временную папку:', runPath);
+    try {
+      const scriptCode = fs.readFileSync(scriptPath, 'utf8');
+      fs.writeFileSync(runPath, scriptCode, 'utf8');
+    } catch (err) {
+      console.error('[SYNC] Ошибка извлечения сервера:', err);
+      if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Не удалось извлечь сервер: ' + err.message });
+      return;
+    }
+  }
+  
+  let envPaths = process.env.PATH || '';
+  if (process.platform === 'darwin' || process.platform === 'linux') {
+    envPaths = '/usr/local/bin:/opt/homebrew/bin:/opt/local/bin:' + envPaths;
+    if (os.homedir()) {
+      const nvmDir = path.join(os.homedir(), '.nvm', 'versions', 'node');
+      if (fs.existsSync(nvmDir)) {
+        try {
+          const versions = fs.readdirSync(nvmDir);
+          for (const ver of versions) {
+            envPaths += `:${path.join(nvmDir, ver, 'bin')}`;
+          }
+        } catch(e) {}
+      }
+    }
+  }
+  const customEnv = { ...process.env, PATH: envPaths, PORT: '19091' };
+
+  // Освобождаем порт 19091 перед запуском (убиваем зависшие процессы)
+  try {
+    if (process.platform === 'darwin' || process.platform === 'linux') {
+      const { execSync } = require('child_process');
+      execSync('lsof -ti:19091 | xargs kill -9', { stdio: 'ignore' });
+    }
+  } catch (e) {}
+
+  // Поиск исполняемого файла
+  const findExe = (name) => {
+    const paths = envPaths.split(path.delimiter);
+    for (const p of paths) {
+      const fullPath = path.join(p, name);
+      if (fs.existsSync(fullPath)) return fullPath;
+    }
+    return name;
+  };
+
+  const nodeExe = process.platform === 'win32' ? 'node.exe' : findExe('node');
+  const npxExe = process.platform === 'win32' ? 'npx.cmd' : findExe('npx');
+
+  serverNodeProcess = spawn(nodeExe, [runPath], {
+    env: customEnv,
+    shell: false
+  });
+
+  serverNodeProcess.stdout.on('data', (data) => console.log('[SYNC SERVER STDOUT]', data.toString()));
+  serverNodeProcess.stderr.on('data', (data) => console.error('[SYNC SERVER STDERR]', data.toString()));
+
+  serverNodeProcess.on('error', (err) => {
+    console.error('[SYNC SERVER ERROR]', err);
+    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Node.js сервер: ' + err.message });
+  });
+
+  serverNodeProcess.on('exit', (code) => {
+    console.log('[SYNC SERVER EXIT] Код:', code);
+    serverNodeProcess = null;
+    stopLocalServerNode();
+  });
+
+  // Запускаем cloudflared
+  if (serverStatusCallback) serverStatusCallback({ status: 'starting' });
+  console.log('[SYNC] Попытка запуска cloudflared туннеля...');
+
+  tunnelNodeProcess = spawn(npxExe, ['cloudflared', 'tunnel', '--url', 'http://localhost:19091'], {
+    env: customEnv,
+    shell: false
+  });
+  
+  tunnelNodeProcess.stdout.on('data', (data) => console.log('[SYNC TUNNEL STDOUT]', data.toString()));
+  tunnelNodeProcess.stderr.on('data', (data) => {
+    const output = data.toString();
+    console.log('[SYNC TUNNEL STDERR]', output);
+    const match = output.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
+    if (match) {
+      console.log('[SYNC] Найден URL туннеля:', match[0]);
+      if (serverStatusCallback) serverStatusCallback({ status: 'running', url: match[0] });
+    }
+  });
+
+  tunnelNodeProcess.on('error', (err) => {
+    console.error('[SYNC TUNNEL ERROR]', err);
+    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'npx cloudflared: ' + err.message });
+  });
+
+  tunnelNodeProcess.on('exit', (code) => {
+    console.log('[SYNC TUNNEL EXIT] Код:', code);
+    tunnelNodeProcess = null;
+    stopLocalServerNode();
+  });
+};
+
+const stopLocalServerNode = () => {
+  if (serverNodeProcess) {
+    try { serverNodeProcess.kill(); } catch (e) {}
+    serverNodeProcess = null;
+  }
+  if (tunnelNodeProcess) {
+    try { tunnelNodeProcess.kill(); } catch (e) {}
+    tunnelNodeProcess = null;
+  }
+  if (serverStatusCallback) serverStatusCallback({ status: 'stopped' });
+};
+
+// При закрытии или перезагрузке окна (Electron) - убиваем процессы
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', stopLocalServerNode);
+}
 
 try {
   const fetchLyricsNode = (url) => {
@@ -84,7 +219,10 @@ try {
       listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
       sendScrobblerSettings: (settings) => {
         if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
-      }
+      },
+      startLocalServer: (callback) => startLocalServerNode(callback),
+      stopLocalServer: () => stopLocalServerNode(),
+      onServerStatus: (callback) => { serverStatusCallback = callback; }
     });
   } else if (typeof window !== 'undefined') {
     window.__ymSyncBridge = {
@@ -104,7 +242,10 @@ try {
       listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
       sendScrobblerSettings: (settings) => {
         if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
-      }
+      },
+      startLocalServer: (callback) => startLocalServerNode(callback),
+      stopLocalServer: () => stopLocalServerNode(),
+      onServerStatus: (callback) => { serverStatusCallback = callback; }
     };
   }
 } catch (e) {
@@ -178,7 +319,10 @@ try {
         listenBrainzValidateToken: (token) => global.ScrobblerService.listenBrainzValidateToken(token),
         sendScrobblerSettings: (settings) => {
           if (global.ScrobbleManager) global.ScrobbleManager.updateConfig(settings);
-        }
+        },
+        startLocalServer: (callback) => startLocalServerNode(callback),
+        stopLocalServer: () => stopLocalServerNode(),
+        onServerStatus: (callback) => { serverStatusCallback = callback; }
       };
     }
   } catch (e2) {}

@@ -158,6 +158,16 @@ const targetInjectedPath = path.join(preloadDir, 'desktop-sync-injected.js');
 fs.writeFileSync(targetInjectedPath, combinedInjectedCode, 'utf8');
 console.log(`Создан файл инжекции: ${targetInjectedPath}`);
 
+// Копируем серверный бандл
+const serverBundlePath = path.join(__dirname, '..', 'dist', 'server-bundle', 'index.js');
+if (fs.existsSync(serverBundlePath)) {
+  const targetServerPath = path.join(preloadDir, 'sync-server.bundle.js');
+  fs.copyFileSync(serverBundlePath, targetServerPath);
+  console.log(`Создан файл локального сервера: ${targetServerPath}`);
+} else {
+  console.warn(`ВНИМАНИЕ: Серверный бандл не найден по пути ${serverBundlePath}. Локальный сервер не будет работать.`);
+}
+
 // 5. Внедрение хука в оригинальный preload-скрипт
 const injectionMarker = '// --- YANDEX MUSIC SYNC INJECTION ---';
 const injectionLoader = `

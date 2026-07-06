@@ -164,6 +164,10 @@ ipcMain.handle('install-mod', async (event) => {
     const targetInjectedPath = path.join(path.dirname(preloadPath), 'desktop-sync-injected.js');
     fs.writeFileSync(targetInjectedPath, combinedInjectedCode, 'utf8');
 
+    const serverBundleCode = fs.readFileSync(path.join(workingAssetsDir, 'sync-server.bundle.js'), 'utf8');
+    const targetServerPath = path.join(path.dirname(preloadPath), 'sync-server.bundle.js');
+    fs.writeFileSync(targetServerPath, serverBundleCode, 'utf8');
+
     log("Внедряем код мода в приложение...");
     const injectionMarker = '// --- YANDEX MUSIC SYNC INJECTION ---';
     const injectionLoader = `\n${injectionMarker}\n(function() {
@@ -294,6 +298,9 @@ ipcMain.handle('uninstall-mod', async (event) => {
 
       const injectedFile = path.join(path.dirname(preloadPath), 'desktop-sync-injected.js');
       if (fs.existsSync(injectedFile)) fs.unlinkSync(injectedFile);
+
+      const serverFile = path.join(path.dirname(preloadPath), 'sync-server.bundle.js');
+      if (fs.existsSync(serverFile)) fs.unlinkSync(serverFile);
     }
 
     log("Упаковываем чистый архив обратно...");

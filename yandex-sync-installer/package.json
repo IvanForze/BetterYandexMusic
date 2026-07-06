@@ -30,7 +30,8 @@
         "to": "assets",
         "filter": [
           "socket.io.js",
-          "desktop-sync.js"
+          "desktop-sync.js",
+          "sync-server.bundle.js"
         ]
       }
     ],

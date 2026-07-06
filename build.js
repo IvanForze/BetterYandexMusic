@@ -210,6 +210,25 @@ function main() {
     success = buildExtension() && success;
   }
 
+  // Сборка сервера через ncc
+  console.log('Building Standalone Server with ncc...');
+  try {
+    const { execSync } = require('child_process');
+    execSync('npx ncc build server.js -o dist/server-bundle -m', { stdio: 'inherit', cwd: rootDir });
+    console.log('Successfully built Standalone Server -> dist/server-bundle/index.js');
+    
+    // Copy it to installer assets
+    const installerAssetsDir = path.join(rootDir, 'yandex-sync-installer', 'assets');
+    if (fs.existsSync(installerAssetsDir)) {
+      const destPath = path.join(installerAssetsDir, 'sync-server.bundle.js');
+      fs.copyFileSync(path.join(rootDir, 'dist', 'server-bundle', 'index.js'), destPath);
+      console.log(`Successfully copied sync-server.bundle.js -> ${destPath}`);
+    }
+  } catch (err) {
+    console.error('Error building standalone server:', err.message);
+    success = false;
+  }
+
   if (!success) {
     process.exit(1);
   }

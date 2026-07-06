@@ -682,8 +682,22 @@ function checkAndInjectSettings() {
       </div>
     </div>
 
-    <!-- Тонкий разделитель между нашими секциями -->
-    <div class="ym-settings-divider" style="height: 1px; margin-top: 14px; margin-bottom: 14px;"></div>
+    <!-- Секция Локальный Сервер (только для Electron) -->
+    <div id="ym-local-server-section" style="display: none;">
+      <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+        <div style="flex: 1; padding-right: 16px;">
+          <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Сервер синхронизации</div>
+          <div id="ym-local-server-status" class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+            Остановлен
+          </div>
+          <div style="max-width: 420px; margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+            <button id="ym-local-server-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 0.2s, transform 0.1s;">Запустить сервер</button>
+            <input id="ym-local-server-url" type="text" class="ym-input" readonly placeholder="Здесь появится ссылка" style="flex: 1; padding: 6px 12px; border-radius: 8px; font-size: 13px; outline: none; box-sizing: border-box; display: none;">
+          </div>
+          <div id="ym-local-server-error" style="color: #ff4d4d; font-size: 12px; margin-top: 6px; display: none;"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Заголовок секции Скробблинг -->
     <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 8px 0 8px 0; letter-spacing: -0.2px;">Скроблинг</div>
@@ -746,8 +760,7 @@ function checkAndInjectSettings() {
       </div>
     </div>
 
-    <!-- Тонкий разделитель в конце нашей секции -->
-    <div class="ym-settings-divider" style="height: 1px; margin-top: 14px; margin-bottom: 14px;"></div>
+    </div>
 
     <style>
       /* Использование CSS-переменных Яндекс Музыки для автоматической адаптации к любой теме (темной, светлой, кастомным) */
@@ -976,11 +989,74 @@ function checkAndInjectSettings() {
     listContainer.appendChild(block);
   }
 
-  // === Обработчики BetterYandexMusic ===
   const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
   if (lyricsModeSelect) {
     lyricsModeSelect.addEventListener('change', (e) => {
       localStorage.setItem('ymCustomLyricsMode', e.target.value);
+    });
+  }
+
+  // === Обработчики Локального Сервера (Только для Electron) ===
+  const localServerSection = document.getElementById('ym-local-server-section');
+  if (window.__ymSyncBridge && window.__ymSyncBridge.startLocalServer) {
+    localServerSection.style.display = 'block';
+    
+    const serverBtn = document.getElementById('ym-local-server-btn');
+    const serverStatus = document.getElementById('ym-local-server-status');
+    const serverUrl = document.getElementById('ym-local-server-url');
+    const serverError = document.getElementById('ym-local-server-error');
+    let isServerRunning = false;
+
+    window.__ymSyncBridge.onServerStatus((statusData) => {
+      if (statusData === true || statusData === false) return; // ignore old boolean statuses if any
+      serverError.style.display = 'none';
+
+      if (statusData.status === 'starting') {
+        serverStatus.textContent = 'Запускается туннель...';
+        serverBtn.textContent = 'Остановить';
+        serverBtn.style.opacity = '0.5';
+        serverBtn.style.pointerEvents = 'none';
+        isServerRunning = true;
+      } else if (statusData.status === 'running') {
+        serverStatus.innerHTML = '<strong style="color: #4caf50;">Туннель открыт!</strong>';
+        serverBtn.textContent = 'Остановить';
+        serverBtn.style.opacity = '1';
+        serverBtn.style.pointerEvents = 'auto';
+        serverUrl.style.display = 'block';
+        serverUrl.value = statusData.url;
+        // Копируем в буфер
+        navigator.clipboard.writeText(statusData.url).catch(console.error);
+        isServerRunning = true;
+      } else if (statusData.status === 'stopped') {
+        serverStatus.textContent = 'Остановлен';
+        serverBtn.textContent = 'Запустить сервер';
+        serverBtn.style.opacity = '1';
+        serverBtn.style.pointerEvents = 'auto';
+        serverUrl.style.display = 'none';
+        serverUrl.value = '';
+        isServerRunning = false;
+      } else if (statusData.status === 'error') {
+        serverStatus.textContent = 'Ошибка запуска';
+        serverBtn.textContent = 'Запустить сервер';
+        serverBtn.style.opacity = '1';
+        serverBtn.style.pointerEvents = 'auto';
+        serverUrl.style.display = 'none';
+        serverError.style.display = 'block';
+        serverError.textContent = statusData.error;
+        isServerRunning = false;
+      }
+    });
+
+    serverBtn.addEventListener('click', () => {
+      if (isServerRunning) {
+        window.__ymSyncBridge.stopLocalServer();
+      } else {
+        serverError.style.display = 'none';
+        serverStatus.textContent = 'Подготовка...';
+        serverBtn.style.opacity = '0.5';
+        serverBtn.style.pointerEvents = 'none';
+        window.__ymSyncBridge.startLocalServer();
+      }
     });
   }
 
