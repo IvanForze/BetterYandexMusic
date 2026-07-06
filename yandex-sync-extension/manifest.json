@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "BetterYandexMusic",
-  "version": "1.2",
+  "version": "1.2.1",
   "description": "Кастомизация, совместное прослушивание и поиск SoundCloud для Яндекс Музыки.",
   "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [

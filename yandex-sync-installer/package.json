@@ -1,7 +1,7 @@
 {
   "name": "yandex-sync-installer",
-  "version": "1.2.0",
-  "description": "Installer for Better Yandex Music sync",
+  "version": "1.2.1",
+  "description": "Installer and patcher for BetterYandexMusic sync",
   "main": "main.js",
   "scripts": {
     "start": "chcp 65001 >NUL & electron .",
