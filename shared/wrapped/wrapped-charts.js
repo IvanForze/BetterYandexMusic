@@ -76,13 +76,20 @@ function renderOverviewTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 36px; margin-top: 0;">Обзор</h2>
     <div style="display: flex; gap: 30px; margin-bottom: 40px;">
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; text-align: center;">
-        <div style="font-size: 48px; font-weight: bold; color: #ffdb4d;">${stats.totalListens}</div>
-        <div style="font-size: 16px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Треков прослушано</div>
+      <div style="flex: 1.2; background: linear-gradient(135deg, rgba(204, 0, 255, 0.12) 0%, rgba(255, 140, 0, 0.12) 100%); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; background: linear-gradient(90deg, #ffdb4d, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Твои Музыкальные Итоги</h3>
+        <button id="ym-stories-overview-btn" style="background: linear-gradient(135deg, #cc00ff 0%, #ff8c00 100%); border: none; border-radius: 12px; color: white; padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: transform 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+          Посмотреть Истории
+        </button>
       </div>
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; text-align: center;">
-        <div style="font-size: 48px; font-weight: bold; color: #ff8c00;">${stats.totalHours}</div>
-        <div style="font-size: 16px; color: rgba(255,255,255,0.6); text-transform: uppercase;">Часов музыки</div>
+      <div style="flex: 0.9; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 25px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 44px; font-weight: bold; color: #ffdb4d; line-height: 1.2;">${stats.totalListens}</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Треков прослушано</div>
+      </div>
+      <div style="flex: 0.9; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 25px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 44px; font-weight: bold; color: #ff8c00; line-height: 1.2;">${stats.totalHours}</div>
+        <div style="font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Часов музыки</div>
       </div>
     </div>
     
@@ -91,6 +98,17 @@ function renderOverviewTab(container, stats) {
       <canvas id="ym-chart-months" height="100"></canvas>
     </div>
   `;
+
+  const overviewBtn = container.querySelector('#ym-stories-overview-btn');
+  if (overviewBtn) {
+    overviewBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (typeof window.openWrappedStories === 'function') {
+        window.openWrappedStories(stats);
+      }
+    });
+  }
 
   const ctxMonths = document.getElementById('ym-chart-months').getContext('2d');
   if (monthsChartInstance) monthsChartInstance.destroy();
@@ -267,11 +285,13 @@ function renderSettingsTab(container) {
       </p>
       
       <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-        <button id="ym-wrapped-export-btn" style="flex: 1; padding: 15px; border-radius: 12px; border: none; background: #ffdb4d; color: black; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;">
-          📥 Экспорт в JSON
+        <button id="ym-wrapped-export-btn" style="flex: 1; padding: 15px; border-radius: 12px; border: none; background: #ffdb4d; color: black; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Экспорт в JSON
         </button>
-        <button id="ym-wrapped-import-btn" style="flex: 1; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;">
-          📤 Импорт JSON
+        <button id="ym-wrapped-import-btn" style="flex: 1; padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: transparent; color: white; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          Импорт JSON
         </button>
       </div>
       
@@ -280,8 +300,9 @@ function renderSettingsTab(container) {
       <div id="ym-wrapped-data-status" style="color: #4CAF50; font-weight: 500; min-height: 20px; margin-bottom: 20px;"></div>
 
       <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
-        <button id="ym-wrapped-clear-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ff4d4d; background: transparent; color: #ff4d4d; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;">
-          🗑️ Очистить всю статистику
+        <button id="ym-wrapped-clear-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ff4d4d; background: transparent; color: #ff4d4d; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+          Очистить всю статистику
         </button>
       </div>
     </div>
@@ -296,7 +317,7 @@ function renderSettingsTab(container) {
 
   // Экспорт
   exportBtn.addEventListener('click', async () => {
-    exportBtn.innerText = '⏳ Подготовка...';
+    exportBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Подготовка...';
     try {
       const jsonStr = await window.wrappedDB.exportData();
       
@@ -322,14 +343,14 @@ function renderSettingsTab(container) {
             statusDiv.style.color = '#4CAF50';
           } else {
             if (response.error === 'Cancelled') {
-              statusDiv.innerText = '⚠️ Экспорт отменен пользователем.';
+              statusDiv.innerText = 'Экспорт отменен пользователем.';
               statusDiv.style.color = '#ffdb4d';
             } else {
-              statusDiv.innerText = `❌ Ошибка записи файла: ${response.error || 'Unknown error'}`;
+              statusDiv.innerText = `Ошибка записи файла: ${response.error || 'Unknown error'}`;
               statusDiv.style.color = '#ff4d4d';
             }
           }
-          exportBtn.innerText = '📥 Экспорт в JSON';
+          exportBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Экспорт в JSON';
         };
         
         window.addEventListener('message', handler);
@@ -354,15 +375,15 @@ function renderSettingsTab(container) {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        statusDiv.innerText = '✅ Данные успешно экспортированы!';
+        statusDiv.innerText = 'Данные успешно экспортированы!';
         statusDiv.style.color = '#4CAF50';
-        exportBtn.innerText = '📥 Экспорт в JSON';
+        exportBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Экспорт в JSON';
       }
     } catch (e) {
       console.error(e);
-      statusDiv.innerText = '❌ Ошибка экспорта данных.';
+      statusDiv.innerText = 'Ошибка экспорта данных.';
       statusDiv.style.color = '#ff4d4d';
-      exportBtn.innerText = '📥 Экспорт в JSON';
+      exportBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Экспорт в JSON';
     }
   });
 
@@ -375,20 +396,20 @@ function renderSettingsTab(container) {
     const file = e.target.files[0];
     if (!file) return;
 
-    statusDiv.innerText = '⏳ Чтение файла...';
+    statusDiv.innerText = 'Чтение файла...';
     statusDiv.style.color = 'white';
 
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        statusDiv.innerText = '⏳ Объединение данных...';
+        statusDiv.innerText = 'Объединение данных...';
         const res = await window.wrappedDB.importData(event.target.result);
         
         let sourceStr = 'неизвестного источника';
         if (res.source === 'web') sourceStr = 'веб-версии';
         if (res.source === 'desktop') sourceStr = 'десктоп-приложения';
         
-        statusDiv.innerText = `✅ Импорт из ${sourceStr} успешно завершен! Добавлено новых записей: ${res.addedCount}.`;
+        statusDiv.innerText = `Импорт из ${sourceStr} успешно завершен! Добавлено новых записей: ${res.addedCount}.`;
         statusDiv.style.color = '#4CAF50';
         
         // Обновляем графики если нужно
@@ -403,7 +424,7 @@ function renderSettingsTab(container) {
       fileInput.value = '';
     };
     reader.onerror = () => {
-      statusDiv.innerText = '❌ Ошибка чтения файла.';
+      statusDiv.innerText = 'Ошибка чтения файла.';
       statusDiv.style.color = '#ff4d4d';
     };
     reader.readAsText(file);
@@ -414,10 +435,10 @@ function renderSettingsTab(container) {
     const confirmed = confirm('Вы уверены, что хотите полностью стереть локальную статистику? Все прослушивания будут безвозвратно удалены.');
     if (!confirmed) return;
 
-    clearBtn.innerText = '⏳ Очистка...';
+    clearBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Очистка...';
     try {
       await window.wrappedDB.clearAllData();
-      statusDiv.innerText = '🗑️ База данных статистики успешно очищена.';
+      statusDiv.innerText = 'База данных статистики успешно очищена.';
       statusDiv.style.color = '#ff4d4d';
       
       // Перерисовываем пустую страницу
@@ -426,10 +447,10 @@ function renderSettingsTab(container) {
       }
     } catch(err) {
       console.error(err);
-      statusDiv.innerText = '❌ Ошибка очистки: ' + err.message;
+      statusDiv.innerText = 'Ошибка очистки: ' + err.message;
       statusDiv.style.color = '#ff4d4d';
     } finally {
-      clearBtn.innerText = '🗑️ Очистить всю статистику';
+      clearBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>Очистить всю статистику';
     }
   });
 }

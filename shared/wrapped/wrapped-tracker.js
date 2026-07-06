@@ -33,9 +33,9 @@ class WrappedTracker {
       const dataObj = playerStateTrack || entityData?.meta || entityData;
       if (!dataObj) return null;
 
-      // Выводим объект Sonata и метаданные трека в консоль для анализа
-      console.log('[Wrapped Tracker] Sonata Player:', activePlayer);
-      console.log('[Wrapped Tracker] Sonata Track Object:', dataObj);
+      // Выводим объект Sonata и метаданные трека в консоль для анализа (отключено)
+      // console.log('[Wrapped Tracker] Sonata Player:', activePlayer);
+      // console.log('[Wrapped Tracker] Sonata Track Object:', dataObj);
 
       let duration = 0;
       if (dataObj.durationMs) {

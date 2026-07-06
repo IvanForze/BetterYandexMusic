@@ -58,38 +58,67 @@ class WrappedDB {
       const tracksStore = transaction.objectStore('tracks');
       const artistsStore = transaction.objectStore('artists');
 
-      // 1. Сохраняем/обновляем метаданные трека
-      tracksStore.put({
-        id: String(trackData.id),
-        title: trackData.title,
-        cover: trackData.cover,
-        duration: trackData.duration,
-        artists: trackData.artists.map(a => String(a.id)),
-        genre: trackData.genre || null,
-        year: trackData.year || null,
-        explicit: !!trackData.explicit
-      });
+      const trackId = String(trackData.id);
 
-      // 2. Сохраняем/обновляем метаданные артистов
+      // 1. Сохраняем/обновляем метаданные трека слиянием с существующими полями
+      const trackGetReq = tracksStore.get(trackId);
+      trackGetReq.onsuccess = (event) => {
+        const existingTrack = event.target.result;
+        
+        const mergedTrack = {
+          id: trackId,
+          title: trackData.title || (existingTrack ? existingTrack.title : ''),
+          cover: trackData.cover || (existingTrack ? existingTrack.cover : null),
+          duration: trackData.duration || (existingTrack ? existingTrack.duration : 0),
+          artists: trackData.artists ? trackData.artists.map(a => String(a.id)) : (existingTrack ? existingTrack.artists : []),
+          genre: trackData.genre || (existingTrack ? existingTrack.genre : null),
+          year: trackData.year || (existingTrack ? existingTrack.year : null),
+          explicit: trackData.explicit !== undefined ? !!trackData.explicit : (existingTrack ? !!existingTrack.explicit : false)
+        };
+
+        // Если в базе уже была обложка, жанр или год, а в новом прослушивании их нет — сохраняем старые
+        if (existingTrack) {
+          if (!mergedTrack.cover && existingTrack.cover) mergedTrack.cover = existingTrack.cover;
+          if (!mergedTrack.genre && existingTrack.genre) mergedTrack.genre = existingTrack.genre;
+          if (!mergedTrack.year && existingTrack.year) mergedTrack.year = existingTrack.year;
+        }
+
+        tracksStore.put(mergedTrack);
+      };
+
+      // 2. Сохраняем/обновляем метаданные артистов слиянием обложек
       if (trackData.artists && Array.isArray(trackData.artists)) {
         trackData.artists.forEach(artist => {
-          artistsStore.put({
-            id: artist.id,
-            name: artist.name,
-            cover: artist.cover
-          });
+          const artistId = String(artist.id);
+          const artistGetReq = artistsStore.get(artistId);
+          artistGetReq.onsuccess = (event) => {
+            const existingArtist = event.target.result;
+            
+            const mergedArtist = {
+              id: artistId,
+              name: artist.name || (existingArtist ? existingArtist.name : ''),
+              cover: artist.cover || (existingArtist ? existingArtist.cover : '')
+            };
+
+            // Если обложка уже есть в БД, а сейчас пришла пустая — сохраняем ту, что в БД
+            if (existingArtist && !mergedArtist.cover && existingArtist.cover) {
+              mergedArtist.cover = existingArtist.cover;
+            }
+
+            artistsStore.put(mergedArtist);
+          };
         });
       }
 
       // 3. Добавляем запись о прослушивании
       const listenRecord = {
-        trackId: trackData.id,
+        trackId: trackId,
         timestamp: Date.now(),
         durationListened: trackData.duration // Считаем полный трек для статистики
       };
       
       const request = listensStore.add(listenRecord);
-
+ 
       request.onsuccess = () => resolve();
       request.onerror = (e) => reject(e.target.error);
     });

@@ -136,6 +136,9 @@ function createWrappedOverlay() {
       <button class="ym-wrapped-tab-btn" data-tab="genres">Жанры и Эпохи</button>
       <button class="ym-wrapped-tab-btn" data-tab="activity">Активность</button>
       <button class="ym-wrapped-tab-btn" data-tab="settings">Данные и Настройки</button>
+      <button class="ym-wrapped-tab-btn" data-tab="stories" style="background: linear-gradient(135deg, #cc00ff 0%, #ff8c00 100%); color: white; font-weight: bold; border: none; margin-top: auto; padding: 12px 20px; border-radius: 12px; cursor: pointer; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: all 0.2s ease;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; display: inline-block; vertical-align: -2px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>Итоги в Историях
+      </button>
     </div>
     
     <div class="ym-wrapped-main">
@@ -152,13 +155,44 @@ function createWrappedOverlay() {
   document.body.appendChild(wrappedOverlay);
 
   // Обработка закрытия
-  wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', () => {
+  wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', (e) => {
+    console.log('[Wrapped UI] Клик по кнопке закрытия X');
+    e.stopPropagation();
+    e.preventDefault();
     closeWrapped();
   });
+
+  // Закрытие по нажатию клавиши Escape
+  const handleEscapeKey = (e) => {
+    if (e.key === 'Escape') {
+      console.log('[Wrapped UI] Нажат Escape');
+      if (typeof window.closeWrappedStories === 'function' && document.getElementById('ym-wrapped-stories')?.style.display === 'flex') {
+        window.closeWrappedStories();
+      } else if (wrappedOverlay.classList.contains('ym-wrapped-overlay-visible')) {
+        closeWrapped();
+      }
+    }
+  };
+  document.removeEventListener('keydown', handleEscapeKey);
+  document.addEventListener('keydown', handleEscapeKey);
 
   // Логика переключения вкладок
   const tabBtns = wrappedOverlay.querySelectorAll('.ym-wrapped-tab-btn');
   tabBtns.forEach(btn => {
+    const tabId = btn.getAttribute('data-tab');
+    if (tabId === 'stories') {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (typeof window.openWrappedStories === 'function' && window.wrappedDB) {
+          window.wrappedDB.getStats().then(stats => {
+            window.openWrappedStories(stats);
+          });
+        }
+      });
+      return;
+    }
+
     btn.addEventListener('click', () => {
       // Снимаем active со всех кнопок и контента
       tabBtns.forEach(b => b.classList.remove('active'));
@@ -166,7 +200,6 @@ function createWrappedOverlay() {
       
       // Ставим active на нажатую
       btn.classList.add('active');
-      const tabId = btn.getAttribute('data-tab');
       const content = wrappedOverlay.querySelector('#ym-wrapped-tab-' + tabId);
       if (content) content.classList.add('active');
     });
@@ -176,11 +209,13 @@ function createWrappedOverlay() {
 }
 
 function openWrapped() {
+  console.log('[Wrapped UI] Открытие главного меню статистики');
   const overlay = createWrappedOverlay();
   
   // Принудительно запрашиваем offsetWidth, чтобы браузер отрендерил элемент
   void overlay.offsetWidth;
   
+  overlay.style.visibility = ''; // Гарантируем, что нет инлайнового hidden
   overlay.classList.remove('ym-wrapped-overlay-hidden');
   overlay.classList.add('ym-wrapped-overlay-visible');
   document.body.style.overflow = 'hidden';
@@ -192,13 +227,19 @@ function openWrapped() {
 }
 
 function closeWrapped() {
-  if (!wrappedOverlay) return;
+  console.log('[Wrapped UI] closeWrapped() запущен');
+  if (!wrappedOverlay) {
+    console.warn('[Wrapped UI] closeWrapped() - wrappedOverlay отсутствует');
+    return;
+  }
   wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
   wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
+  wrappedOverlay.style.visibility = ''; // Сбрасываем инлайновый visibility, установленный Историями
   
   // Ждем окончания анимации (0.2s) перед тем как вернуть скролл
   setTimeout(() => {
     if (wrappedOverlay.classList.contains('ym-wrapped-overlay-hidden')) {
+      console.log('[Wrapped UI] Сброс overflow body');
       document.body.style.overflow = '';
     }
   }, 200);
