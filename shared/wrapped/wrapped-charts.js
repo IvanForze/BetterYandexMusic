@@ -5,11 +5,17 @@
 let artistsChartInstance = null;
 let tracksChartInstance = null;
 let monthsChartInstance = null;
+let genresChartInstance = null;
+let erasChartInstance = null;
+let hoursChartInstance = null;
+let daysChartInstance = null;
 
 async function renderWrappedCharts() {
   const containerOverview = document.getElementById('ym-wrapped-tab-overview');
   const containerArtists = document.getElementById('ym-wrapped-tab-artists');
   const containerTracks = document.getElementById('ym-wrapped-tab-tracks');
+  const containerGenres = document.getElementById('ym-wrapped-tab-genres');
+  const containerActivity = document.getElementById('ym-wrapped-tab-activity');
   const containerSettings = document.getElementById('ym-wrapped-tab-settings');
 
   if (!containerOverview) return;
@@ -32,6 +38,8 @@ async function renderWrappedCharts() {
       containerOverview.innerHTML = emptyMsg;
       containerArtists.innerHTML = emptyMsg;
       containerTracks.innerHTML = emptyMsg;
+      containerGenres.innerHTML = emptyMsg;
+      containerActivity.innerHTML = emptyMsg;
       renderSettingsTab(containerSettings);
       return;
     }
@@ -40,16 +48,22 @@ async function renderWrappedCharts() {
     Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
     Chart.defaults.font.family = '"YS Text", sans-serif';
 
-    // Рендер Обзора
+    // Рендер вкладки Обзор
     renderOverviewTab(containerOverview, stats);
     
-    // Рендер Артистов
+    // Рендер вкладки Артисты
     renderArtistsTab(containerArtists, stats);
     
-    // Рендер Треков
+    // Рендер вкладки Треки
     renderTracksTab(containerTracks, stats);
+
+    // Рендер вкладки Жанры и Эпохи
+    renderGenresTab(containerGenres, stats);
+
+    // Рендер вкладки Активность
+    renderActivityTab(containerActivity, stats);
     
-    // Рендер Настроек (Экспорт/Импорт)
+    // Рендер вкладки Настройки
     renderSettingsTab(containerSettings);
 
   } catch (err) {
@@ -127,8 +141,10 @@ function renderArtistsTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 36px; margin-top: 0;">Топ Артистов</h2>
     <div style="display: flex; gap: 40px;">
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
-        <canvas id="ym-chart-artists" height="250"></canvas>
+      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
+        <div style="flex: 1; min-height: 250px; position: relative;">
+          <canvas id="ym-chart-artists"></canvas>
+        </div>
       </div>
       <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
         <h3 style="margin-top: 0;">Лидеры по времени</h3>
@@ -140,13 +156,28 @@ function renderArtistsTab(container, stats) {
   const ctxArtists = document.getElementById('ym-chart-artists').getContext('2d');
   if (artistsChartInstance) artistsChartInstance.destroy();
   
+  // Группируем артистов после топ-5 в категорию "Другие"
+  const chartArtists = stats.topArtists.slice(0, 5);
+  const otherArtists = stats.topArtists.slice(5);
+  
+  const labels = chartArtists.map(a => a.artist ? a.artist.name : 'Неизвестный');
+  const data = chartArtists.map(a => Math.round(a.duration / 60));
+  const colors = ['#ffdb4d', '#ff8c00', '#ff4d4d', '#cc00ff', '#4d4dff'];
+
+  if (otherArtists.length > 0) {
+    labels.push('Другие');
+    const otherDurationMin = otherArtists.reduce((sum, a) => sum + Math.round(a.duration / 60), 0);
+    data.push(otherDurationMin);
+    colors.push('rgba(255,255,255,0.2)');
+  }
+
   artistsChartInstance = new Chart(ctxArtists, {
     type: 'doughnut',
     data: {
-      labels: stats.topArtists.map(a => a.artist ? a.artist.name : 'Неизвестно'),
+      labels: labels,
       datasets: [{
-        data: stats.topArtists.map(a => Math.round(a.duration / 60)),
-        backgroundColor: ['#ffdb4d', '#ff8c00', '#ff4d4d', '#cc00ff', '#4d4dff'],
+        data: data,
+        backgroundColor: colors,
         borderWidth: 0,
         hoverOffset: 10
       }]
@@ -399,6 +430,223 @@ function renderSettingsTab(container) {
       statusDiv.style.color = '#ff4d4d';
     } finally {
       clearBtn.innerText = '🗑️ Очистить всю статистику';
+    }
+  });
+}
+
+function renderGenresTab(container, stats) {
+  let genresListHtml = '';
+  stats.topGenres.forEach((g, i) => {
+    genresListHtml += `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="font-size: 18px; font-weight: 500;">
+          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block;">${i+1}</span>
+          ${g.name}
+        </div>
+        <div style="color: #ffdb4d; font-weight: bold;">${g.count} треков</div>
+      </div>
+    `;
+  });
+
+  if (stats.topGenres.length === 0) {
+    genresListHtml = '<p style="color: rgba(255,255,255,0.5);">Жанры не определены. Прослушайте больше треков с заполненными метаданными альбомов.</p>';
+  }
+
+  container.innerHTML = `
+    <h2 style="font-size: 36px; margin-top: 0;">Жанры и Эпохи</h2>
+    <div style="display: flex; gap: 40px; margin-bottom: 30px;">
+      <div style="flex: 1.2; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; margin-bottom: 20px;">Популярные Жанры</h3>
+        <div style="flex: 1; min-height: 250px; position: relative;">
+          <canvas id="ym-chart-genres"></canvas>
+        </div>
+      </div>
+      <div style="flex: 0.8; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; margin-bottom: 20px;">Распределение по Эпохам</h3>
+        <div style="flex: 1; min-height: 200px; position: relative;">
+          <canvas id="ym-chart-eras"></canvas>
+        </div>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 40px;">
+      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
+        <h3 style="margin-top: 0;">Топ-5 Жанров</h3>
+        ${genresListHtml}
+      </div>
+      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; justify-content: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 30px;">
+          <div>
+            <h3 style="margin: 0; font-size: 22px; color: #ff4d4d; font-weight: bold;">Индекс Explicit</h3>
+            <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.5); font-size: 14px;">Доля треков с нецензурной лексикой или контентом 18+</p>
+          </div>
+          <div style="flex: 1; max-width: 250px; display: flex; align-items: center; gap: 15px;">
+            <div style="flex: 1; height: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden;">
+              <div style="width: ${stats.explicitPercentage}%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff2222); border-radius: 6px;"></div>
+            </div>
+            <div style="font-size: 22px; font-weight: bold; color: #ff4d4d; min-width: 50px; text-align: right;">${stats.explicitPercentage}%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 1. Отрисовка графика Жанров (Горизонтальный Bar)
+  const ctxGenres = document.getElementById('ym-chart-genres').getContext('2d');
+  if (genresChartInstance) genresChartInstance.destroy();
+  
+  genresChartInstance = new Chart(ctxGenres, {
+    type: 'bar',
+    data: {
+      labels: stats.topGenres.map(g => g.name),
+      datasets: [{
+        data: stats.topGenres.map(g => g.count),
+        backgroundColor: 'rgba(255, 219, 77, 0.85)',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, beginAtZero: true },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // 2. Отрисовка графика Эпох (Doughnut)
+  const ctxEras = document.getElementById('ym-chart-eras').getContext('2d');
+  if (erasChartInstance) erasChartInstance.destroy();
+
+  const erasLabels = ['2020-е', '2010-е', '2000-е', '90-е', 'Ранее'];
+  const erasData = [
+    stats.eraCounts['2020s'] || 0,
+    stats.eraCounts['2010s'] || 0,
+    stats.eraCounts['2000s'] || 0,
+    stats.eraCounts['90s'] || 0,
+    stats.eraCounts['Earlier'] || 0
+  ];
+  
+  // Отсекаем неиспользуемые эпохи
+  const activeLabels = [];
+  const activeData = [];
+  erasData.forEach((val, index) => {
+    if (val > 0) {
+      activeLabels.push(erasLabels[index]);
+      activeData.push(val);
+    }
+  });
+
+  erasChartInstance = new Chart(ctxEras, {
+    type: 'doughnut',
+    data: {
+      labels: activeLabels.length > 0 ? activeLabels : ['Нет данных'],
+      datasets: [{
+        data: activeData.length > 0 ? activeData : [1],
+        backgroundColor: activeData.length > 0 ? ['#ffdb4d', '#ff8c00', '#ff4d4d', '#cc00ff', '#4d4dff'] : ['rgba(255,255,255,0.05)'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' }
+      }
+    }
+  });
+}
+
+function renderActivityTab(container, stats) {
+  container.innerHTML = `
+    <h2 style="font-size: 36px; margin-top: 0;">Активность</h2>
+    <div style="display: flex; flex-direction: column; gap: 30px;">
+      <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; height: 320px; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; margin-bottom: 10px;">Прослушивания по времени суток</h3>
+        <div style="flex: 1; position: relative;">
+          <canvas id="ym-chart-hours"></canvas>
+        </div>
+      </div>
+      <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; height: 280px; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; margin-bottom: 10px;">Активность по дням недели</h3>
+        <div style="flex: 1; position: relative;">
+          <canvas id="ym-chart-days"></canvas>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // 1. График по часам (Area Chart / Line)
+  const ctxHours = document.getElementById('ym-chart-hours').getContext('2d');
+  if (hoursChartInstance) hoursChartInstance.destroy();
+
+  const gradient = ctxHours.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, 'rgba(255, 219, 77, 0.45)');
+  gradient.addColorStop(1, 'rgba(255, 219, 77, 0.0)');
+
+  hoursChartInstance = new Chart(ctxHours, {
+    type: 'line',
+    data: {
+      labels: Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`),
+      datasets: [{
+        label: 'Прослушивания',
+        data: stats.hourlyListens,
+        borderColor: '#ffdb4d',
+        borderWidth: 3,
+        fill: true,
+        backgroundColor: gradient,
+        tension: 0.4,
+        pointRadius: 2,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' } },
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
+    }
+  });
+
+  // 2. График по дням недели (Bar Chart)
+  const ctxDays = document.getElementById('ym-chart-days').getContext('2d');
+  if (daysChartInstance) daysChartInstance.destroy();
+
+  const orderedDaysLabels = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+  const orderedDaysData = [
+    stats.weeklyListens[1] || 0, // Пн
+    stats.weeklyListens[2] || 0, // Вт
+    stats.weeklyListens[3] || 0, // Ср
+    stats.weeklyListens[4] || 0, // Чт
+    stats.weeklyListens[5] || 0, // Пт
+    stats.weeklyListens[6] || 0, // Сб
+    stats.weeklyListens[0] || 0  // Вс
+  ];
+
+  daysChartInstance = new Chart(ctxDays, {
+    type: 'bar',
+    data: {
+      labels: orderedDaysLabels,
+      datasets: [{
+        data: orderedDaysData,
+        backgroundColor: 'rgba(255, 140, 0, 0.85)',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } }
+      }
     }
   });
 }

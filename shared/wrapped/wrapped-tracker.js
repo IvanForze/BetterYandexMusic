@@ -72,12 +72,27 @@ class WrappedTracker {
         });
       }
 
+      // Вытягиваем жанр и год из первого альбома
+      let genre = null;
+      let year = null;
+      const albumObj = dataObj.albums && dataObj.albums[0] ? dataObj.albums[0] : (dataObj.album || null);
+      if (albumObj) {
+        genre = albumObj.genre || null;
+        year = albumObj.year || null;
+      }
+      
+      // Отметка Explicit
+      const explicit = dataObj.contentWarning === 'explicit';
+
       return {
         trackId: String(dataObj.id || (entityData && entityData.id)),
         title: dataObj.title || 'Неизвестный трек',
         cover: dataObj.coverUri ? dataObj.coverUri.replace('%%', '400x400') : null,
         duration: duration,
-        artists: artists
+        artists: artists,
+        genre: genre,
+        year: year,
+        explicit: explicit
       };
     } catch (e) {
       console.error('[Wrapped Tracker] Error extracting track info:', e);
@@ -147,7 +162,10 @@ class WrappedTracker {
         title: track.title,
         cover: track.cover,
         duration: track.duration,
-        artists: track.artists
+        artists: track.artists,
+        genre: track.genre,
+        year: track.year,
+        explicit: track.explicit
       };
 
       if (window.wrappedDB) {

@@ -60,11 +60,14 @@ class WrappedDB {
 
       // 1. Сохраняем/обновляем метаданные трека
       tracksStore.put({
-        id: trackData.id,
+        id: String(trackData.id),
         title: trackData.title,
         cover: trackData.cover,
         duration: trackData.duration,
-        artists: trackData.artists.map(a => a.id)
+        artists: trackData.artists.map(a => String(a.id)),
+        genre: trackData.genre || null,
+        year: trackData.year || null,
+        explicit: !!trackData.explicit
       });
 
       // 2. Сохраняем/обновляем метаданные артистов
@@ -143,8 +146,20 @@ class WrappedDB {
     const trackCounts = {};
     const artistCounts = {};
     const artistDuration = {}; // Время прослушивания артиста (в сек)
+    const genreCounts = {};
     
     const listensByMonth = new Array(12).fill(0);
+    const hourlyListens = new Array(24).fill(0);
+    const weeklyListens = new Array(7).fill(0); // 0 = Воскресенье, 1 = Понедельник, и т.д.
+    
+    const eraCounts = {
+      '2020s': 0,
+      '2010s': 0,
+      '2000s': 0,
+      '90s': 0,
+      'Earlier': 0
+    };
+    let explicitCount = 0;
 
     for (const listen of listens) {
       const track = tracksMap.get(String(listen.trackId));
@@ -165,9 +180,41 @@ class WrappedDB {
         });
       }
 
+      // Топ жанров
+      if (track.genre) {
+        const genre = track.genre;
+        genreCounts[genre] = (genreCounts[genre] || 0) + 1;
+      }
+
+      // Распределение по эпохам
+      if (track.year) {
+        const year = Number(track.year);
+        if (year >= 2020) eraCounts['2020s']++;
+        else if (year >= 2010) eraCounts['2010s']++;
+        else if (year >= 2000) eraCounts['2000s']++;
+        else if (year >= 1990) eraCounts['90s']++;
+        else eraCounts['Earlier']++;
+      }
+
+      // Explicit контент
+      if (track.explicit) {
+        explicitCount++;
+      }
+
+      // Дата прослушивания
+      const listenDate = new Date(listen.timestamp);
+      
       // Активность по месяцам
-      const month = new Date(listen.timestamp).getMonth();
+      const month = listenDate.getMonth();
       listensByMonth[month]++;
+
+      // Активность по часам
+      const hour = listenDate.getHours();
+      hourlyListens[hour]++;
+
+      // Активность по дням недели
+      const day = listenDate.getDay();
+      weeklyListens[day]++;
     }
 
     // Сортировка топов
@@ -185,12 +232,24 @@ class WrappedDB {
         count: artistCounts[id]
       }));
 
+    const topGenres = Object.entries(genreCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    const explicitPercentage = totalListens > 0 ? Math.round((explicitCount / totalListens) * 100) : 0;
+
     return {
       totalListens,
       totalHours: (totalDurationSec / 3600).toFixed(1),
       topTracks,
       topArtists,
-      listensByMonth
+      topGenres,
+      eraCounts,
+      listensByMonth,
+      hourlyListens,
+      weeklyListens,
+      explicitPercentage
     };
   }
 

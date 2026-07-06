@@ -133,7 +133,9 @@ function createWrappedOverlay() {
       <button class="ym-wrapped-tab-btn active" data-tab="overview">Обзор</button>
       <button class="ym-wrapped-tab-btn" data-tab="artists">Топ Артистов</button>
       <button class="ym-wrapped-tab-btn" data-tab="tracks">Топ Треков</button>
-      <button class="ym-wrapped-tab-btn" data-tab="settings">Данные и Экспорт</button>
+      <button class="ym-wrapped-tab-btn" data-tab="genres">Жанры и Эпохи</button>
+      <button class="ym-wrapped-tab-btn" data-tab="activity">Активность</button>
+      <button class="ym-wrapped-tab-btn" data-tab="settings">Данные и Настройки</button>
     </div>
     
     <div class="ym-wrapped-main">
@@ -141,6 +143,8 @@ function createWrappedOverlay() {
       <div id="ym-wrapped-tab-overview" class="ym-wrapped-tab-content active"></div>
       <div id="ym-wrapped-tab-artists" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-tracks" class="ym-wrapped-tab-content"></div>
+      <div id="ym-wrapped-tab-genres" class="ym-wrapped-tab-content"></div>
+      <div id="ym-wrapped-tab-activity" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-settings" class="ym-wrapped-tab-content"></div>
     </div>
   `;
