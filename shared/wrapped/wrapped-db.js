@@ -116,14 +116,14 @@ class WrappedDB {
           tracksStore.openCursor().onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
-              tracks.set(cursor.value.id, cursor.value);
+              tracks.set(String(cursor.value.id), cursor.value);
               cursor.continue();
             } else {
               // Загрузка метаданных артистов
               artistsStore.openCursor().onsuccess = (event) => {
                 const cursor = event.target.result;
                 if (cursor) {
-                  artists.set(cursor.value.id, cursor.value);
+                  artists.set(String(cursor.value.id), cursor.value);
                   cursor.continue();
                 } else {
                   resolve(this.aggregateStats(listens, tracks, artists));
@@ -147,19 +147,21 @@ class WrappedDB {
     const listensByMonth = new Array(12).fill(0);
 
     for (const listen of listens) {
-      const track = tracksMap.get(listen.trackId);
+      const track = tracksMap.get(String(listen.trackId));
       if (!track) continue;
 
       totalDurationSec += track.duration || 0;
 
       // Топ треков
-      trackCounts[listen.trackId] = (trackCounts[listen.trackId] || 0) + 1;
+      const strTrackId = String(listen.trackId);
+      trackCounts[strTrackId] = (trackCounts[strTrackId] || 0) + 1;
 
       // Топ артистов
       if (track.artists) {
         track.artists.forEach(artistId => {
-          artistCounts[artistId] = (artistCounts[artistId] || 0) + 1;
-          artistDuration[artistId] = (artistDuration[artistId] || 0) + (track.duration || 0);
+          const strArtistId = String(artistId);
+          artistCounts[strArtistId] = (artistCounts[strArtistId] || 0) + 1;
+          artistDuration[strArtistId] = (artistDuration[strArtistId] || 0) + (track.duration || 0);
         });
       }
 
@@ -171,14 +173,14 @@ class WrappedDB {
     // Сортировка топов
     const topTracks = Object.entries(trackCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([id, count]) => ({ track: tracksMap.get(id), count }));
+      .slice(0, 10)
+      .map(([id, count]) => ({ track: tracksMap.get(String(id)), count }));
 
     const topArtists = Object.entries(artistDuration) // Сортируем по времени прослушивания
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 10)
       .map(([id, duration]) => ({ 
-        artist: artistsMap.get(id), 
+        artist: artistsMap.get(String(id)), 
         duration,
         count: artistCounts[id]
       }));
@@ -197,12 +199,24 @@ class WrappedDB {
     await this.initPromise;
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(['listens', 'tracks', 'artists'], 'readonly');
-      const data = { listens: [], tracks: [], artists: [] };
+      
+      const isDesktop = typeof window !== 'undefined' && 
+        (window.navigator.userAgent.includes('Electron') || 
+         (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+      const data = { 
+        version: 1,
+        source: isDesktop ? 'desktop' : 'web',
+        exportedAt: new Date().toISOString(),
+        listens: [], 
+        tracks: [], 
+        artists: [] 
+      };
       
       let storesCompleted = 0;
       const checkDone = () => {
         storesCompleted++;
-        if (storesCompleted === 3) resolve(JSON.stringify(data));
+        if (storesCompleted === 3) resolve(JSON.stringify(data, null, 2));
       };
 
       transaction.objectStore('listens').getAll().onsuccess = e => { data.listens = e.target.result; checkDone(); };
@@ -222,7 +236,12 @@ class WrappedDB {
         return reject(new Error('Неверный формат JSON'));
       }
 
-      if (!data.listens || !data.tracks || !data.artists) {
+      const listens = data.listens;
+      const tracks = data.tracks;
+      const artists = data.artists;
+      const source = data.source || 'unknown';
+
+      if (!listens || !tracks || !artists) {
         return reject(new Error('Отсутствуют необходимые таблицы в JSON'));
       }
 
@@ -232,8 +251,8 @@ class WrappedDB {
       const artistsStore = transaction.objectStore('artists');
 
       // Сохраняем tracks и artists (put сам обновит/запишет поверх)
-      data.tracks.forEach(track => tracksStore.put(track));
-      data.artists.forEach(artist => artistsStore.put(artist));
+      tracks.forEach(track => tracksStore.put(track));
+      artists.forEach(artist => artistsStore.put(artist));
 
       // Для listens нужно избежать дубликатов.
       // Так как keyPath='id' (autoIncrement), мы не можем просто put, если id пересекаются или разные на разных ПК.
@@ -243,7 +262,7 @@ class WrappedDB {
         const existingSet = new Set(existingListens.map(l => `${l.trackId}-${l.timestamp}`));
 
         let addedCount = 0;
-        data.listens.forEach(listen => {
+        listens.forEach(listen => {
           const key = `${listen.trackId}-${listen.timestamp}`;
           if (!existingSet.has(key)) {
             // Удаляем старый id, чтобы IndexedDB сгенерировал новый (autoIncrement)
@@ -253,9 +272,24 @@ class WrappedDB {
           }
         });
 
-        resolve({ addedCount });
+        resolve({ addedCount, source });
       };
 
+      transaction.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  // Очистка всех данных в БД
+  async clearAllData() {
+    await this.initPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['listens', 'tracks', 'artists'], 'readwrite');
+      
+      transaction.objectStore('listens').clear();
+      transaction.objectStore('tracks').clear();
+      transaction.objectStore('artists').clear();
+
+      transaction.oncomplete = () => resolve();
       transaction.onerror = (e) => reject(e.target.error);
     });
   }

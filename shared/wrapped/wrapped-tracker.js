@@ -5,9 +5,13 @@
 class WrappedTracker {
   constructor() {
     this.currentTrackId = null;
-    this.trackStartTime = 0;
     this.listenLogged = false;
     this.checkInterval = null;
+    
+    // Трекинг чистого времени прослушивания в миллисекундах
+    this.activePlaytimeMs = 0;
+    this.lastCheckTime = 0;
+    this.isPlaying = false;
     
     // Запускаем инициализацию с задержкой
     setTimeout(() => this.init(), 3000);
@@ -15,7 +19,7 @@ class WrappedTracker {
 
   init() {
     console.log('[Wrapped Tracker] Инициализация успешна. Следим за треками через Sonata...');
-
+    this.lastCheckTime = Date.now();
     // Запускаем интервал проверки процента прослушивания (раз в секунду)
     this.checkInterval = setInterval(() => this.checkProgress(), 1000);
   }
@@ -29,6 +33,10 @@ class WrappedTracker {
       const dataObj = playerStateTrack || entityData?.meta || entityData;
       if (!dataObj) return null;
 
+      // Выводим объект Sonata и метаданные трека в консоль для анализа
+      console.log('[Wrapped Tracker] Sonata Player:', activePlayer);
+      console.log('[Wrapped Tracker] Sonata Track Object:', dataObj);
+
       let duration = 0;
       if (dataObj.durationMs) {
         duration = dataObj.durationMs / 1000;
@@ -38,21 +46,41 @@ class WrappedTracker {
 
       let artists = [];
       if (Array.isArray(dataObj.artists)) {
-        artists = dataObj.artists.map(a => ({
-          id: a.name || a.id,
-          name: typeof a === 'object' ? a.name : a,
-          cover: '' // Обложки артистов не всегда доступны тут
-        }));
+        artists = dataObj.artists.map(a => {
+          let artistCover = '';
+          if (a && typeof a === 'object') {
+            if (a.cover) {
+              if (typeof a.cover === 'string') {
+                artistCover = a.cover;
+              } else if (a.cover.uri) {
+                artistCover = a.cover.uri;
+              }
+            } else if (a.coverUri) {
+              artistCover = a.coverUri;
+            }
+            
+            if (artistCover && !artistCover.startsWith('http') && !artistCover.startsWith('//')) {
+              artistCover = 'https://' + artistCover.replace('%%', '200x200');
+            }
+          }
+          
+          return {
+            id: String(a.id || a.name || (typeof a === 'string' ? a : 'unknown')),
+            name: typeof a === 'object' ? a.name : a,
+            cover: artistCover
+          };
+        });
       }
 
       return {
-        trackId: dataObj.id || (entityData && entityData.id),
+        trackId: String(dataObj.id || (entityData && entityData.id)),
         title: dataObj.title || 'Неизвестный трек',
         cover: dataObj.coverUri ? dataObj.coverUri.replace('%%', '400x400') : null,
         duration: duration,
         artists: artists
       };
     } catch (e) {
+      console.error('[Wrapped Tracker] Error extracting track info:', e);
       return null;
     }
   }
@@ -66,26 +94,47 @@ class WrappedTracker {
     const trackInfo = this.getSonataTrackInfo(activePlayer);
     if (!trackInfo || !trackInfo.trackId) return;
 
+    const now = Date.now();
+    const isPause = activePlayer.playbackState?.playerState?.isPause?.value || activePlayer.playbackState?.playerState?.isPause;
+    const playing = !isPause;
+
     // Смена трека
     if (this.currentTrackId !== trackInfo.trackId) {
       this.currentTrackId = trackInfo.trackId;
       this.listenLogged = false;
-      this.trackStartTime = Date.now();
+      this.activePlaytimeMs = 0;
+      this.lastCheckTime = now;
+      this.isPlaying = playing;
       console.log(`[Wrapped Tracker] Новый трек: ${trackInfo.title}`);
+      return;
     }
+
+    // Если плеер физически воспроизводит трек, копим время
+    if (this.isPlaying && playing) {
+      const delta = now - this.lastCheckTime;
+      // Предохранитель от просыпания вкладки / лагов системы
+      if (delta > 0 && delta < 5000) {
+        this.activePlaytimeMs += delta;
+      }
+    }
+    
+    this.isPlaying = playing;
+    this.lastCheckTime = now;
 
     if (this.listenLogged) return;
 
     const progress = activePlayer.playbackState?.playerState?.progress?.value;
     if (!progress || !progress.position || !trackInfo.duration) return;
 
-    const position = progress.position;
+    const playtimeSec = this.activePlaytimeMs / 1000;
     const duration = trackInfo.duration;
     
-    // Порог: 30% трека
-    const threshold = duration * 0.3;
+    // Считаем прослушивание по стандарту Last.fm/Spotify: 
+    // 50% от трека или 240 секунд (что наступит раньше),
+    // при этом трек должен физически проигрываться не менее 30 секунд.
+    const threshold = Math.min(duration / 2, 240);
 
-    if (position >= threshold && threshold > 0) {
+    if (playtimeSec >= 30 && playtimeSec >= threshold && threshold > 0) {
       this.listenLogged = true; // Отмечаем, чтобы не дублировать
       await this.saveListen(trackInfo);
     }

@@ -147,7 +147,7 @@ settingsChangeListener = (settings) => {
 };
 
 if (typeof window !== 'undefined') {
-  window.addEventListener('message', (event) => {
+  window.addEventListener('message', async (event) => {
     if (event.data && event.data.type === 'YM_SYNC_STATE_CHANGED') {
       stateChangeListener(event.data.state);
     }
@@ -347,6 +347,62 @@ if (typeof window !== 'undefined') {
               response: { ok: false, error: err.message }
             }, '*');
           });
+      } else if (type === 'WRITE_FILE') {
+        const fs = require('fs');
+        const path = require('path');
+        const os = require('os');
+        const electron = require('electron');
+        
+        const defaultPath = path.join(os.homedir(), 'Desktop', payload.filename);
+        let filePath = null;
+        
+        try {
+          // Вызываем наш IPC-обработчик в главном процессе (внедрен через patch.js)
+          const result = await electron.ipcRenderer.invoke('ym-sync-show-save-dialog', {
+            defaultPath,
+            title: 'Сохранить статистику Wrapped',
+            filters: [{ name: 'JSON/JSON5 Files', extensions: ['json'] }]
+          });
+          
+          if (result) {
+            if (result.canceled) {
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: false, error: 'Cancelled' }
+              }, '*');
+              return;
+            }
+            filePath = result.filePath;
+          }
+        } catch (err) {
+          console.warn('[SYNC] Native save dialog IPC failed, falling back to direct Desktop write:', err.message);
+        }
+
+        // Если диалог отвалился или не поддерживается, пишем напрямую на рабочий стол
+        if (!filePath) {
+          filePath = defaultPath;
+        }
+        
+        try {
+          fs.writeFileSync(filePath, payload.content, 'utf8');
+          
+          try {
+            electron.shell.showItemInFolder(filePath);
+          } catch(e) {}
+          
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: true, filePath }
+          }, '*');
+        } catch(err) {
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: false, error: err.message }
+          }, '*');
+        }
       }
     }
   });

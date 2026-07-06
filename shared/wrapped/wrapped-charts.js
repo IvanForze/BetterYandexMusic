@@ -111,11 +111,13 @@ function renderArtistsTab(container, stats) {
   let listHtml = '';
   stats.topArtists.forEach((a, i) => {
     const min = Math.round(a.duration / 60);
+    const coverUrl = a.artist && a.artist.cover ? a.artist.cover : 'https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png';
     listHtml += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <div style="font-size: 18px;">
-          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block;">${i+1}.</span>
-          ${a.artist ? a.artist.name : 'Неизвестный'}
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; font-size: 18px;">
+          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block; text-align: center;">${i+1}</span>
+          <img src="${coverUrl}" style="width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover;">
+          <span style="font-weight: 500;">${a.artist ? a.artist.name : 'Неизвестный'}</span>
         </div>
         <div style="color: #ffdb4d; font-weight: bold;">${min} мин.</div>
       </div>
@@ -244,7 +246,13 @@ function renderSettingsTab(container) {
       
       <input type="file" id="ym-wrapped-import-file" accept=".json" style="display: none;">
       
-      <div id="ym-wrapped-data-status" style="color: #4CAF50; font-weight: 500; min-height: 20px;"></div>
+      <div id="ym-wrapped-data-status" style="color: #4CAF50; font-weight: 500; min-height: 20px; margin-bottom: 20px;"></div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+        <button id="ym-wrapped-clear-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ff4d4d; background: transparent; color: #ff4d4d; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;">
+          🗑️ Очистить всю статистику
+        </button>
+      </div>
     </div>
   `;
 
@@ -253,30 +261,76 @@ function renderSettingsTab(container) {
   const importBtn = document.getElementById('ym-wrapped-import-btn');
   const fileInput = document.getElementById('ym-wrapped-import-file');
   const statusDiv = document.getElementById('ym-wrapped-data-status');
+  const clearBtn = document.getElementById('ym-wrapped-clear-btn');
 
   // Экспорт
   exportBtn.addEventListener('click', async () => {
     exportBtn.innerText = '⏳ Подготовка...';
     try {
       const jsonStr = await window.wrappedDB.exportData();
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
       
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `betteryandexmusic_wrapped_data_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const isDesktop = typeof window !== 'undefined' && 
+        (window.navigator.userAgent.includes('Electron') || 
+         (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
 
-      statusDiv.innerText = '✅ Данные успешно экспортированы!';
-      statusDiv.style.color = '#4CAF50';
+      const filename = `betteryandexmusic_wrapped_data_${new Date().toISOString().split('T')[0]}.json`;
+
+      if (isDesktop) {
+        // На десктопе сохраняем напрямую через Node.js мост, так как обычное скачивание Blobs не работает
+        const requestId = `write_file_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        
+        const handler = (event) => {
+          if (!event.data || !event.data.__ym_sc_bridge_response || event.data.requestId !== requestId) return;
+          window.removeEventListener('message', handler);
+          
+          const response = event.data.response;
+          if (response && response.ok) {
+            // Если сохранен через диалог, путь может отличаться от Рабочего стола
+            const savedFilename = response.filePath ? response.filePath.split(/[/\\]/).pop() : filename;
+            statusDiv.innerText = `✅ Успешно экспортировано: ${savedFilename}`;
+            statusDiv.style.color = '#4CAF50';
+          } else {
+            if (response.error === 'Cancelled') {
+              statusDiv.innerText = '⚠️ Экспорт отменен пользователем.';
+              statusDiv.style.color = '#ffdb4d';
+            } else {
+              statusDiv.innerText = `❌ Ошибка записи файла: ${response.error || 'Unknown error'}`;
+              statusDiv.style.color = '#ff4d4d';
+            }
+          }
+          exportBtn.innerText = '📥 Экспорт в JSON';
+        };
+        
+        window.addEventListener('message', handler);
+        
+        window.postMessage({
+          __ym_sc_bridge: true,
+          requestId,
+          type: 'WRITE_FILE',
+          payload: { filename, content: jsonStr }
+        }, '*');
+
+      } else {
+        // Обычное скачивание для веб-версии
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        statusDiv.innerText = '✅ Данные успешно экспортированы!';
+        statusDiv.style.color = '#4CAF50';
+        exportBtn.innerText = '📥 Экспорт в JSON';
+      }
     } catch (e) {
       console.error(e);
       statusDiv.innerText = '❌ Ошибка экспорта данных.';
       statusDiv.style.color = '#ff4d4d';
-    } finally {
       exportBtn.innerText = '📥 Экспорт в JSON';
     }
   });
@@ -298,7 +352,12 @@ function renderSettingsTab(container) {
       try {
         statusDiv.innerText = '⏳ Объединение данных...';
         const res = await window.wrappedDB.importData(event.target.result);
-        statusDiv.innerText = `✅ Импорт завершен! Добавлено новых записей: ${res.addedCount}.`;
+        
+        let sourceStr = 'неизвестного источника';
+        if (res.source === 'web') sourceStr = 'веб-версии';
+        if (res.source === 'desktop') sourceStr = 'десктоп-приложения';
+        
+        statusDiv.innerText = `✅ Импорт из ${sourceStr} успешно завершен! Добавлено новых записей: ${res.addedCount}.`;
         statusDiv.style.color = '#4CAF50';
         
         // Обновляем графики если нужно
@@ -317,6 +376,30 @@ function renderSettingsTab(container) {
       statusDiv.style.color = '#ff4d4d';
     };
     reader.readAsText(file);
+  });
+
+  // Очистка данных
+  clearBtn.addEventListener('click', async () => {
+    const confirmed = confirm('Вы уверены, что хотите полностью стереть локальную статистику? Все прослушивания будут безвозвратно удалены.');
+    if (!confirmed) return;
+
+    clearBtn.innerText = '⏳ Очистка...';
+    try {
+      await window.wrappedDB.clearAllData();
+      statusDiv.innerText = '🗑️ База данных статистики успешно очищена.';
+      statusDiv.style.color = '#ff4d4d';
+      
+      // Перерисовываем пустую страницу
+      if (typeof window.renderWrappedCharts === 'function') {
+        setTimeout(() => window.renderWrappedCharts(), 1500);
+      }
+    } catch(err) {
+      console.error(err);
+      statusDiv.innerText = '❌ Ошибка очистки: ' + err.message;
+      statusDiv.style.color = '#ff4d4d';
+    } finally {
+      clearBtn.innerText = '🗑️ Очистить всю статистику';
+    }
   });
 }
 

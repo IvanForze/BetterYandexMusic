@@ -59,7 +59,6 @@ if (fs.existsSync(indexJSPath)) {
   if (content.includes(searchStr)) {
     console.log("Внедряем команду автооткрытия DevTools...");
     content = content.replace(searchStr, 'webPreferences\n  });\n  window.webContents.openDevTools();');
-    fs.writeFileSync(indexJSPath, content, 'utf8');
   } else {
     // Пробуем другой вариант
     const searchStr2 = 'webPreferences\n  });';
@@ -70,12 +69,33 @@ if (fs.existsSync(indexJSPath)) {
       const endOfConstructor = content.indexOf('});', index);
       if (endOfConstructor !== -1) {
         content = content.substring(0, endOfConstructor + 3) + '\n  window.webContents.openDevTools();' + content.substring(endOfConstructor + 3);
-        fs.writeFileSync(indexJSPath, content, 'utf8');
       }
     } else {
       console.warn("Предупреждение: Не удалось найти место создания BrowserWindow в index.js");
     }
   }
+
+  // Внедряем IPC-обработчик для диалога сохранения
+  if (!content.includes('ym-sync-show-save-dialog')) {
+    console.log("Внедряем IPC-обработчик ym-sync-show-save-dialog в index.js...");
+    content += `
+// --- YM SYNC EXPORT PATCH ---
+try {
+  const { ipcMain, dialog } = require('electron');
+  ipcMain.handle('ym-sync-show-save-dialog', async (event, options) => {
+    const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
+    if (parentWindow) {
+      return await dialog.showSaveDialog(parentWindow, options);
+    } else {
+      return await dialog.showSaveDialog(options);
+    }
+  });
+} catch(e) {
+  console.error('[SYNC] Failed to inject ym-sync-show-save-dialog:', e);
+}
+`;
+  }
+  fs.writeFileSync(indexJSPath, content, 'utf8');
 }
 
 // Запаковка

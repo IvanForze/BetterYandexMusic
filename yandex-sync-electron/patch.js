@@ -94,8 +94,29 @@ if (fs.existsSync(indexJSPath)) {
   if (indexContent.includes('window.webContents.openDevTools();')) {
     console.log("Найден автозапуск DevTools в index.js. Отключаем его для продакшн-сборки...");
     indexContent = indexContent.replace(/\r?\n\s*window\.webContents\.openDevTools\(\);/g, '');
-    fs.writeFileSync(indexJSPath, indexContent, 'utf8');
   }
+
+  // Внедряем IPC-обработчик для диалога сохранения
+  if (!indexContent.includes('ym-sync-show-save-dialog')) {
+    console.log("Внедряем IPC-обработчик ym-sync-show-save-dialog в index.js...");
+    indexContent += `
+// --- YM SYNC EXPORT PATCH ---
+try {
+  const { ipcMain, dialog } = require('electron');
+  ipcMain.handle('ym-sync-show-save-dialog', async (event, options) => {
+    const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
+    if (parentWindow) {
+      return await dialog.showSaveDialog(parentWindow, options);
+    } else {
+      return await dialog.showSaveDialog(options);
+    }
+  });
+} catch(e) {
+  console.error('[SYNC] Failed to inject ym-sync-show-save-dialog:', e);
+}
+`;
+  }
+  fs.writeFileSync(indexJSPath, indexContent, 'utf8');
 }
 
 // 3. Рекурсивный поиск preload-скрипта в распакованной папке

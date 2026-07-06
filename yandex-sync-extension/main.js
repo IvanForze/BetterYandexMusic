@@ -1277,12 +1277,12 @@ function createWrappedOverlay() {
     #ym-wrapped-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, rgba(20,20,25,0.95) 0%, rgba(10,10,15,0.98) 100%);
+      background: var(--ym-popover-bg, linear-gradient(135deg, rgba(20,20,25,0.98) 0%, rgba(10,10,15,0.99) 100%));
       z-index: 999999;
       display: flex;
       opacity: 1;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      color: white;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      color: var(--ym-popover-text, white);
       font-family: 'YS Text', sans-serif;
       transform: scale(1);
       pointer-events: auto;
@@ -1290,7 +1290,7 @@ function createWrappedOverlay() {
     .ym-wrapped-overlay-hidden {
       opacity: 0;
       pointer-events: none !important;
-      transform: scale(1.05) !important;
+      transform: scale(1.03) !important;
     }
     .ym-wrapped-overlay-visible {
       opacity: 1;
@@ -1306,14 +1306,13 @@ function createWrappedOverlay() {
     .ym-wrapped-sidebar h2 {
       margin: 0 0 40px 10px;
       font-size: 24px;
-      background: linear-gradient(90deg, #ffdb4d, #ff8c00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      color: var(--ym-popover-text, white);
     }
     .ym-wrapped-tab-btn {
       background: transparent;
       border: none;
-      color: rgba(255,255,255,0.6);
+      color: var(--ym-popover-text-muted, rgba(255,255,255,0.6));
       padding: 15px 20px;
       text-align: left;
       font-size: 16px;
@@ -1325,10 +1324,12 @@ function createWrappedOverlay() {
       font-family: inherit;
     }
     .ym-wrapped-tab-btn:hover {
-      color: white;
+      color: var(--ym-popover-text, white);
+      background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.05));
     }
     .ym-wrapped-tab-btn.active {
-      color: #ffdb4d;
+      color: var(--ym-popover-active, #ffdb4d);
+      background: var(--ym-popover-item-bg, rgba(255, 219, 77, 0.15));
       font-weight: bold;
     }
 
@@ -1344,9 +1345,9 @@ function createWrappedOverlay() {
       position: absolute;
       top: 30px;
       right: 40px;
-      background: rgba(255,255,255,0.1);
+      background: var(--ym-popover-item-bg, rgba(255,255,255,0.1));
       border: none;
-      color: white;
+      color: var(--ym-popover-close-btn, white);
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -1354,11 +1355,12 @@ function createWrappedOverlay() {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s, transform 0.2s;
+      transition: background 0.2s, transform 0.2s, color 0.2s;
       z-index: 10;
     }
     .ym-wrapped-close:hover {
-      background: rgba(255,255,255,0.2);
+      background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.2));
+      color: var(--ym-popover-close-btn-hover, white);
       transform: scale(1.1);
     }
     
@@ -1450,13 +1452,12 @@ function closeWrapped() {
   wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
   wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
   
-  // Ждем окончания анимации (0.4s) перед тем как вернуть скролл, 
-  // чтобы страница не прыгала во время затухания
+  // Ждем окончания анимации (0.2s) перед тем как вернуть скролл
   setTimeout(() => {
     if (wrappedOverlay.classList.contains('ym-wrapped-overlay-hidden')) {
       document.body.style.overflow = '';
     }
-  }, 400);
+  }, 200);
 }
 
 function injectWrappedButton() {
@@ -1646,14 +1647,14 @@ class WrappedDB {
           tracksStore.openCursor().onsuccess = (event) => {
             const cursor = event.target.result;
             if (cursor) {
-              tracks.set(cursor.value.id, cursor.value);
+              tracks.set(String(cursor.value.id), cursor.value);
               cursor.continue();
             } else {
               // Загрузка метаданных артистов
               artistsStore.openCursor().onsuccess = (event) => {
                 const cursor = event.target.result;
                 if (cursor) {
-                  artists.set(cursor.value.id, cursor.value);
+                  artists.set(String(cursor.value.id), cursor.value);
                   cursor.continue();
                 } else {
                   resolve(this.aggregateStats(listens, tracks, artists));
@@ -1677,19 +1678,21 @@ class WrappedDB {
     const listensByMonth = new Array(12).fill(0);
 
     for (const listen of listens) {
-      const track = tracksMap.get(listen.trackId);
+      const track = tracksMap.get(String(listen.trackId));
       if (!track) continue;
 
       totalDurationSec += track.duration || 0;
 
       // Топ треков
-      trackCounts[listen.trackId] = (trackCounts[listen.trackId] || 0) + 1;
+      const strTrackId = String(listen.trackId);
+      trackCounts[strTrackId] = (trackCounts[strTrackId] || 0) + 1;
 
       // Топ артистов
       if (track.artists) {
         track.artists.forEach(artistId => {
-          artistCounts[artistId] = (artistCounts[artistId] || 0) + 1;
-          artistDuration[artistId] = (artistDuration[artistId] || 0) + (track.duration || 0);
+          const strArtistId = String(artistId);
+          artistCounts[strArtistId] = (artistCounts[strArtistId] || 0) + 1;
+          artistDuration[strArtistId] = (artistDuration[strArtistId] || 0) + (track.duration || 0);
         });
       }
 
@@ -1701,14 +1704,14 @@ class WrappedDB {
     // Сортировка топов
     const topTracks = Object.entries(trackCounts)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
-      .map(([id, count]) => ({ track: tracksMap.get(id), count }));
+      .slice(0, 10)
+      .map(([id, count]) => ({ track: tracksMap.get(String(id)), count }));
 
     const topArtists = Object.entries(artistDuration) // Сортируем по времени прослушивания
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 5)
+      .slice(0, 10)
       .map(([id, duration]) => ({ 
-        artist: artistsMap.get(id), 
+        artist: artistsMap.get(String(id)), 
         duration,
         count: artistCounts[id]
       }));
@@ -1727,12 +1730,24 @@ class WrappedDB {
     await this.initPromise;
     return new Promise((resolve, reject) => {
       const transaction = this.db.transaction(['listens', 'tracks', 'artists'], 'readonly');
-      const data = { listens: [], tracks: [], artists: [] };
+      
+      const isDesktop = typeof window !== 'undefined' && 
+        (window.navigator.userAgent.includes('Electron') || 
+         (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+      const data = { 
+        version: 1,
+        source: isDesktop ? 'desktop' : 'web',
+        exportedAt: new Date().toISOString(),
+        listens: [], 
+        tracks: [], 
+        artists: [] 
+      };
       
       let storesCompleted = 0;
       const checkDone = () => {
         storesCompleted++;
-        if (storesCompleted === 3) resolve(JSON.stringify(data));
+        if (storesCompleted === 3) resolve(JSON.stringify(data, null, 2));
       };
 
       transaction.objectStore('listens').getAll().onsuccess = e => { data.listens = e.target.result; checkDone(); };
@@ -1752,7 +1767,12 @@ class WrappedDB {
         return reject(new Error('Неверный формат JSON'));
       }
 
-      if (!data.listens || !data.tracks || !data.artists) {
+      const listens = data.listens;
+      const tracks = data.tracks;
+      const artists = data.artists;
+      const source = data.source || 'unknown';
+
+      if (!listens || !tracks || !artists) {
         return reject(new Error('Отсутствуют необходимые таблицы в JSON'));
       }
 
@@ -1762,8 +1782,8 @@ class WrappedDB {
       const artistsStore = transaction.objectStore('artists');
 
       // Сохраняем tracks и artists (put сам обновит/запишет поверх)
-      data.tracks.forEach(track => tracksStore.put(track));
-      data.artists.forEach(artist => artistsStore.put(artist));
+      tracks.forEach(track => tracksStore.put(track));
+      artists.forEach(artist => artistsStore.put(artist));
 
       // Для listens нужно избежать дубликатов.
       // Так как keyPath='id' (autoIncrement), мы не можем просто put, если id пересекаются или разные на разных ПК.
@@ -1773,7 +1793,7 @@ class WrappedDB {
         const existingSet = new Set(existingListens.map(l => `${l.trackId}-${l.timestamp}`));
 
         let addedCount = 0;
-        data.listens.forEach(listen => {
+        listens.forEach(listen => {
           const key = `${listen.trackId}-${listen.timestamp}`;
           if (!existingSet.has(key)) {
             // Удаляем старый id, чтобы IndexedDB сгенерировал новый (autoIncrement)
@@ -1783,9 +1803,24 @@ class WrappedDB {
           }
         });
 
-        resolve({ addedCount });
+        resolve({ addedCount, source });
       };
 
+      transaction.onerror = (e) => reject(e.target.error);
+    });
+  }
+
+  // Очистка всех данных в БД
+  async clearAllData() {
+    await this.initPromise;
+    return new Promise((resolve, reject) => {
+      const transaction = this.db.transaction(['listens', 'tracks', 'artists'], 'readwrite');
+      
+      transaction.objectStore('listens').clear();
+      transaction.objectStore('tracks').clear();
+      transaction.objectStore('artists').clear();
+
+      transaction.oncomplete = () => resolve();
       transaction.onerror = (e) => reject(e.target.error);
     });
   }
@@ -1806,9 +1841,13 @@ if (typeof window !== 'undefined') {
 class WrappedTracker {
   constructor() {
     this.currentTrackId = null;
-    this.trackStartTime = 0;
     this.listenLogged = false;
     this.checkInterval = null;
+    
+    // Трекинг чистого времени прослушивания в миллисекундах
+    this.activePlaytimeMs = 0;
+    this.lastCheckTime = 0;
+    this.isPlaying = false;
     
     // Запускаем инициализацию с задержкой
     setTimeout(() => this.init(), 3000);
@@ -1816,7 +1855,7 @@ class WrappedTracker {
 
   init() {
     console.log('[Wrapped Tracker] Инициализация успешна. Следим за треками через Sonata...');
-
+    this.lastCheckTime = Date.now();
     // Запускаем интервал проверки процента прослушивания (раз в секунду)
     this.checkInterval = setInterval(() => this.checkProgress(), 1000);
   }
@@ -1830,6 +1869,10 @@ class WrappedTracker {
       const dataObj = playerStateTrack || entityData?.meta || entityData;
       if (!dataObj) return null;
 
+      // Выводим объект Sonata и метаданные трека в консоль для анализа
+      console.log('[Wrapped Tracker] Sonata Player:', activePlayer);
+      console.log('[Wrapped Tracker] Sonata Track Object:', dataObj);
+
       let duration = 0;
       if (dataObj.durationMs) {
         duration = dataObj.durationMs / 1000;
@@ -1839,21 +1882,41 @@ class WrappedTracker {
 
       let artists = [];
       if (Array.isArray(dataObj.artists)) {
-        artists = dataObj.artists.map(a => ({
-          id: a.name || a.id,
-          name: typeof a === 'object' ? a.name : a,
-          cover: '' // Обложки артистов не всегда доступны тут
-        }));
+        artists = dataObj.artists.map(a => {
+          let artistCover = '';
+          if (a && typeof a === 'object') {
+            if (a.cover) {
+              if (typeof a.cover === 'string') {
+                artistCover = a.cover;
+              } else if (a.cover.uri) {
+                artistCover = a.cover.uri;
+              }
+            } else if (a.coverUri) {
+              artistCover = a.coverUri;
+            }
+            
+            if (artistCover && !artistCover.startsWith('http') && !artistCover.startsWith('//')) {
+              artistCover = 'https://' + artistCover.replace('%%', '200x200');
+            }
+          }
+          
+          return {
+            id: String(a.id || a.name || (typeof a === 'string' ? a : 'unknown')),
+            name: typeof a === 'object' ? a.name : a,
+            cover: artistCover
+          };
+        });
       }
 
       return {
-        trackId: dataObj.id || (entityData && entityData.id),
+        trackId: String(dataObj.id || (entityData && entityData.id)),
         title: dataObj.title || 'Неизвестный трек',
         cover: dataObj.coverUri ? dataObj.coverUri.replace('%%', '400x400') : null,
         duration: duration,
         artists: artists
       };
     } catch (e) {
+      console.error('[Wrapped Tracker] Error extracting track info:', e);
       return null;
     }
   }
@@ -1867,26 +1930,47 @@ class WrappedTracker {
     const trackInfo = this.getSonataTrackInfo(activePlayer);
     if (!trackInfo || !trackInfo.trackId) return;
 
+    const now = Date.now();
+    const isPause = activePlayer.playbackState?.playerState?.isPause?.value || activePlayer.playbackState?.playerState?.isPause;
+    const playing = !isPause;
+
     // Смена трека
     if (this.currentTrackId !== trackInfo.trackId) {
       this.currentTrackId = trackInfo.trackId;
       this.listenLogged = false;
-      this.trackStartTime = Date.now();
+      this.activePlaytimeMs = 0;
+      this.lastCheckTime = now;
+      this.isPlaying = playing;
       console.log(`[Wrapped Tracker] Новый трек: ${trackInfo.title}`);
+      return;
     }
+
+    // Если плеер физически воспроизводит трек, копим время
+    if (this.isPlaying && playing) {
+      const delta = now - this.lastCheckTime;
+      // Предохранитель от просыпания вкладки / лагов системы
+      if (delta > 0 && delta < 5000) {
+        this.activePlaytimeMs += delta;
+      }
+    }
+    
+    this.isPlaying = playing;
+    this.lastCheckTime = now;
 
     if (this.listenLogged) return;
 
     const progress = activePlayer.playbackState?.playerState?.progress?.value;
     if (!progress || !progress.position || !trackInfo.duration) return;
 
-    const position = progress.position;
+    const playtimeSec = this.activePlaytimeMs / 1000;
     const duration = trackInfo.duration;
     
-    // Порог: 30% трека
-    const threshold = duration * 0.3;
+    // Считаем прослушивание по стандарту Last.fm/Spotify: 
+    // 50% от трека или 240 секунд (что наступит раньше),
+    // при этом трек должен физически проигрываться не менее 30 секунд.
+    const threshold = Math.min(duration / 2, 240);
 
-    if (position >= threshold && threshold > 0) {
+    if (playtimeSec >= 30 && playtimeSec >= threshold && threshold > 0) {
       this.listenLogged = true; // Отмечаем, чтобы не дублировать
       await this.saveListen(trackInfo);
     }
@@ -2039,11 +2123,13 @@ function renderArtistsTab(container, stats) {
   let listHtml = '';
   stats.topArtists.forEach((a, i) => {
     const min = Math.round(a.duration / 60);
+    const coverUrl = a.artist && a.artist.cover ? a.artist.cover : 'https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png';
     listHtml += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <div style="font-size: 18px;">
-          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block;">${i+1}.</span>
-          ${a.artist ? a.artist.name : 'Неизвестный'}
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; font-size: 18px;">
+          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block; text-align: center;">${i+1}</span>
+          <img src="${coverUrl}" style="width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover;">
+          <span style="font-weight: 500;">${a.artist ? a.artist.name : 'Неизвестный'}</span>
         </div>
         <div style="color: #ffdb4d; font-weight: bold;">${min} мин.</div>
       </div>
@@ -2172,7 +2258,13 @@ function renderSettingsTab(container) {
       
       <input type="file" id="ym-wrapped-import-file" accept=".json" style="display: none;">
       
-      <div id="ym-wrapped-data-status" style="color: #4CAF50; font-weight: 500; min-height: 20px;"></div>
+      <div id="ym-wrapped-data-status" style="color: #4CAF50; font-weight: 500; min-height: 20px; margin-bottom: 20px;"></div>
+
+      <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+        <button id="ym-wrapped-clear-btn" style="width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #ff4d4d; background: transparent; color: #ff4d4d; font-weight: bold; font-size: 16px; cursor: pointer; transition: 0.2s;">
+          🗑️ Очистить всю статистику
+        </button>
+      </div>
     </div>
   `;
 
@@ -2181,30 +2273,76 @@ function renderSettingsTab(container) {
   const importBtn = document.getElementById('ym-wrapped-import-btn');
   const fileInput = document.getElementById('ym-wrapped-import-file');
   const statusDiv = document.getElementById('ym-wrapped-data-status');
+  const clearBtn = document.getElementById('ym-wrapped-clear-btn');
 
   // Экспорт
   exportBtn.addEventListener('click', async () => {
     exportBtn.innerText = '⏳ Подготовка...';
     try {
       const jsonStr = await window.wrappedDB.exportData();
-      const blob = new Blob([jsonStr], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
       
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `betteryandexmusic_wrapped_data_${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      const isDesktop = typeof window !== 'undefined' && 
+        (window.navigator.userAgent.includes('Electron') || 
+         (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
 
-      statusDiv.innerText = '✅ Данные успешно экспортированы!';
-      statusDiv.style.color = '#4CAF50';
+      const filename = `betteryandexmusic_wrapped_data_${new Date().toISOString().split('T')[0]}.json`;
+
+      if (isDesktop) {
+        // На десктопе сохраняем напрямую через Node.js мост, так как обычное скачивание Blobs не работает
+        const requestId = `write_file_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        
+        const handler = (event) => {
+          if (!event.data || !event.data.__ym_sc_bridge_response || event.data.requestId !== requestId) return;
+          window.removeEventListener('message', handler);
+          
+          const response = event.data.response;
+          if (response && response.ok) {
+            // Если сохранен через диалог, путь может отличаться от Рабочего стола
+            const savedFilename = response.filePath ? response.filePath.split(/[/\\]/).pop() : filename;
+            statusDiv.innerText = `✅ Успешно экспортировано: ${savedFilename}`;
+            statusDiv.style.color = '#4CAF50';
+          } else {
+            if (response.error === 'Cancelled') {
+              statusDiv.innerText = '⚠️ Экспорт отменен пользователем.';
+              statusDiv.style.color = '#ffdb4d';
+            } else {
+              statusDiv.innerText = `❌ Ошибка записи файла: ${response.error || 'Unknown error'}`;
+              statusDiv.style.color = '#ff4d4d';
+            }
+          }
+          exportBtn.innerText = '📥 Экспорт в JSON';
+        };
+        
+        window.addEventListener('message', handler);
+        
+        window.postMessage({
+          __ym_sc_bridge: true,
+          requestId,
+          type: 'WRITE_FILE',
+          payload: { filename, content: jsonStr }
+        }, '*');
+
+      } else {
+        // Обычное скачивание для веб-версии
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        statusDiv.innerText = '✅ Данные успешно экспортированы!';
+        statusDiv.style.color = '#4CAF50';
+        exportBtn.innerText = '📥 Экспорт в JSON';
+      }
     } catch (e) {
       console.error(e);
       statusDiv.innerText = '❌ Ошибка экспорта данных.';
       statusDiv.style.color = '#ff4d4d';
-    } finally {
       exportBtn.innerText = '📥 Экспорт в JSON';
     }
   });
@@ -2226,7 +2364,12 @@ function renderSettingsTab(container) {
       try {
         statusDiv.innerText = '⏳ Объединение данных...';
         const res = await window.wrappedDB.importData(event.target.result);
-        statusDiv.innerText = `✅ Импорт завершен! Добавлено новых записей: ${res.addedCount}.`;
+        
+        let sourceStr = 'неизвестного источника';
+        if (res.source === 'web') sourceStr = 'веб-версии';
+        if (res.source === 'desktop') sourceStr = 'десктоп-приложения';
+        
+        statusDiv.innerText = `✅ Импорт из ${sourceStr} успешно завершен! Добавлено новых записей: ${res.addedCount}.`;
         statusDiv.style.color = '#4CAF50';
         
         // Обновляем графики если нужно
@@ -2245,6 +2388,30 @@ function renderSettingsTab(container) {
       statusDiv.style.color = '#ff4d4d';
     };
     reader.readAsText(file);
+  });
+
+  // Очистка данных
+  clearBtn.addEventListener('click', async () => {
+    const confirmed = confirm('Вы уверены, что хотите полностью стереть локальную статистику? Все прослушивания будут безвозвратно удалены.');
+    if (!confirmed) return;
+
+    clearBtn.innerText = '⏳ Очистка...';
+    try {
+      await window.wrappedDB.clearAllData();
+      statusDiv.innerText = '🗑️ База данных статистики успешно очищена.';
+      statusDiv.style.color = '#ff4d4d';
+      
+      // Перерисовываем пустую страницу
+      if (typeof window.renderWrappedCharts === 'function') {
+        setTimeout(() => window.renderWrappedCharts(), 1500);
+      }
+    } catch(err) {
+      console.error(err);
+      statusDiv.innerText = '❌ Ошибка очистки: ' + err.message;
+      statusDiv.style.color = '#ff4d4d';
+    } finally {
+      clearBtn.innerText = '🗑️ Очистить всю статистику';
+    }
   });
 }
 

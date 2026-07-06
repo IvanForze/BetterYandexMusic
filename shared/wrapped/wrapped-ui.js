@@ -17,12 +17,12 @@ function createWrappedOverlay() {
     #ym-wrapped-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, rgba(20,20,25,0.95) 0%, rgba(10,10,15,0.98) 100%);
+      background: var(--ym-popover-bg, linear-gradient(135deg, rgba(20,20,25,0.98) 0%, rgba(10,10,15,0.99) 100%));
       z-index: 999999;
       display: flex;
       opacity: 1;
-      transition: opacity 0.4s ease, transform 0.4s ease;
-      color: white;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      color: var(--ym-popover-text, white);
       font-family: 'YS Text', sans-serif;
       transform: scale(1);
       pointer-events: auto;
@@ -30,7 +30,7 @@ function createWrappedOverlay() {
     .ym-wrapped-overlay-hidden {
       opacity: 0;
       pointer-events: none !important;
-      transform: scale(1.05) !important;
+      transform: scale(1.03) !important;
     }
     .ym-wrapped-overlay-visible {
       opacity: 1;
@@ -46,14 +46,13 @@ function createWrappedOverlay() {
     .ym-wrapped-sidebar h2 {
       margin: 0 0 40px 10px;
       font-size: 24px;
-      background: linear-gradient(90deg, #ffdb4d, #ff8c00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-weight: bold;
+      color: var(--ym-popover-text, white);
     }
     .ym-wrapped-tab-btn {
       background: transparent;
       border: none;
-      color: rgba(255,255,255,0.6);
+      color: var(--ym-popover-text-muted, rgba(255,255,255,0.6));
       padding: 15px 20px;
       text-align: left;
       font-size: 16px;
@@ -65,10 +64,12 @@ function createWrappedOverlay() {
       font-family: inherit;
     }
     .ym-wrapped-tab-btn:hover {
-      color: white;
+      color: var(--ym-popover-text, white);
+      background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.05));
     }
     .ym-wrapped-tab-btn.active {
-      color: #ffdb4d;
+      color: var(--ym-popover-active, #ffdb4d);
+      background: var(--ym-popover-item-bg, rgba(255, 219, 77, 0.15));
       font-weight: bold;
     }
 
@@ -84,9 +85,9 @@ function createWrappedOverlay() {
       position: absolute;
       top: 30px;
       right: 40px;
-      background: rgba(255,255,255,0.1);
+      background: var(--ym-popover-item-bg, rgba(255,255,255,0.1));
       border: none;
-      color: white;
+      color: var(--ym-popover-close-btn, white);
       width: 40px;
       height: 40px;
       border-radius: 50%;
@@ -94,11 +95,12 @@ function createWrappedOverlay() {
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.2s, transform 0.2s;
+      transition: background 0.2s, transform 0.2s, color 0.2s;
       z-index: 10;
     }
     .ym-wrapped-close:hover {
-      background: rgba(255,255,255,0.2);
+      background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.2));
+      color: var(--ym-popover-close-btn-hover, white);
       transform: scale(1.1);
     }
     
@@ -190,13 +192,12 @@ function closeWrapped() {
   wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
   wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
   
-  // Ждем окончания анимации (0.4s) перед тем как вернуть скролл, 
-  // чтобы страница не прыгала во время затухания
+  // Ждем окончания анимации (0.2s) перед тем как вернуть скролл
   setTimeout(() => {
     if (wrappedOverlay.classList.contains('ym-wrapped-overlay-hidden')) {
       document.body.style.overflow = '';
     }
-  }, 400);
+  }, 200);
 }
 
 function injectWrappedButton() {
