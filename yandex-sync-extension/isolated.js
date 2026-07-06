@@ -3451,10 +3451,9 @@ function setupPopoverListeners() {
     shareBtn.addEventListener('click', () => {
       if (roomInput && roomInput.value) {
         const roomId = roomInput.value;
-        const activeUrl = new URL(window.location.href);
-        activeUrl.searchParams.delete('sync_code');
-        activeUrl.searchParams.set('sync_code', roomId);
-        navigator.clipboard.writeText(activeUrl.toString()).then(() => {
+        const shareUrlStr = `https://music.yandex.ru/?sync_code=${encodeURIComponent(roomId)}`;
+
+        navigator.clipboard.writeText(shareUrlStr).then(() => {
           const originalHTML = shareBtn.innerHTML;
           shareBtn.innerHTML = `
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

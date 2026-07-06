@@ -1,6 +1,6 @@
 {
   "name": "betteryandexmusic",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Better Yandex Music",
   "main": "server.js",
   "scripts": {
