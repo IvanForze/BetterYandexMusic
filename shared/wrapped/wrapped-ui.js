@@ -4,6 +4,7 @@
 
 let wrappedOverlay = null;
 
+// Создание оболочки (overlay) для Wrapped
 function createWrappedOverlay() {
   if (wrappedOverlay) return wrappedOverlay;
 
@@ -11,37 +12,158 @@ function createWrappedOverlay() {
   wrappedOverlay.id = 'ym-wrapped-overlay';
   wrappedOverlay.className = 'ym-wrapped-overlay-hidden';
 
+  const style = document.createElement('style');
+  style.textContent = `
+    #ym-wrapped-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, rgba(20,20,25,0.95) 0%, rgba(10,10,15,0.98) 100%);
+      z-index: 999999;
+      display: flex;
+      opacity: 1;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+      color: white;
+      font-family: 'YS Text', sans-serif;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+    .ym-wrapped-overlay-hidden {
+      opacity: 0;
+      pointer-events: none !important;
+      transform: scale(1.05) !important;
+    }
+    .ym-wrapped-overlay-visible {
+      opacity: 1;
+    }
+    
+    /* Sidebar (Tabs) */
+    .ym-wrapped-sidebar {
+      width: 250px;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    .ym-wrapped-sidebar h2 {
+      margin: 0 0 40px 10px;
+      font-size: 24px;
+      background: linear-gradient(90deg, #ffdb4d, #ff8c00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .ym-wrapped-tab-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,0.6);
+      padding: 15px 20px;
+      text-align: left;
+      font-size: 16px;
+      font-weight: 500;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+    .ym-wrapped-tab-btn:hover {
+      color: white;
+    }
+    .ym-wrapped-tab-btn.active {
+      color: #ffdb4d;
+      font-weight: bold;
+    }
+
+    /* Content Area */
+    .ym-wrapped-main {
+      flex: 1;
+      padding: 50px;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    .ym-wrapped-close {
+      position: absolute;
+      top: 30px;
+      right: 40px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.2s;
+      z-index: 10;
+    }
+    .ym-wrapped-close:hover {
+      background: rgba(255,255,255,0.2);
+      transform: scale(1.1);
+    }
+    
+    .ym-wrapped-tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .ym-wrapped-tab-content.active {
+      display: block;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  `;
+
+  document.head.appendChild(style);
+
   wrappedOverlay.innerHTML = `
-    <div class="ym-wrapped-content">
-      <button class="ym-wrapped-close" aria-label="Закрыть">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
-          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-        </svg>
-      </button>
-      <div class="ym-wrapped-header">
-        <h1>Твоя Статистика</h1>
-        <p>Локальный Wrapped (Бета)</p>
-      </div>
-      <div class="ym-wrapped-body">
-        <div style="text-align: center; color: rgba(255,255,255,0.5); margin-top: 50px;">
-          Здесь скоро появятся красивые графики 🚀
-        </div>
-      </div>
+    <button class="ym-wrapped-close" aria-label="Закрыть">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+      </svg>
+    </button>
+    <div class="ym-wrapped-sidebar">
+      <h2>Статистика</h2>
+      <button class="ym-wrapped-tab-btn active" data-tab="overview">Обзор</button>
+      <button class="ym-wrapped-tab-btn" data-tab="artists">Топ Артистов</button>
+      <button class="ym-wrapped-tab-btn" data-tab="tracks">Топ Треков</button>
+      <button class="ym-wrapped-tab-btn" data-tab="settings">Данные и Экспорт</button>
+    </div>
+    
+    <div class="ym-wrapped-main">
+      <!-- Контейнер куда будут рендериться графики -->
+      <div id="ym-wrapped-tab-overview" class="ym-wrapped-tab-content active"></div>
+      <div id="ym-wrapped-tab-artists" class="ym-wrapped-tab-content"></div>
+      <div id="ym-wrapped-tab-tracks" class="ym-wrapped-tab-content"></div>
+      <div id="ym-wrapped-tab-settings" class="ym-wrapped-tab-content"></div>
     </div>
   `;
 
   document.body.appendChild(wrappedOverlay);
 
-  // Закрытие по клику на крестик
+  // Обработка закрытия
   wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', () => {
     closeWrapped();
   });
 
-  // Закрытие по клику вне контента
-  wrappedOverlay.addEventListener('click', (e) => {
-    if (e.target === wrappedOverlay) {
-      closeWrapped();
-    }
+  // Логика переключения вкладок
+  const tabBtns = wrappedOverlay.querySelectorAll('.ym-wrapped-tab-btn');
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      // Снимаем active со всех кнопок и контента
+      tabBtns.forEach(b => b.classList.remove('active'));
+      wrappedOverlay.querySelectorAll('.ym-wrapped-tab-content').forEach(c => c.classList.remove('active'));
+      
+      // Ставим active на нажатую
+      btn.classList.add('active');
+      const tabId = btn.getAttribute('data-tab');
+      const content = wrappedOverlay.querySelector('#ym-wrapped-tab-' + tabId);
+      if (content) content.classList.add('active');
+    });
   });
 
   return wrappedOverlay;
@@ -49,16 +171,32 @@ function createWrappedOverlay() {
 
 function openWrapped() {
   const overlay = createWrappedOverlay();
+  
+  // Принудительно запрашиваем offsetWidth, чтобы браузер отрендерил элемент
+  void overlay.offsetWidth;
+  
   overlay.classList.remove('ym-wrapped-overlay-hidden');
   overlay.classList.add('ym-wrapped-overlay-visible');
   document.body.style.overflow = 'hidden';
+
+  // Рендерим графики при открытии
+  if (typeof window.renderWrappedCharts === 'function') {
+    window.renderWrappedCharts();
+  }
 }
 
 function closeWrapped() {
   if (!wrappedOverlay) return;
   wrappedOverlay.classList.remove('ym-wrapped-overlay-visible');
   wrappedOverlay.classList.add('ym-wrapped-overlay-hidden');
-  document.body.style.overflow = '';
+  
+  // Ждем окончания анимации (0.4s) перед тем как вернуть скролл, 
+  // чтобы страница не прыгала во время затухания
+  setTimeout(() => {
+    if (wrappedOverlay.classList.contains('ym-wrapped-overlay-hidden')) {
+      document.body.style.overflow = '';
+    }
+  }, 400);
 }
 
 function injectWrappedButton() {
@@ -118,11 +256,6 @@ function initWrappedInjector() {
   const observer = new MutationObserver((mutations) => {
     if (!document.getElementById('ym-wrapped-btn')) {
       injectWrappedButton();
-    }
-    
-    // Синхронизация свернутого состояния (если есть функция из navbar-sync)
-    if (typeof syncButtonCollapsedState === 'function') {
-      syncButtonCollapsedState('ym-wrapped-btn');
     }
   });
 

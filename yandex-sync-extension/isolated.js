@@ -3233,7 +3233,7 @@ function applyThemeCSS(themeName, customColors) {
 function syncButtonCollapsedState(btnId) {
   const container = document.querySelector('ol[class*="NavbarDesktop_navigationGroup"]');
   if (!container) return;
-  const refItem = container.querySelector('li:not(#ym-sync-button):not(#ym-theme-button)');
+  const refItem = container.querySelector('li:not(.ym-navbar-item-injected)');
   const btn = document.getElementById(btnId);
   if (!refItem || !btn) return;
 
@@ -7393,6 +7393,7 @@ setInterval(() => {
       syncButtonCollapsedState('ym-sync-button');
       syncButtonCollapsedState('ym-theme-button');
       syncButtonCollapsedState('ym-sleep-timer-button');
+      syncButtonCollapsedState('ym-wrapped-btn');
     }
   }
 

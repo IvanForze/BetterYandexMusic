@@ -65,6 +65,7 @@ setInterval(() => {
       syncButtonCollapsedState('ym-sync-button');
       syncButtonCollapsedState('ym-theme-button');
       syncButtonCollapsedState('ym-sleep-timer-button');
+      syncButtonCollapsedState('ym-wrapped-btn');
     }
   }
 
