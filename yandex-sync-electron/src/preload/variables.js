@@ -8,6 +8,18 @@ let contextBridge = null;
 let serverNodeProcess = null;
 let tunnelNodeProcess = null;
 let serverStatusCallback = null;
+let lastServerStatus = { status: 'stopped' };
+
+const setServerStatus = (statusData) => {
+  lastServerStatus = statusData;
+  if (serverStatusCallback) {
+    try {
+      serverStatusCallback(statusData);
+    } catch (e) {
+      console.error('[SYNC] Ошибка обратного вызова статуса сервера:', e);
+    }
+  }
+};
 try {
   contextBridge = require('electron').contextBridge;
 } catch (e) {
@@ -22,7 +34,7 @@ const startLocalServerNode = () => {
 
   const scriptPath = path.join(__dirname, 'sync-server.bundle.js');
   if (!fs.existsSync(scriptPath)) {
-    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Сервер не установлен' });
+    setServerStatus({ status: 'error', error: 'Сервер не установлен' });
     return;
   }
 
@@ -37,7 +49,7 @@ const startLocalServerNode = () => {
       fs.writeFileSync(runPath, scriptCode, 'utf8');
     } catch (err) {
       console.error('[SYNC] Ошибка извлечения сервера:', err);
-      if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Не удалось извлечь сервер: ' + err.message });
+      setServerStatus({ status: 'error', error: 'Не удалось извлечь сервер: ' + err.message });
       return;
     }
   }
@@ -90,7 +102,7 @@ const startLocalServerNode = () => {
 
   serverNodeProcess.on('error', (err) => {
     console.error('[SYNC SERVER ERROR]', err);
-    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'Node.js сервер: ' + err.message });
+    setServerStatus({ status: 'error', error: 'Node.js сервер: ' + err.message });
   });
 
   serverNodeProcess.on('exit', (code) => {
@@ -100,12 +112,12 @@ const startLocalServerNode = () => {
   });
 
   // Запускаем cloudflared
-  if (serverStatusCallback) serverStatusCallback({ status: 'starting' });
+  setServerStatus({ status: 'starting' });
   console.log('[SYNC] Попытка запуска cloudflared туннеля...');
 
   tunnelNodeProcess = spawn(npxExe, ['cloudflared', 'tunnel', '--url', 'http://localhost:19091'], {
     env: customEnv,
-    shell: false
+    shell: process.platform === 'win32'
   });
   
   tunnelNodeProcess.stdout.on('data', (data) => console.log('[SYNC TUNNEL STDOUT]', data.toString()));
@@ -115,13 +127,13 @@ const startLocalServerNode = () => {
     const match = output.match(/https:\/\/[a-zA-Z0-9-]+\.trycloudflare\.com/);
     if (match) {
       console.log('[SYNC] Найден URL туннеля:', match[0]);
-      if (serverStatusCallback) serverStatusCallback({ status: 'running', url: match[0] });
+      setServerStatus({ status: 'running', url: match[0] });
     }
   });
 
   tunnelNodeProcess.on('error', (err) => {
     console.error('[SYNC TUNNEL ERROR]', err);
-    if (serverStatusCallback) serverStatusCallback({ status: 'error', error: 'npx cloudflared: ' + err.message });
+    setServerStatus({ status: 'error', error: 'npx cloudflared: ' + err.message });
   });
 
   tunnelNodeProcess.on('exit', (code) => {
@@ -133,14 +145,28 @@ const startLocalServerNode = () => {
 
 const stopLocalServerNode = () => {
   if (serverNodeProcess) {
-    try { serverNodeProcess.kill(); } catch (e) {}
+    try {
+      if (process.platform === 'win32') {
+        const { exec } = require('child_process');
+        exec(`taskkill /pid ${serverNodeProcess.pid} /T /F`);
+      } else {
+        serverNodeProcess.kill();
+      }
+    } catch (e) {}
     serverNodeProcess = null;
   }
   if (tunnelNodeProcess) {
-    try { tunnelNodeProcess.kill(); } catch (e) {}
+    try {
+      if (process.platform === 'win32') {
+        const { exec } = require('child_process');
+        exec(`taskkill /pid ${tunnelNodeProcess.pid} /T /F`);
+      } else {
+        tunnelNodeProcess.kill();
+      }
+    } catch (e) {}
     tunnelNodeProcess = null;
   }
-  if (serverStatusCallback) serverStatusCallback({ status: 'stopped' });
+  setServerStatus({ status: 'stopped' });
 };
 
 // При закрытии или перезагрузке окна (Electron) - убиваем процессы
@@ -222,7 +248,12 @@ try {
       },
       startLocalServer: (callback) => startLocalServerNode(callback),
       stopLocalServer: () => stopLocalServerNode(),
-      onServerStatus: (callback) => { serverStatusCallback = callback; }
+      onServerStatus: (callback) => {
+        serverStatusCallback = callback;
+        if (callback && lastServerStatus) {
+          try { callback(lastServerStatus); } catch (e) {}
+        }
+      }
     });
   } else if (typeof window !== 'undefined') {
     window.__ymSyncBridge = {
@@ -245,7 +276,12 @@ try {
       },
       startLocalServer: (callback) => startLocalServerNode(callback),
       stopLocalServer: () => stopLocalServerNode(),
-      onServerStatus: (callback) => { serverStatusCallback = callback; }
+      onServerStatus: (callback) => {
+        serverStatusCallback = callback;
+        if (callback && lastServerStatus) {
+          try { callback(lastServerStatus); } catch (e) {}
+        }
+      }
     };
   }
 } catch (e) {
@@ -322,7 +358,12 @@ try {
         },
         startLocalServer: (callback) => startLocalServerNode(callback),
         stopLocalServer: () => stopLocalServerNode(),
-        onServerStatus: (callback) => { serverStatusCallback = callback; }
+        onServerStatus: (callback) => {
+          serverStatusCallback = callback;
+          if (callback && lastServerStatus) {
+            try { callback(lastServerStatus); } catch (e) {}
+          }
+        }
       };
     }
   } catch (e2) {}
