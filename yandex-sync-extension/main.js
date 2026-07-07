@@ -2048,6 +2048,178 @@ class WrappedDB {
     }
     const listeningPersona = { name: personaName, description: personaDescription };
 
+    // 1.5 Вычисление новых аналитик: Хронотип, Разнообразие, Одержимость и Суперфанат
+    let nightListens = 0; // 22:00 - 06:00
+    let morningListens = 0; // 06:00 - 12:00
+    let dayListens = 0; // 12:00 - 18:00
+    let eveningListens = 0; // 18:00 - 22:00
+    for (let h = 0; h < 24; h++) {
+      const count = hourlyListens[h] || 0;
+      if (h >= 22 || h < 6) nightListens += count;
+      else if (h >= 6 && h < 12) morningListens += count;
+      else if (h >= 12 && h < 18) dayListens += count;
+      else eveningListens += count;
+    }
+
+    const nightPercent = totalListens > 0 ? Math.round((nightListens / totalListens) * 100) : 0;
+    const morningPercent = totalListens > 0 ? Math.round((morningListens / totalListens) * 100) : 0;
+    const dayPercent = totalListens > 0 ? Math.round((dayListens / totalListens) * 100) : 0;
+    const eveningPercent = totalListens > 0 ? Math.round((eveningListens / totalListens) * 100) : 0;
+
+    let chronotypeName = 'Дневной слушатель';
+    let chronotypeDesc = 'Вы любите слушать музыку в течение дня, сопровождая ей повседневные дела.';
+    let chronotypeIcon = '☀️';
+    const maxPercent = Math.max(nightPercent, morningPercent, dayPercent, eveningPercent);
+    if (maxPercent === nightPercent) {
+      chronotypeName = 'Ночная сова';
+      chronotypeDesc = 'Большую часть музыки вы слушаете глубокой ночью (с 22:00 до 6:00). Музыка для вас — лучший способ расслабиться в тишине.';
+      chronotypeIcon = '🦉';
+    } else if (maxPercent === morningPercent) {
+      chronotypeName = 'Ранняя пташка';
+      chronotypeDesc = 'Ваша активность приходится на утренние часы (с 6:00 до 12:00). Музыка помогает вам проснуться и настроиться на день.';
+      chronotypeIcon = '🌅';
+    } else if (maxPercent === dayPercent) {
+      chronotypeName = 'Офисный меломан';
+      chronotypeDesc = 'Вы предпочитаете слушать музыку в рабочее время (с 12:00 до 18:00). Музыка помогает сфокусироваться и скрасить рутину.';
+      chronotypeIcon = '💼';
+    } else if (maxPercent === eveningPercent) {
+      chronotypeName = 'Вечерний эстет';
+      chronotypeDesc = 'Ваша музыкальная активность расцветает вечером (с 18:00 до 22:00). Это ваше личное время для чилла после длинного дня.';
+      chronotypeIcon = '🌌';
+    }
+
+    const musicalChronotype = {
+      name: chronotypeName,
+      description: chronotypeDesc,
+      icon: chronotypeIcon,
+      percentages: {
+        night: nightPercent,
+        morning: morningPercent,
+        day: dayPercent,
+        evening: eveningPercent
+      }
+    };
+
+    const diversityPercent = totalListens > 0 ? Math.round((uniqueArtistsCount / totalListens) * 100) : 0;
+    let diversityName = 'Меломан-исследователь';
+    let diversityDesc = 'Вы держите идеальный баланс между проверенными временем любимыми хитами и поиском новых имен.';
+    let diversityIcon = '🧭';
+    if (diversityPercent < 5) {
+      diversityName = 'Консерватор-гурман';
+      diversityDesc = 'Вы нашли свои идеальные треки и заслушиваете их до дыр. Зачем искать что-то еще, если лучшее уже найдено?';
+      diversityIcon = '🧊';
+    } else if (diversityPercent > 20) {
+      diversityName = 'Музыкальный кочевник';
+      diversityDesc = 'Вы постоянно переключаетесь, не задерживаясь на одном исполнителе. Ваша фонотека полна уникальных и редких открытий.';
+      diversityIcon = '🏜️';
+    }
+
+    const musicalDiversity = {
+      name: diversityName,
+      description: diversityDesc,
+      icon: diversityIcon,
+      percent: diversityPercent,
+      uniqueArtists: uniqueArtistsCount
+    };
+
+    // Вычисление максимального репита подряд (стрик)
+    let maxStreak = 0;
+    let maxStreakTrackId = null;
+    let currentStreak = 0;
+    let lastTrackId = null;
+
+    const sortedListens = [...listens].sort((a, b) => a.timestamp - b.timestamp);
+    for (const listen of sortedListens) {
+      const tid = String(listen.trackId);
+      if (tid === lastTrackId) {
+        currentStreak++;
+      } else {
+        if (currentStreak > maxStreak) {
+          maxStreak = currentStreak;
+          maxStreakTrackId = lastTrackId;
+        }
+        currentStreak = 1;
+        lastTrackId = tid;
+      }
+    }
+    if (currentStreak > maxStreak) {
+      maxStreak = currentStreak;
+      maxStreakTrackId = lastTrackId;
+    }
+
+    let absoluteRepeatTrack = null;
+    if (maxStreak > 1 && maxStreakTrackId) {
+      const track = tracksMap.get(String(maxStreakTrackId));
+      if (track) {
+        let artistName = '';
+        if (Array.isArray(track.artists)) {
+          artistName = track.artists.map(artId => {
+            if (artId && typeof artId === 'object') return artId.name || 'Неизвестный исполнитель';
+            const artObj = artistsMap.get(String(artId));
+            return artObj ? artObj.name : String(artId);
+          }).join(', ');
+        }
+        absoluteRepeatTrack = {
+          title: track.title,
+          artist: artistName,
+          count: maxStreak
+        };
+      }
+    }
+
+    // Вычисление суточного марафона трека
+    let maxDailyTrackCount = 0;
+    let maxDailyTrackId = null;
+    let maxDailyDateStr = null;
+
+    for (const [dateStr, trackMap] of Object.entries(dailyTrackCounts)) {
+      for (const [trackId, count] of Object.entries(trackMap)) {
+        if (count > maxDailyTrackCount) {
+          maxDailyTrackCount = count;
+          maxDailyTrackId = trackId;
+          maxDailyDateStr = dateStr;
+        }
+      }
+    }
+
+    let dailyMarathonTrack = null;
+    if (maxDailyTrackCount > 1 && maxDailyTrackId) {
+      const track = tracksMap.get(String(maxDailyTrackId));
+      if (track) {
+        let artistName = '';
+        if (Array.isArray(track.artists)) {
+          artistName = track.artists.map(artId => {
+            if (artId && typeof artId === 'object') return artId.name || 'Неизвестный исполнитель';
+            const artObj = artistsMap.get(String(artId));
+            return artObj ? artObj.name : String(artId);
+          }).join(', ');
+        }
+        
+        let formattedDate = maxDailyDateStr;
+        try {
+          const [y, m, d] = maxDailyDateStr.split('-');
+          const monthsNamesRU = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+          formattedDate = `${parseInt(d)} ${monthsNamesRU[parseInt(m) - 1]}`;
+        } catch (e) {}
+
+        dailyMarathonTrack = {
+          title: track.title,
+          artist: artistName,
+          count: maxDailyTrackCount,
+          date: formattedDate
+        };
+      }
+    }
+
+    // Вычисление преданности топ-артисту (суперфанат)
+    const topArtist = topArtists[0];
+    const topArtistDur = topArtist ? topArtist.duration : 0;
+    const topArtistTimePercent = totalDurationSec > 0 ? Math.round((topArtistDur / totalDurationSec) * 100) : 0;
+    const superfanInfo = topArtist ? {
+      artistName: topArtist.artist ? topArtist.artist.name : 'любимого исполнителя',
+      percent: topArtistTimePercent
+    } : null;
+
     // 2. Вычисление Музыкального календаря по месяцам
     const monthlyTopTracks = new Array(12).fill(null);
     for (let m = 0; m < 12; m++) {
@@ -2210,7 +2382,12 @@ class WrappedDB {
       paletteGradient,
       dailyListensDuration,
       dailyListens,
-      dailyTopTrack
+      dailyTopTrack,
+      musicalChronotype,
+      musicalDiversity,
+      absoluteRepeatTrack,
+      dailyMarathonTrack,
+      superfanInfo
     };
   }
 
@@ -2657,17 +2834,101 @@ function renderOverviewTab(container, stats) {
     </div>
     
     <div class="ym-wrapped-columns" style="flex: 1; min-height: 0; gap: 20px;">
-      <div style="flex: 0.9; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
-        <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px;">
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #cc00ff, #ff8c00); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(204, 0, 255, 0.3);">🎭</div>
+      <div style="flex: 0.9; display: flex; flex-direction: column; gap: 20px; min-height: 0; overflow-y: auto; padding-right: 5px;">
+        <!-- Психотип -->
+        <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px; flex-shrink: 0;">
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #cc00ff, #ff8c00); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(204, 0, 255, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/><path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5Z"/><path d="m19 17 1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z"/></svg>
+          </div>
           <div style="min-width: 0;">
             <div style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Музыкальный психотип</div>
             <div style="font-size: 16px; font-weight: bold; color: #ffdb4d; margin-top: 2px;">${stats.listeningPersona.name}</div>
-            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${stats.listeningPersona.description}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.3;">${stats.listeningPersona.description}</div>
+            ${stats.superfanInfo ? `
+              <div style="margin-top: 8px; font-size: 11px; background: rgba(255, 219, 77, 0.12); color: #ffdb4d; padding: 4px 8px; border-radius: 6px; display: inline-block; font-weight: bold; border: 1px solid rgba(255, 219, 77, 0.2);">
+                👑 Топ-слушатель: ${stats.superfanInfo.percent}% времени ушло на ${stats.superfanInfo.artistName}
+              </div>
+            ` : ''}
           </div>
         </div>
         
-        <div class="ym-glass-card" style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 0;">
+        <!-- Музыкальный хронотип -->
+        <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px; flex-shrink: 0;">
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #00d2ff, #0066ff); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 102, 255, 0.3);">
+            ${stats.musicalChronotype.icon === '🦉' ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            ` : stats.musicalChronotype.icon === '🌅' ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sunrise"><path d="M18 22H6"/><path d="m12 18-4-4h8z"/><path d="M12 2v8"/><path d="m5.22 10.22 1.42 1.42"/><path d="m17.36 11.64 1.42-1.42"/><path d="M22 22H2"/><path d="M16 16H8a4 4 0 0 1 8 0z"/></svg>
+            ` : stats.musicalChronotype.icon === '💼' ? `
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-briefcase"><path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+            ` : `
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+            `}
+          </div>
+          <div style="min-width: 0;">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Музыкальный хронотип</div>
+            <div style="font-size: 16px; font-weight: bold; color: #00d2ff; margin-top: 2px;">${stats.musicalChronotype.name} ${stats.musicalChronotype.icon}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.3;">${stats.musicalChronotype.description}</div>
+            <!-- Доли времени -->
+            <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; margin-top: 8px; font-size: 10px; color: rgba(255,255,255,0.4);">
+              <span>🦉 Ночь: ${stats.musicalChronotype.percentages.night}%</span>
+              <span>🌅 Утро: ${stats.musicalChronotype.percentages.morning}%</span>
+              <span>☀️ День: ${stats.musicalChronotype.percentages.day}%</span>
+              <span>🌌 Вечер: ${stats.musicalChronotype.percentages.evening}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Музыкальное разнообразие -->
+        <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px; flex-shrink: 0;">
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #00ffcc, #0099ff); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(0, 255, 204, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-compass"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+          </div>
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Музыкальное разнообразие</div>
+            <div style="font-size: 16px; font-weight: bold; color: #00ffcc; margin-top: 2px;">${stats.musicalDiversity.name} ${stats.musicalDiversity.icon}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.3;">${stats.musicalDiversity.description}</div>
+            <!-- Индикатор разнообразия -->
+            <div style="margin-top: 8px; display: flex; align-items: center; gap: 10px;">
+              <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+                <div style="width: ${Math.min(stats.musicalDiversity.percent * 3, 100)}%; height: 100%; background: linear-gradient(90deg, #00ffcc, #0099ff); border-radius: 3px;"></div>
+              </div>
+              <div style="font-size: 11px; font-weight: bold; color: #00ffcc; min-width: 70px; text-align: right;">${stats.musicalDiversity.percent}% (${stats.musicalDiversity.uniqueArtists} арт.)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Одержимости и репиты -->
+        ${(stats.absoluteRepeatTrack || stats.dailyMarathonTrack) ? `
+          <div class="ym-glass-card" style="padding: 20px; display: flex; flex-direction: column; gap: 12px; flex-shrink: 0;">
+            <h3 style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px;">Музыкальная Одержимость</h3>
+            
+            ${stats.absoluteRepeatTrack ? `
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 77, 77, 0.1); border: 1px solid rgba(255, 77, 77, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ff4d4d; font-size: 16px;">🔥</div>
+                <div style="min-width: 0; flex: 1;">
+                  <div style="font-size: 10px; color: rgba(255,255,255,0.4);">Максимальный репит подряд:</div>
+                  <div style="font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${stats.absoluteRepeatTrack.title} — ${stats.absoluteRepeatTrack.artist}">${stats.absoluteRepeatTrack.title} — ${stats.absoluteRepeatTrack.artist}</div>
+                </div>
+                <div style="font-size: 13px; color: #ff4d4d; font-weight: bold; flex-shrink: 0; padding-left: 5px;">${stats.absoluteRepeatTrack.count} раз подряд</div>
+              </div>
+            ` : ''}
+
+            ${stats.dailyMarathonTrack ? `
+              <div style="display: flex; align-items: center; gap: 12px; margin-top: ${stats.absoluteRepeatTrack ? '6px' : '0'};">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: rgba(255, 140, 0, 0.1); border: 1px solid rgba(255, 140, 0, 0.2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #ff8c00; font-size: 16px;">🏃‍♂️</div>
+                <div style="min-width: 0; flex: 1;">
+                  <div style="font-size: 10px; color: rgba(255,255,255,0.4);">Суточный марафон (${stats.dailyMarathonTrack.date}):</div>
+                  <div style="font-size: 13px; font-weight: 500; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${stats.dailyMarathonTrack.title} — ${stats.dailyMarathonTrack.artist}">${stats.dailyMarathonTrack.title} — ${stats.dailyMarathonTrack.artist}</div>
+                </div>
+                <div style="font-size: 13px; color: #ff8c00; font-weight: bold; flex-shrink: 0; padding-left: 5px;">${stats.dailyMarathonTrack.count} раз за день</div>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+
+        <!-- Рекорды -->
+        <div class="ym-glass-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 10px; flex-shrink: 0;">
           <h3 style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Личные Рекорды</h3>
           
           <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
@@ -3154,7 +3415,9 @@ function renderGenresTab(container, stats) {
         </div>
         
         <div class="ym-glass-card" style="padding: 16px 20px; flex: 1; display: flex; align-items: center; gap: 15px; background: ${stats.paletteGradient} !important; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">🎨</div>
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.63-.77 1.63-1.7 0-.45-.18-.85-.46-1.2-.29-.37-.47-.83-.47-1.34 0-1.06.84-1.92 1.88-1.92h1.66c4.58 0 8.3-3.72 8.3-8.3C22 5.56 17.5 2 12 2z"/></svg>
+          </div>
           <div style="min-width: 0; flex: 1;">
             <div style="font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Жанровая палитра</div>
             <div style="font-size: 13px; font-weight: bold; color: white; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${stats.top3Genres.map(g => g.name).join(' • ')}">

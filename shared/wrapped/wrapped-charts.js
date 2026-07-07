@@ -103,7 +103,9 @@ function renderOverviewTab(container, stats) {
     <div class="ym-wrapped-columns" style="flex: 1; min-height: 0; gap: 20px;">
       <div style="flex: 0.9; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
         <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px;">
-          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #cc00ff, #ff8c00); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(204, 0, 255, 0.3);">🎭</div>
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #cc00ff, #ff8c00); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 15px rgba(204, 0, 255, 0.3);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sparkles"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"/><path d="m5 3 1 2.5L8.5 6 6 7 5 9.5 4 7 1.5 6 4 5Z"/><path d="m19 17 1 2.5 2.5.5-2.5 1-1 2.5-1-2.5-2.5-1 2.5-1Z"/></svg>
+          </div>
           <div style="min-width: 0;">
             <div style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Музыкальный психотип</div>
             <div style="font-size: 16px; font-weight: bold; color: #ffdb4d; margin-top: 2px;">${stats.listeningPersona.name}</div>
@@ -598,7 +600,9 @@ function renderGenresTab(container, stats) {
         </div>
         
         <div class="ym-glass-card" style="padding: 16px 20px; flex: 1; display: flex; align-items: center; gap: 15px; background: ${stats.paletteGradient} !important; border: 1px solid rgba(255,255,255,0.08);">
-          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">🎨</div>
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-palette"><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.63-.77 1.63-1.7 0-.45-.18-.85-.46-1.2-.29-.37-.47-.83-.47-1.34 0-1.06.84-1.92 1.88-1.92h1.66c4.58 0 8.3-3.72 8.3-8.3C22 5.56 17.5 2 12 2z"/></svg>
+          </div>
           <div style="min-width: 0; flex: 1;">
             <div style="font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Жанровая палитра</div>
             <div style="font-size: 13px; font-weight: bold; color: white; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${stats.top3Genres.map(g => g.name).join(' • ')}">
