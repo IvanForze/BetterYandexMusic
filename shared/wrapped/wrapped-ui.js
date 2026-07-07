@@ -17,33 +17,45 @@ function createWrappedOverlay() {
     #ym-wrapped-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--ym-popover-bg, linear-gradient(135deg, rgba(20,20,25,0.98) 0%, rgba(10,10,15,0.99) 100%));
+      background: rgba(10, 10, 14, 0.72);
+      backdrop-filter: blur(25px) saturate(180%);
+      -webkit-backdrop-filter: blur(25px) saturate(180%);
       z-index: 999999;
       display: flex;
       opacity: 1;
-      transition: opacity 0.2s ease, transform 0.2s ease;
+      visibility: visible;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0s;
       color: var(--ym-popover-text, white);
       font-family: 'YS Text', sans-serif;
       transform: scale(1);
       pointer-events: auto;
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
     }
     .ym-wrapped-overlay-hidden {
-      opacity: 0;
+      opacity: 0 !important;
+      visibility: hidden !important;
       pointer-events: none !important;
       transform: scale(1.03) !important;
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0s linear 0.2s;
+    }
+    .ym-wrapped-overlay-hidden * {
+      opacity: 0 !important;
+      transition: opacity 0.1s ease !important;
     }
     .ym-wrapped-overlay-visible {
       opacity: 1;
+      visibility: visible !important;
     }
     
     /* Sidebar (Tabs) */
-    .ym-wrapped-sidebar {
+    .ym-wrapped-aside {
       width: 250px;
       padding: 40px 20px;
       display: flex;
       flex-direction: column;
+      background: transparent;
     }
-    .ym-wrapped-sidebar h2 {
+    .ym-wrapped-aside h2 {
       margin: 0 0 40px 10px;
       font-size: 24px;
       font-weight: bold;
@@ -51,34 +63,42 @@ function createWrappedOverlay() {
     }
     .ym-wrapped-tab-btn {
       background: transparent;
-      border: none;
-      color: var(--ym-popover-text-muted, rgba(255,255,255,0.6));
-      padding: 15px 20px;
+      border: 1px solid transparent;
+      color: var(--ym-popover-text-muted, rgba(255,255,255,0.55));
+      padding: 14px 20px;
       text-align: left;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 500;
       border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
-      margin-bottom: 10px;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      margin-bottom: 8px;
       font-family: inherit;
     }
     .ym-wrapped-tab-btn:hover {
       color: var(--ym-popover-text, white);
-      background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.05));
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.04);
     }
     .ym-wrapped-tab-btn.active {
       color: var(--ym-popover-active, #ffdb4d);
-      background: var(--ym-popover-item-bg, rgba(255, 219, 77, 0.15));
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       font-weight: bold;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     }
 
     /* Content Area */
     .ym-wrapped-main {
       flex: 1;
-      padding: 50px;
-      overflow-y: auto;
+      padding: 40px 50px;
       position: relative;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.03);
     }
     
     .ym-wrapped-close {
@@ -106,17 +126,113 @@ function createWrappedOverlay() {
     
     .ym-wrapped-tab-content {
       display: none;
+      height: 100%;
+      width: 100%;
+      flex-direction: column;
+      box-sizing: border-box;
+      min-height: 0;
       animation: fadeIn 0.4s ease;
       max-width: 1200px;
       margin: 0 auto;
     }
     .ym-wrapped-tab-content.active {
-      display: block;
+      display: flex;
+    }
+
+    .ym-wrapped-columns {
+      display: flex;
+      gap: 30px;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+    }
+
+    .ym-glass-card {
+      background: rgba(255, 255, 255, 0.03) !important;
+      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+      border-radius: 16px !important;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
+      box-sizing: border-box !important;
+    }
+
+    .ym-wrapped-row {
+      display: flex;
+      gap: 20px;
+      width: 100%;
     }
     
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(10px); }
       to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 1100px) {
+      #ym-wrapped-overlay {
+        flex-direction: column !important;
+      }
+      .ym-wrapped-aside {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        padding: 15px 20px !important;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        flex-shrink: 0 !important;
+      }
+      .ym-wrapped-aside h2 {
+        display: none !important;
+      }
+      .ym-wrapped-tab-btn {
+        margin-bottom: 0 !important;
+        margin-right: 8px !important;
+        white-space: nowrap !important;
+        padding: 8px 16px !important;
+        font-size: 14px !important;
+      }
+      .ym-wrapped-tab-btn[data-tab="stories"] {
+        margin-top: 0 !important;
+      }
+      .ym-wrapped-main {
+        padding: 20px !important;
+        height: calc(100vh - 75px) !important;
+        overflow-y: auto !important;
+      }
+      .ym-wrapped-tab-content {
+        height: auto !important;
+        min-height: auto !important;
+        overflow-y: visible !important;
+      }
+      .ym-wrapped-main h2 {
+        font-size: 24px !important;
+        margin-bottom: 15px !important;
+      }
+      .ym-wrapped-columns {
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: auto !important;
+        overflow-y: visible !important;
+        gap: 20px !important;
+        flex: none !important;
+      }
+      .ym-wrapped-columns > div {
+        flex: none !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+      }
+      .ym-wrapped-row {
+        flex-direction: column !important;
+        gap: 15px !important;
+        flex: none !important;
+      }
+      .ym-wrapped-row > div {
+        flex: none !important;
+        width: 100% !important;
+        height: auto !important;
+      }
+      canvas {
+        max-height: 220px !important;
+      }
     }
   `;
 
@@ -128,7 +244,7 @@ function createWrappedOverlay() {
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
       </svg>
     </button>
-    <div class="ym-wrapped-sidebar">
+    <div class="ym-wrapped-aside">
       <h2>Статистика</h2>
       <button class="ym-wrapped-tab-btn active" data-tab="overview">Обзор</button>
       <button class="ym-wrapped-tab-btn" data-tab="artists">Топ Артистов</button>

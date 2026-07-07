@@ -62,7 +62,7 @@ async function renderWrappedCharts() {
 
     // Рендер вкладки Активность
     renderActivityTab(containerActivity, stats);
-    
+
     // Рендер вкладки Настройки
     renderSettingsTab(containerSettings);
 
@@ -74,28 +74,30 @@ async function renderWrappedCharts() {
 
 function renderOverviewTab(container, stats) {
   container.innerHTML = `
-    <h2 style="font-size: 36px; margin-top: 0;">Обзор</h2>
-    <div style="display: flex; gap: 30px; margin-bottom: 40px;">
-      <div style="flex: 1.2; background: linear-gradient(135deg, rgba(204, 0, 255, 0.12) 0%, rgba(255, 140, 0, 0.12) 100%); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 16px; padding: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-        <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: bold; background: linear-gradient(90deg, #ffdb4d, #ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Твои Музыкальные Итоги</h3>
-        <button id="ym-stories-overview-btn" style="background: linear-gradient(135deg, #cc00ff 0%, #ff8c00 100%); border: none; border-radius: 12px; color: white; padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: transform 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center;">
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Обзор</h2>
+    <div class="ym-wrapped-row" style="margin-bottom: 20px; flex-shrink: 0;">
+      <div class="ym-glass-card" style="flex: 1.2; background: linear-gradient(135deg, rgba(204, 0, 255, 0.12) 0%, rgba(255, 140, 0, 0.12) 100%) !important; border: 1px dashed rgba(255, 255, 255, 0.15) !important; padding: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+        <h3 style="margin: 0 0 12px 0; font-size: 18px; font-weight: bold; color: white;">Твои Музыкальные Итоги</h3>
+        <button id="ym-stories-overview-btn" style="background: linear-gradient(135deg, #cc00ff 0%, #ff8c00 100%); border: none; border-radius: 12px; color: white; padding: 10px 20px; font-size: 14px; font-weight: bold; cursor: pointer; transition: transform 0.2s; font-family: inherit; display: flex; align-items: center; justify-content: center;">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
           Посмотреть Истории
         </button>
       </div>
-      <div style="flex: 0.9; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 25px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-        <div style="font-size: 44px; font-weight: bold; color: #ffdb4d; line-height: 1.2;">${stats.totalListens}</div>
-        <div style="font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Треков прослушано</div>
+      <div class="ym-glass-card" style="flex: 0.9; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 36px; font-weight: bold; color: #ffdb4d; line-height: 1.2;">${stats.totalListens}</div>
+        <div style="font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Треков прослушано</div>
       </div>
-      <div style="flex: 0.9; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 25px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
-        <div style="font-size: 44px; font-weight: bold; color: #ff8c00; line-height: 1.2;">${stats.totalHours}</div>
-        <div style="font-size: 13px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Часов музыки</div>
+      <div class="ym-glass-card" style="flex: 0.9; padding: 20px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <div style="font-size: 36px; font-weight: bold; color: #ff8c00; line-height: 1.2;">${stats.totalHours}</div>
+        <div style="font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 5px;">Часов музыки</div>
       </div>
     </div>
     
-    <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
-      <h3 style="margin-top: 0; color: rgba(255,255,255,0.8);">Активность по месяцам</h3>
-      <canvas id="ym-chart-months" height="100"></canvas>
+    <div class="ym-glass-card" style="flex: 1; min-height: 0; padding: 25px; display: flex; flex-direction: column;">
+      <h3 style="margin-top: 0; margin-bottom: 15px; color: rgba(255,255,255,0.8); flex-shrink: 0;">Активность по месяцам</h3>
+      <div style="flex: 1; min-height: 0; position: relative;">
+        <canvas id="ym-chart-months"></canvas>
+      </div>
     </div>
   `;
 
@@ -130,6 +132,7 @@ function renderOverviewTab(container, stats) {
     },
     options: {
       responsive: true,
+      maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
         y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' } },
@@ -140,33 +143,63 @@ function renderOverviewTab(container, stats) {
 }
 
 function renderArtistsTab(container, stats) {
+  // Вычисляем количество артистов под высоту экрана
+  const viewportHeight = window.innerHeight;
+  let topCount = 5;
+  if (viewportHeight < 720) {
+    topCount = 3;
+  } else if (viewportHeight > 900) {
+    topCount = 7;
+  }
+
+  const mainArtists = stats.topArtists.slice(0, topCount);
+  const otherArtists = stats.topArtists.slice(topCount);
+
   let listHtml = '';
-  stats.topArtists.forEach((a, i) => {
+  mainArtists.forEach((a, i) => {
     const min = Math.round(a.duration / 60);
     const coverUrl = a.artist && a.artist.cover ? a.artist.cover : 'https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png';
     listHtml += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <div style="display: flex; align-items: center; font-size: 18px;">
-          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block; text-align: center;">${i+1}</span>
-          <img src="${coverUrl}" style="width: 45px; height: 45px; border-radius: 50%; margin-right: 15px; object-fit: cover;">
-          <span style="font-weight: 500;">${a.artist ? a.artist.name : 'Неизвестный'}</span>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; font-size: 16px; min-width: 0;">
+          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block; text-align: center; flex-shrink: 0;">${i+1}</span>
+          <img src="${coverUrl}" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 15px; object-fit: cover; flex-shrink: 0;">
+          <span style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.artist ? a.artist.name : 'Неизвестный'}</span>
         </div>
-        <div style="color: #ffdb4d; font-weight: bold;">${min} мин.</div>
+        <div style="color: #ffdb4d; font-weight: bold; flex-shrink: 0; margin-left: 10px;">${min} мин.</div>
       </div>
     `;
   });
 
+  if (otherArtists.length > 0) {
+    const otherMin = otherArtists.reduce((sum, a) => sum + Math.round(a.duration / 60), 0);
+    listHtml += `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; font-size: 16px; min-width: 0;">
+          <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block; text-align: center; flex-shrink: 0;">-</span>
+          <div style="width: 40px; height: 40px; border-radius: 50%; margin-right: 15px; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: rgba(255,255,255,0.4);"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          </div>
+          <span style="font-weight: 500; color: rgba(255,255,255,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Другие (${otherArtists.length})</span>
+        </div>
+        <div style="color: rgba(255,255,255,0.6); font-weight: bold; flex-shrink: 0; margin-left: 10px;">${otherMin} мин.</div>
+      </div>
+    `;
+  }
+
   container.innerHTML = `
-    <h2 style="font-size: 36px; margin-top: 0;">Топ Артистов</h2>
-    <div style="display: flex; gap: 40px;">
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
-        <div style="flex: 1; min-height: 250px; position: relative;">
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Артистов</h2>
+    <div class="ym-wrapped-columns">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
+        <div style="flex: 1; min-height: 0; position: relative;">
           <canvas id="ym-chart-artists"></canvas>
         </div>
       </div>
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
-        <h3 style="margin-top: 0;">Лидеры по времени</h3>
-        ${listHtml}
+      <div class="ym-glass-card" style="flex: 0.9; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
+        <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">Лидеры по времени</h3>
+        <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
+          ${listHtml}
+        </div>
       </div>
     </div>
   `;
@@ -174,19 +207,16 @@ function renderArtistsTab(container, stats) {
   const ctxArtists = document.getElementById('ym-chart-artists').getContext('2d');
   if (artistsChartInstance) artistsChartInstance.destroy();
   
-  // Группируем артистов после топ-5 в категорию "Другие"
-  const chartArtists = stats.topArtists.slice(0, 5);
-  const otherArtists = stats.topArtists.slice(5);
-  
-  const labels = chartArtists.map(a => a.artist ? a.artist.name : 'Неизвестный');
-  const data = chartArtists.map(a => Math.round(a.duration / 60));
-  const colors = ['#ffdb4d', '#ff8c00', '#ff4d4d', '#cc00ff', '#4d4dff'];
+  const labels = mainArtists.map(a => a.artist ? a.artist.name : 'Неизвестный');
+  const data = mainArtists.map(a => Math.round(a.duration / 60));
+  const colors = ['#ffdb4d', '#ff8c00', '#ff4d4d', '#cc00ff', '#4d4dff', '#00f2fe', '#4facfe'];
+  const sliceColors = colors.slice(0, topCount);
 
   if (otherArtists.length > 0) {
     labels.push('Другие');
     const otherDurationMin = otherArtists.reduce((sum, a) => sum + Math.round(a.duration / 60), 0);
     data.push(otherDurationMin);
-    colors.push('rgba(255,255,255,0.2)');
+    sliceColors.push('rgba(255,255,255,0.15)');
   }
 
   artistsChartInstance = new Chart(ctxArtists, {
@@ -195,7 +225,7 @@ function renderArtistsTab(container, stats) {
       labels: labels,
       datasets: [{
         data: data,
-        backgroundColor: colors,
+        backgroundColor: sliceColors,
         borderWidth: 0,
         hoverOffset: 10
       }]
@@ -223,29 +253,33 @@ function renderTracksTab(container, stats) {
     if (coverUrl && !coverUrl.startsWith('http') && !coverUrl.startsWith('//')) {
       coverUrl = 'https://' + coverUrl;
     }
-    const artistName = t.track && t.track.artists && t.track.artists.length > 0 ? (t.track.artists[0].name || t.track.artists[0]) : '';
+    const artistName = t.track && t.track.artists && t.track.artists.length > 0 
+      ? t.track.artists.map(a => a.name || String(a)).join(', ') 
+      : '';
     
     cardsHtml += `
-      <div style="display: flex; align-items: center; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px; transition: background 0.2s;">
-        <div style="width: 30px; text-align: center; color: rgba(255,255,255,0.4); font-weight: bold; margin-right: 10px;">${i+1}</div>
-        <img src="${coverUrl}" style="width: 50px; height: 50px; border-radius: 8px; margin-right: 15px; object-fit: cover;">
-        <div style="flex: 1; overflow: hidden;">
-          <div style="font-weight: 500; font-size: 16px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${title}</div>
-          <div style="color: rgba(255,255,255,0.5); font-size: 14px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${artistName}</div>
+      <div style="display: flex; align-items: center; background: rgba(255,255,255,0.03); border-radius: 12px; padding: 10px; transition: background 0.2s; font-size: 15px;">
+        <div style="width: 25px; text-align: center; color: rgba(255,255,255,0.4); font-weight: bold; margin-right: 10px; flex-shrink: 0;">${i+1}</div>
+        <img src="${coverUrl}" style="width: 44px; height: 44px; border-radius: 8px; margin-right: 15px; object-fit: cover; flex-shrink: 0;">
+        <div style="flex: 1; overflow: hidden; min-width: 0;">
+          <div style="font-weight: 500; font-size: 15px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${title}</div>
+          <div style="color: rgba(255,255,255,0.5); font-size: 13px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">${artistName}</div>
         </div>
-        <div style="margin-left: 15px; font-weight: bold; color: #ffdb4d;">${t.count} <span style="font-size: 12px; font-weight: normal; color: rgba(255,255,255,0.4);">раз</span></div>
+        <div style="margin-left: 15px; font-weight: bold; color: #ffdb4d; flex-shrink: 0;">${t.count} <span style="font-size: 12px; font-weight: normal; color: rgba(255,255,255,0.4);">раз</span></div>
       </div>
     `;
   });
 
   container.innerHTML = `
-    <h2 style="font-size: 36px; margin-top: 0;">Топ Треков</h2>
-    <div style="display: flex; gap: 40px;">
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; gap: 10px; max-height: 70vh; overflow-y: auto;">
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Треков</h2>
+    <div class="ym-wrapped-columns">
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 0; padding-right: 5px;">
         ${cardsHtml}
       </div>
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
-        <canvas id="ym-chart-tracks" height="250"></canvas>
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
+        <div style="flex: 1; min-height: 0; position: relative;">
+          <canvas id="ym-chart-tracks"></canvas>
+        </div>
       </div>
     </div>
   `;
@@ -279,7 +313,7 @@ function renderTracksTab(container, stats) {
 function renderSettingsTab(container) {
   container.innerHTML = `
     <h2 style="font-size: 36px; margin-top: 0;">Данные и Экспорт</h2>
-    <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; max-width: 600px;">
+    <div class="ym-glass-card" style="padding: 30px; max-width: 600px;">
       <p style="color: rgba(255,255,255,0.7); margin-bottom: 30px;">
         Вы можете выгрузить всю историю прослушиваний в файл, чтобы перенести её на другой компьютер (например, с работы домой) или просто сохранить для себя.
       </p>
@@ -457,55 +491,57 @@ function renderSettingsTab(container) {
 
 function renderGenresTab(container, stats) {
   let genresListHtml = '';
-  stats.topGenres.forEach((g, i) => {
+  stats.topGenres.slice(0, 5).forEach((g, i) => {
     genresListHtml += `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-        <div style="font-size: 18px; font-weight: 500;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 15px;">
+        <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
           <span style="color: rgba(255,255,255,0.4); margin-right: 15px; width: 20px; display: inline-block;">${i+1}</span>
           ${g.name}
         </div>
-        <div style="color: #ffdb4d; font-weight: bold;">${g.count} треков</div>
+        <div style="color: #ffdb4d; font-weight: bold; flex-shrink: 0; margin-left: 10px;">${g.count} треков</div>
       </div>
     `;
   });
 
   if (stats.topGenres.length === 0) {
-    genresListHtml = '<p style="color: rgba(255,255,255,0.5);">Жанры не определены. Прослушайте больше треков с заполненными метаданными альбомов.</p>';
+    genresListHtml = '<p style="color: rgba(255,255,255,0.5); font-size: 14px;">Жанры не определены.</p>';
   }
 
   container.innerHTML = `
-    <h2 style="font-size: 36px; margin-top: 0;">Жанры и Эпохи</h2>
-    <div style="display: flex; gap: 40px; margin-bottom: 30px;">
-      <div style="flex: 1.2; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
-        <h3 style="margin-top: 0; margin-bottom: 20px;">Популярные Жанры</h3>
-        <div style="flex: 1; min-height: 250px; position: relative;">
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Жанры и Эпохи</h2>
+    <div class="ym-wrapped-columns" style="flex: 1.2; margin-bottom: 20px;">
+      <div class="ym-glass-card" style="flex: 1.2; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Популярные Жанры</h3>
+        <div style="flex: 1; min-height: 0; position: relative;">
           <canvas id="ym-chart-genres"></canvas>
         </div>
       </div>
-      <div style="flex: 0.8; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column;">
-        <h3 style="margin-top: 0; margin-bottom: 20px;">Распределение по Эпохам</h3>
-        <div style="flex: 1; min-height: 200px; position: relative;">
+      <div class="ym-glass-card" style="flex: 0.8; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Распределение по Эпохам</h3>
+        <div style="flex: 1; min-height: 0; position: relative;">
           <canvas id="ym-chart-eras"></canvas>
         </div>
       </div>
     </div>
     
-    <div style="display: flex; gap: 40px;">
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px;">
-        <h3 style="margin-top: 0;">Топ-5 Жанров</h3>
-        ${genresListHtml}
+    <div class="ym-wrapped-columns" style="flex: 0.8;">
+      <div class="ym-glass-card" style="flex: 1; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Топ-5 Жанров</h3>
+        <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
+          ${genresListHtml}
+        </div>
       </div>
-      <div style="flex: 1; background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; display: flex; flex-direction: column; justify-content: center;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 30px;">
-          <div>
-            <h3 style="margin: 0; font-size: 22px; color: #ff4d4d; font-weight: bold;">Индекс Explicit</h3>
-            <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.5); font-size: 14px;">Доля треков с нецензурной лексикой или контентом 18+</p>
+      <div class="ym-glass-card" style="flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+          <div style="flex: 1; min-width: 0;">
+            <h3 style="margin: 0; font-size: 18px; color: #ff4d4d; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Индекс Explicit</h3>
+            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.3;">Доля треков с нецензурной лексикой или контентом 18+</p>
           </div>
-          <div style="flex: 1; max-width: 250px; display: flex; align-items: center; gap: 15px;">
-            <div style="flex: 1; height: 12px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden;">
-              <div style="width: ${stats.explicitPercentage}%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff2222); border-radius: 6px;"></div>
+          <div style="flex: 1; max-width: 200px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+            <div style="flex: 1; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+              <div style="width: ${stats.explicitPercentage}%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff2222); border-radius: 5px;"></div>
             </div>
-            <div style="font-size: 22px; font-weight: bold; color: #ff4d4d; min-width: 50px; text-align: right;">${stats.explicitPercentage}%</div>
+            <div style="font-size: 18px; font-weight: bold; color: #ff4d4d; min-width: 45px; text-align: right;">${stats.explicitPercentage}%</div>
           </div>
         </div>
       </div>
@@ -519,9 +555,9 @@ function renderGenresTab(container, stats) {
   genresChartInstance = new Chart(ctxGenres, {
     type: 'bar',
     data: {
-      labels: stats.topGenres.map(g => g.name),
+      labels: stats.topGenres.slice(0, 5).map(g => g.name),
       datasets: [{
-        data: stats.topGenres.map(g => g.count),
+        data: stats.topGenres.slice(0, 5).map(g => g.count),
         backgroundColor: 'rgba(255, 219, 77, 0.85)',
         borderRadius: 6
       }]
@@ -583,17 +619,17 @@ function renderGenresTab(container, stats) {
 
 function renderActivityTab(container, stats) {
   container.innerHTML = `
-    <h2 style="font-size: 36px; margin-top: 0;">Активность</h2>
-    <div style="display: flex; flex-direction: column; gap: 30px;">
-      <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; height: 320px; display: flex; flex-direction: column;">
-        <h3 style="margin-top: 0; margin-bottom: 10px;">Прослушивания по времени суток</h3>
-        <div style="flex: 1; position: relative;">
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Активность</h2>
+    <div style="display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 1.1; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Прослушивания по времени суток</h3>
+        <div style="flex: 1; min-height: 0; position: relative;">
           <canvas id="ym-chart-hours"></canvas>
         </div>
       </div>
-      <div style="background: rgba(0,0,0,0.2); border-radius: 16px; padding: 30px; height: 280px; display: flex; flex-direction: column;">
-        <h3 style="margin-top: 0; margin-bottom: 10px;">Активность по дням недели</h3>
-        <div style="flex: 1; position: relative;">
+      <div class="ym-glass-card" style="flex: 0.9; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+        <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Активность по дням недели</h3>
+        <div style="flex: 1; min-height: 0; position: relative;">
           <canvas id="ym-chart-days"></canvas>
         </div>
       </div>

@@ -45,10 +45,16 @@ class WrappedTracker {
       }
 
       let artists = [];
-      if (Array.isArray(dataObj.artists)) {
-        artists = dataObj.artists.map(a => {
+      const rawArtists = dataObj.artists || entityData?.meta?.artists || entityData?.artists || [];
+      if (Array.isArray(rawArtists)) {
+        artists = rawArtists.map(a => {
           let artistCover = '';
+          let name = '';
+          let id = '';
+          
           if (a && typeof a === 'object') {
+            id = String(a.id || a.name || '');
+            name = a.name || '';
             if (a.cover) {
               if (typeof a.cover === 'string') {
                 artistCover = a.cover;
@@ -58,15 +64,35 @@ class WrappedTracker {
             } else if (a.coverUri) {
               artistCover = a.coverUri;
             }
-            
-            if (artistCover && !artistCover.startsWith('http') && !artistCover.startsWith('//')) {
-              artistCover = 'https://' + artistCover.replace('%%', '200x200');
+          } else {
+            id = String(a);
+          }
+          
+          // Если имя отсутствует в объекте Sonata (например, пришел только ID), 
+          // ищем богатые метаданные в очереди (entityData)
+          if ((!name || name === id) && id && entityData) {
+            const entArtists = entityData.meta?.artists || entityData.artists || [];
+            const found = entArtists.find(ea => String(ea.id) === id);
+            if (found && found.name) {
+              name = found.name;
+              if (!artistCover) {
+                const cov = found.cover?.uri || found.cover || found.coverUri || '';
+                if (cov) artistCover = cov;
+              }
             }
           }
           
+          if (!name) {
+            name = typeof a === 'object' ? (a.name || a.id || 'Неизвестный исполнитель') : String(a);
+          }
+          
+          if (artistCover && !artistCover.startsWith('http') && !artistCover.startsWith('//')) {
+            artistCover = 'https://' + artistCover.replace('%%', '200x200');
+          }
+          
           return {
-            id: String(a.id || a.name || (typeof a === 'string' ? a : 'unknown')),
-            name: typeof a === 'object' ? a.name : a,
+            id: id || name,
+            name: name,
             cover: artistCover
           };
         });

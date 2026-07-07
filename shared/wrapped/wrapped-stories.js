@@ -637,7 +637,9 @@ function renderTrackSlide(container, stats) {
   if (coverUrl && !coverUrl.startsWith('http') && !coverUrl.startsWith('//')) {
     coverUrl = 'https://' + coverUrl;
   }
-  const artistName = trackObj && trackObj.track && trackObj.track.artists && trackObj.track.artists.length > 0 ? (trackObj.track.artists[0].name || trackObj.track.artists[0]) : 'Артист';
+  const artistName = trackObj && trackObj.track && trackObj.track.artists && trackObj.track.artists.length > 0 
+    ? trackObj.track.artists.map(a => a.name || String(a)).join(', ') 
+    : 'Артист';
   const plays = trackObj ? trackObj.count : 0;
   
   container.innerHTML = `

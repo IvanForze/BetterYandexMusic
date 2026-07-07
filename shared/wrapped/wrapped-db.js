@@ -246,11 +246,24 @@ class WrappedDB {
       weeklyListens[day]++;
     }
 
-    // Сортировка топов
     const topTracks = Object.entries(trackCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([id, count]) => ({ track: tracksMap.get(String(id)), count }));
+      .map(([id, count]) => {
+        const track = tracksMap.get(String(id));
+        if (track && Array.isArray(track.artists)) {
+          // Разрешаем ID артистов в полноценные объекты с именами и обложками
+          track.artists = track.artists.map(artistId => {
+            const artistObj = artistsMap.get(String(artistId));
+            return {
+              id: String(artistId),
+              name: artistObj ? artistObj.name : 'Неизвестный исполнитель',
+              cover: artistObj ? artistObj.cover : ''
+            };
+          });
+        }
+        return { track, count };
+      });
 
     const topArtists = Object.entries(artistDuration) // Сортируем по времени прослушивания
       .sort((a, b) => b[1] - a[1])
