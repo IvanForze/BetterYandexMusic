@@ -43,6 +43,21 @@ function findResourcesDir() {
       path.join(homeDir, 'Applications', 'Yandex Music.app', 'Contents', 'Resources'),
       path.join(homeDir, 'Applications', 'Яндекс Музыка.app', 'Contents', 'Resources')
     ];
+  } else if (process.platform === 'linux') {
+    const homeDir = app.getPath('home');
+    possiblePaths = [
+      // Flatpak установка (ru.yandex.music)
+      path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'yandex-music', 'resources'),
+      '/var/lib/flatpak/app/ru.yandex.music/current/active/files/extra/resources',
+      // deb/rpm установка (через apt)
+      '/opt/yandex/music/resources',
+      '/usr/lib/yandex-music/resources',
+      '/usr/share/yandex-music/resources',
+      // AppImage (распакованный в home)
+      path.join(homeDir, 'Applications', 'yandex-music', 'resources'),
+      path.join(homeDir, '.local', 'share', 'yandex-music', 'resources'),
+      path.join(homeDir, 'yandex-music', 'resources'),
+    ];
   } else {
     const localAppData = process.env.LOCALAPPDATA;
     if (localAppData) {
@@ -110,6 +125,9 @@ ipcMain.handle('install-mod', async (event) => {
     if (process.platform === 'darwin') {
       try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
       try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+    } else if (process.platform === 'linux') {
+      try { await exec('pkill -f "yandex-music"'); } catch(e) {}
+      try { await exec('pkill -f "YandexMusic"'); } catch(e) {}
     } else if (process.platform === 'win32') {
       try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
       try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}
@@ -206,6 +224,17 @@ ipcMain.handle('install-mod', async (event) => {
       const macOsDir = path.join(path.dirname(resourcesDir), 'MacOS');
       const exeFile = fs.readdirSync(macOsDir).find(f => !f.startsWith('.'));
       if (exeFile) exePath = path.join(macOsDir, exeFile);
+    } else if (process.platform === 'linux') {
+      // На Linux бинарник обычно лежит на уровень выше resources/ или в /opt
+      const parentDir = path.dirname(resourcesDir);
+      const exeFile = fs.readdirSync(parentDir).find(f => {
+        const fullPath = path.join(parentDir, f);
+        try {
+          const stat = fs.statSync(fullPath);
+          return stat.isFile() && (stat.mode & 0o111) && !f.includes('.') && !f.startsWith('.');
+        } catch { return false; }
+      });
+      if (exeFile) exePath = path.join(parentDir, exeFile);
     } else {
       const parentDir = path.dirname(resourcesDir);
       const exeFile = fs.readdirSync(parentDir).find(f => f.endsWith('.exe') && !f.toLowerCase().includes('uninstall'));
@@ -257,6 +286,9 @@ ipcMain.handle('uninstall-mod', async (event) => {
     if (process.platform === 'darwin') {
       try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
       try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+    } else if (process.platform === 'linux') {
+      try { await exec('pkill -f "yandex-music"'); } catch(e) {}
+      try { await exec('pkill -f "YandexMusic"'); } catch(e) {}
     } else if (process.platform === 'win32') {
       try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
       try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}

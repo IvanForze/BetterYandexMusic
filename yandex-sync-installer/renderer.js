@@ -77,17 +77,21 @@ installBtn.addEventListener('click', async () => {
   const result = await window.api.installMod();
   
   if (result.success) {
-    installBtn.textContent = 'Готово!';
-    installBtn.style.backgroundColor = '#4caf50'; // Зеленый цвет
-    installBtn.style.color = '#ffffff'; // Белый текст
-    installBtn.style.boxShadow = '0 4px 14px rgba(76, 175, 80, 0.4)'; // Зеленое свечение
+    installBtn.textContent = '✓ Готово!';
+    installBtn.style.backgroundColor = '#4caf50';
+    installBtn.style.color = '#ffffff';
+    installBtn.style.boxShadow = '0 4px 14px rgba(76, 175, 80, 0.4)';
+    installBtn.style.cursor = 'default';
+    // Оставляем installBtn заблокированным — установка успешно завершена
+    installBtn.disabled = true;
+    uninstallBtn.disabled = false;
   } else {
-    installBtn.textContent = 'Ошибка';
+    installBtn.textContent = 'Ошибка — попробуйте снова';
     installBtn.style.backgroundColor = '#f44336';
-    installBtn.style.boxShadow = '0 4px 14px rgba(244, 67, 54, 0.4)'; // Красное свечение
+    installBtn.style.boxShadow = '0 4px 14px rgba(244, 67, 54, 0.4)';
     logToTerminal(`> [КРИТИЧЕСКАЯ ОШИБКА]: ${result.error}`);
+    setButtonsState(false);
   }
-  setButtonsState(false);
 });
 
 uninstallBtn.addEventListener('click', async () => {
@@ -101,14 +105,18 @@ uninstallBtn.addEventListener('click', async () => {
   const result = await window.api.uninstallMod();
   
   if (result.success) {
-    uninstallBtn.textContent = 'Удалено!';
+    uninstallBtn.textContent = '✓ Удалено!';
     uninstallBtn.style.color = '#4caf50';
     uninstallBtn.style.borderColor = '#4caf50';
+    uninstallBtn.style.cursor = 'default';
+    // Оставляем кнопку заблокированной — удаление завершено
+    uninstallBtn.disabled = true;
+    installBtn.disabled = false;
   } else {
-    uninstallBtn.textContent = 'Ошибка';
+    uninstallBtn.textContent = 'Ошибка — попробуйте снова';
     uninstallBtn.style.color = '#f44336';
     uninstallBtn.style.borderColor = '#f44336';
     logToTerminal(`> [КРИТИЧЕСКАЯ ОШИБКА]: ${result.error}`);
+    setButtonsState(false);
   }
-  setButtonsState(false);
 });
