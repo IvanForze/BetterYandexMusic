@@ -147,6 +147,17 @@ class WrappedTracker {
       this.lastCheckTime = now;
       this.isPlaying = playing;
       console.log(`[Wrapped Tracker] Новый трек: ${trackInfo.title}`);
+      
+      // Логируем полные данные для анализа
+      const playerStateTrack = activePlayer.playbackState?.playerState?.track?.value || activePlayer.playbackState?.playerState?.track;
+      const currentEntity = activePlayer.queueController?.queue?.state?.currentEntity?.value;
+      const entityData = currentEntity?.entity?.data;
+      const rawTrackObj = playerStateTrack || entityData?.meta || entityData;
+      
+      console.log('[Wrapped Tracker] Sonata Player Object:', activePlayer);
+      console.log('[Wrapped Tracker] Sonata Raw Track Object:', rawTrackObj);
+      console.log('[Wrapped Tracker] Extracted Track Info:', trackInfo);
+      
       return;
     }
 

@@ -15,6 +15,7 @@ async function renderWrappedCharts() {
   const containerArtists = document.getElementById('ym-wrapped-tab-artists');
   const containerTracks = document.getElementById('ym-wrapped-tab-tracks');
   const containerGenres = document.getElementById('ym-wrapped-tab-genres');
+  const containerCalendar = document.getElementById('ym-wrapped-tab-calendar');
   const containerActivity = document.getElementById('ym-wrapped-tab-activity');
   const containerSettings = document.getElementById('ym-wrapped-tab-settings');
 
@@ -39,6 +40,7 @@ async function renderWrappedCharts() {
       containerArtists.innerHTML = emptyMsg;
       containerTracks.innerHTML = emptyMsg;
       containerGenres.innerHTML = emptyMsg;
+      if (containerCalendar) containerCalendar.innerHTML = emptyMsg;
       containerActivity.innerHTML = emptyMsg;
       renderSettingsTab(containerSettings);
       return;
@@ -59,6 +61,11 @@ async function renderWrappedCharts() {
 
     // Рендер вкладки Жанры и Эпохи
     renderGenresTab(containerGenres, stats);
+
+    // Рендер вкладки Календарь
+    if (containerCalendar) {
+      renderCalendarTab(containerCalendar, stats);
+    }
 
     // Рендер вкладки Активность
     renderActivityTab(containerActivity, stats);
@@ -93,10 +100,47 @@ function renderOverviewTab(container, stats) {
       </div>
     </div>
     
-    <div class="ym-glass-card" style="flex: 1; min-height: 0; padding: 25px; display: flex; flex-direction: column;">
-      <h3 style="margin-top: 0; margin-bottom: 15px; color: rgba(255,255,255,0.8); flex-shrink: 0;">Активность по месяцам</h3>
-      <div style="flex: 1; min-height: 0; position: relative;">
-        <canvas id="ym-chart-months"></canvas>
+    <div class="ym-wrapped-columns" style="flex: 1; min-height: 0; gap: 20px;">
+      <div style="flex: 0.9; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+        <div class="ym-glass-card" style="padding: 20px; display: flex; align-items: center; gap: 20px;">
+          <div style="width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #cc00ff, #ff8c00); display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(204, 0, 255, 0.3);">🎭</div>
+          <div style="min-width: 0;">
+            <div style="font-size: 11px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Музыкальный психотип</div>
+            <div style="font-size: 16px; font-weight: bold; color: #ffdb4d; margin-top: 2px;">${stats.listeningPersona.name}</div>
+            <div style="font-size: 12px; color: rgba(255,255,255,0.6); margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${stats.listeningPersona.description}</div>
+          </div>
+        </div>
+        
+        <div class="ym-glass-card" style="padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 0;">
+          <h3 style="margin: 0; font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">Личные Рекорды</h3>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span style="color: rgba(255,255,255,0.4);">Самый активный день:</span>
+            <span style="font-weight: 500; text-align: right; color: white;">${stats.personalRecords.peakDay} <span style="color: #ffdb4d; font-weight: bold;">(${stats.personalRecords.peakDayCount} тр.)</span></span>
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span style="color: rgba(255,255,255,0.4);">Любимое время:</span>
+            <span style="font-weight: 500; text-align: right; color: #ff8c00;">${stats.personalRecords.favSlot}</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span style="color: rgba(255,255,255,0.4);">Будни vs Выходные:</span>
+            <span style="font-weight: 500; text-align: right; color: white;">${stats.personalRecords.weekdayPercent}% / ${stats.personalRecords.weekendPercent}%</span>
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+            <span style="color: rgba(255,255,255,0.4);">Средняя длина трека:</span>
+            <span style="font-weight: 500; text-align: right; color: white;">${stats.personalRecords.avgTrackDurationMin} мин.</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="ym-glass-card" style="flex: 1.1; min-height: 0; padding: 25px; display: flex; flex-direction: column;">
+        <h3 style="margin-top: 0; margin-bottom: 15px; color: rgba(255,255,255,0.8); flex-shrink: 0;">Активность по месяцам</h3>
+        <div style="flex: 1; min-height: 0; position: relative;">
+          <canvas id="ym-chart-months"></canvas>
+        </div>
       </div>
     </div>
   `;
@@ -116,6 +160,12 @@ function renderOverviewTab(container, stats) {
   if (monthsChartInstance) monthsChartInstance.destroy();
 
   const monthNames = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+  
+  // Создаем градиент для графика активности по месяцам
+  const chartGradient = ctxMonths.createLinearGradient(0, 0, 0, 200);
+  chartGradient.addColorStop(0, 'rgba(255, 140, 0, 0.3)');
+  chartGradient.addColorStop(1, 'rgba(255, 140, 0, 0.0)');
+
   monthsChartInstance = new Chart(ctxMonths, {
     type: 'line',
     data: {
@@ -124,7 +174,7 @@ function renderOverviewTab(container, stats) {
         label: 'Треков',
         data: stats.listensByMonth,
         borderColor: '#ff8c00',
-        backgroundColor: 'rgba(255, 140, 0, 0.2)',
+        backgroundColor: chartGradient,
         borderWidth: 3,
         fill: true,
         tension: 0.4
@@ -524,24 +574,37 @@ function renderGenresTab(container, stats) {
       </div>
     </div>
     
-    <div class="ym-wrapped-columns" style="flex: 0.8;">
-      <div class="ym-glass-card" style="flex: 1; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+    <div class="ym-wrapped-columns" style="flex: 0.8; gap: 20px;">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Топ-5 Жанров</h3>
         <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
           ${genresListHtml}
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 1; padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 0;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
-          <div style="flex: 1; min-width: 0;">
-            <h3 style="margin: 0; font-size: 18px; color: #ff4d4d; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Индекс Explicit</h3>
-            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.5); font-size: 13px; line-height: 1.3;">Доля треков с нецензурной лексикой или контентом 18+</p>
-          </div>
-          <div style="flex: 1; max-width: 200px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
-            <div style="flex: 1; height: 10px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
-              <div style="width: ${stats.explicitPercentage}%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff2222); border-radius: 5px;"></div>
+      <div style="flex: 0.9; display: flex; flex-direction: column; gap: 20px; min-height: 0;">
+        <div class="ym-glass-card" style="padding: 20px; display: flex; flex-direction: column; justify-content: center; min-height: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px;">
+            <div style="flex: 1; min-width: 0;">
+              <h3 style="margin: 0; font-size: 16px; color: #ff4d4d; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Индекс Explicit</h3>
+              <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.5); font-size: 12px; line-height: 1.3;">Доля треков с нецензурной лексикой</p>
             </div>
-            <div style="font-size: 18px; font-weight: bold; color: #ff4d4d; min-width: 45px; text-align: right;">${stats.explicitPercentage}%</div>
+            <div style="flex: 1; max-width: 150px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;">
+              <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.08); border-radius: 5px; overflow: hidden;">
+                <div style="width: ${stats.explicitPercentage}%; height: 100%; background: linear-gradient(90deg, #ff4d4d, #ff2222); border-radius: 5px;"></div>
+              </div>
+              <div style="font-size: 16px; font-weight: bold; color: #ff4d4d; min-width: 35px; text-align: right;">${stats.explicitPercentage}%</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="ym-glass-card" style="padding: 16px 20px; flex: 1; display: flex; align-items: center; gap: 15px; background: ${stats.paletteGradient} !important; border: 1px solid rgba(255,255,255,0.08);">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">🎨</div>
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">Жанровая палитра</div>
+            <div style="font-size: 13px; font-weight: bold; color: white; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${stats.top3Genres.map(g => g.name).join(' • ')}">
+              ${stats.top3Genres.map(g => g.name).join(' • ') || 'Не определено'}
+            </div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Смесь ваших любимых стилей</div>
           </div>
         </div>
       </div>
@@ -708,7 +771,303 @@ function renderActivityTab(container, stats) {
   });
 }
 
+function renderCalendarTab(container, stats) {
+  try {
+    // 1. Построение GitHub-style Heatmap прослушиваний по дням
+    const today = new Date();
+    const endDate = new Date(today);
+    const dayOfWeek = endDate.getDay(); // 0 = Sun, 6 = Sat
+    // Сдвигаем endDate на конец текущей недели (суббота), чтобы сетка была ровной
+    endDate.setDate(endDate.getDate() + (6 - dayOfWeek));
+    
+    const startDate = new Date(endDate);
+    startDate.setDate(startDate.getDate() - 370); // 53 недели назад (53 * 7 = 371 день)
+
+    const weeks = [];
+    let currentWeek = [];
+    
+    let curr = new Date(startDate);
+    // Накапливаем список месяцев и индекс колонки, в которой этот месяц начинается
+    const monthLabels = []; // { name, colIndex }
+    let lastMonth = -1;
+    let colIndex = 0;
+
+    while (curr <= endDate) {
+      // Вычисляем dateStr ВСЕГДА в локальном часовом поясе, чтобы синхронизировать с wrapped-db.js
+      const dateStr = `${curr.getFullYear()}-${String(curr.getMonth() + 1).padStart(2, '0')}-${String(curr.getDate()).padStart(2, '0')}`;
+
+      const durationSec = stats.dailyListensDuration ? (stats.dailyListensDuration[dateStr] || 0) : 0;
+      const durationMin = Math.round(durationSec / 60);
+      
+      currentWeek.push({
+        dateStr,
+        date: new Date(curr),
+        durationMin
+      });
+      
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        // Проверяем месяц первого дня в новой неделе
+        const m = curr.getMonth();
+        if (m !== lastMonth) {
+          monthLabels.push({
+            name: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'][m],
+            colIndex: colIndex
+          });
+          lastMonth = m;
+        }
+        currentWeek = [];
+        colIndex++;
+      }
+      
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    // Рендерим HTML для Heatmap с использованием единого CSS Grid для полной отзывчивости
+    let cellsHtml = '';
+    
+    // 1. Добавляем подписи дней недели в 1-ю колонку
+    cellsHtml += `<div style="grid-column: 1; grid-row: 2; font-size: 9px; color: rgba(255,255,255,0.3); align-self: center; padding-right: 8px; user-select: none;">Вс</div>`;
+    cellsHtml += `<div style="grid-column: 1; grid-row: 4; font-size: 9px; color: rgba(255,255,255,0.3); align-self: center; padding-right: 8px; user-select: none;">Вт</div>`;
+    cellsHtml += `<div style="grid-column: 1; grid-row: 6; font-size: 9px; color: rgba(255,255,255,0.3); align-self: center; padding-right: 8px; user-select: none;">Чт</div>`;
+    cellsHtml += `<div style="grid-column: 1; grid-row: 8; font-size: 9px; color: rgba(255,255,255,0.3); align-self: center; padding-right: 8px; user-select: none;">Сб</div>`;
+
+    // 2. Добавляем названия месяцев в 1-ю строчку
+    monthLabels.forEach(ml => {
+      cellsHtml += `
+        <div style="grid-column: ${ml.colIndex + 2}; grid-row: 1; font-size: 9px; color: rgba(255,255,255,0.3); text-align: left; overflow: visible; white-space: nowrap; user-select: none; margin-bottom: 5px; width: 0; min-width: 0;">
+          ${ml.name}
+        </div>
+      `;
+    });
+
+    // 3. Добавляем сами ячейки дней
+    weeks.forEach((week, colIdx) => {
+      week.forEach((day, dayIdx) => {
+        if (!day) return;
+        
+        let bgColor = 'rgba(255, 255, 255, 0.04)';
+        let borderStyle = '1px solid rgba(255, 255, 255, 0.02)';
+        if (day.durationMin > 0 && day.durationMin <= 10) {
+          bgColor = 'rgba(204, 0, 255, 0.2)';
+        } else if (day.durationMin > 10 && day.durationMin <= 30) {
+          bgColor = 'rgba(204, 0, 255, 0.55)';
+        } else if (day.durationMin > 30 && day.durationMin <= 60) {
+          bgColor = 'rgba(255, 140, 0, 0.6)';
+        } else if (day.durationMin > 60) {
+          bgColor = '#ff8c00';
+        }
+        
+        const tracksCount = stats.dailyListens ? (stats.dailyListens[day.dateStr] || 0) : 0;
+        const topTrack = stats.dailyTopTrack ? stats.dailyTopTrack[day.dateStr] : null;
+        
+        const monthsNamesRU_lower = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+        const formatStr = `${day.date.getDate()} ${monthsNamesRU_lower[day.date.getMonth()]} ${day.date.getFullYear()}`;
+        
+        let tooltip = `${formatStr}\n• ${day.durationMin} мин. музыки\n• ${tracksCount} треков`;
+        if (topTrack) {
+          tooltip += `\n• Топ: ${topTrack.title} — ${topTrack.artist}`;
+        }
+        
+        cellsHtml += `
+          <div 
+            class="ym-heatmap-cell"
+            style="grid-column: ${colIdx + 2}; grid-row: ${dayIdx + 2}; width: 100%; aspect-ratio: 1; border-radius: 2px; background: ${bgColor}; border: ${borderStyle}; cursor: pointer; box-sizing: border-box;" 
+            data-tooltip="${tooltip.replace(/"/g, '&quot;')}">
+          </div>
+        `;
+      });
+    });
+
+    const heatmapCardHtml = `
+      <div class="ym-glass-card" style="padding: 20px; margin-bottom: 25px; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;">
+        <h3 style="margin: 0 0 15px 0; font-size: 16px; color: rgba(255,255,255,0.8); font-weight: bold;">Карта активности (минут прослушивания)</h3>
+        <div style="overflow-x: auto; padding-bottom: 10px; width: 100%; box-sizing: border-box;">
+          <div style="display: grid; grid-template-columns: auto repeat(53, 1fr); grid-template-rows: auto repeat(7, 1fr); gap: 3px; width: 100%; min-width: 650px; align-items: center; box-sizing: border-box;">
+            ${cellsHtml}
+          </div>
+        </div>
+        
+        <!-- Легенда -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 10px; font-size: 11px; color: rgba(255,255,255,0.4); user-select: none;">
+          <span>Меньше</span>
+          <div style="display: flex; gap: 3px; margin: 0 8px;">
+            <div style="width: 10px; height: 10px; border-radius: 2px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.02);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 2px; background: rgba(204, 0, 255, 0.2);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 2px; background: rgba(204, 0, 255, 0.55);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 2px; background: rgba(255, 140, 0, 0.6);"></div>
+            <div style="width: 10px; height: 10px; border-radius: 2px; background: #ff8c00;"></div>
+          </div>
+          <span>Больше</span>
+        </div>
+      </div>
+    `;
+
+  // 2. Построение сетки треков по месяцам
+  const monthNamesRU = [
+    'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+    'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'
+  ];
+
+  let gridHtml = '';
+
+  for (let m = 0; m < 12; m++) {
+    const trackInfo = stats.monthlyTopTracks[m];
+    
+    if (trackInfo) {
+      gridHtml += `
+        <div class="ym-glass-card" style="padding: 15px; display: flex; align-items: center; gap: 12px; min-width: 0; box-sizing: border-box;">
+          <img src="${trackInfo.cover}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; flex-shrink: 0; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px;">${monthNamesRU[m]}</div>
+            <div style="font-size: 13px; font-weight: bold; color: white; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${trackInfo.title}">${trackInfo.title}</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${trackInfo.artist}">${trackInfo.artist}</div>
+          </div>
+          <div style="font-size: 11px; color: #ffdb4d; font-weight: bold; flex-shrink: 0; margin-left: 5px; text-align: right;">
+            ${trackInfo.count} <span style="font-size: 9px; font-weight: normal; color: rgba(255,255,255,0.4); display: block;">прослуш.</span>
+          </div>
+        </div>
+      `;
+    } else {
+      gridHtml += `
+        <div class="ym-glass-card" style="padding: 15px; display: flex; align-items: center; gap: 12px; min-width: 0; box-sizing: border-box; opacity: 0.5;">
+          <div style="width: 50px; height: 50px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; color: rgba(255,255,255,0.2);">?</div>
+          <div style="min-width: 0; flex: 1;">
+            <div style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px;">${monthNamesRU[m]}</div>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.3); margin-top: 2px; font-style: italic;">Нет данных</div>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  container.innerHTML = `
+    <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Музыкальный Календарь</h2>
+    <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; padding-right: 5px;">
+      ${heatmapCardHtml}
+      
+      <h3 style="margin: 0 0 15px 0; font-size: 16px; color: rgba(255,255,255,0.8); font-weight: bold; flex-shrink: 0;">Главные треки по месяцам</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 15px; padding-bottom: 20px; flex-shrink: 0;">
+        ${gridHtml}
+      </div>
+    </div>
+  `;
+  } catch (err) {
+    console.error("Ошибка рендеринга календаря:", err);
+    container.innerHTML = `<div style="color:red; padding: 20px;">Ошибка рендеринга календаря: ${err.message}</div>`;
+  }
+}
+
 // Экспорт (обновление) функции рендера в window
 if (typeof window !== 'undefined') {
   window.renderWrappedCharts = renderWrappedCharts;
+}
+
+// Инициализация кастомного красивого тултипа через делегирование событий
+if (typeof window !== 'undefined') {
+  let tooltipDiv = document.getElementById('ym-heatmap-tooltip');
+  if (!tooltipDiv) {
+    tooltipDiv = document.createElement('div');
+    tooltipDiv.id = 'ym-heatmap-tooltip';
+    tooltipDiv.style.cssText = `
+      position: fixed;
+      display: none;
+      background: rgba(28, 28, 30, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: white;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 9999999;
+      pointer-events: none;
+      max-width: 250px;
+      line-height: 1.5;
+      font-family: "YS Text", sans-serif;
+      transition: opacity 0.1s ease, transform 0.1s ease;
+      opacity: 0;
+      transform: scale(0.95);
+    `;
+    document.body.appendChild(tooltipDiv);
+  }
+
+  // Делегирование событий мыши для ячеек активности
+  document.addEventListener('mouseover', (e) => {
+    const cell = e.target.closest('.ym-heatmap-cell');
+    if (cell) {
+      showHeatmapTooltip(e, cell);
+    }
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    const cell = e.target.closest('.ym-heatmap-cell');
+    if (cell) {
+      moveHeatmapTooltip(e);
+    }
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    const cell = e.target.closest('.ym-heatmap-cell');
+    if (cell) {
+      hideHeatmapTooltip();
+    }
+  });
+
+  function showHeatmapTooltip(e, cellElement) {
+    const text = cellElement.getAttribute('data-tooltip');
+    if (!text) return;
+    
+    const html = text.split('\n').map((line, idx) => {
+      if (idx === 0) {
+        return `<div style="font-weight: bold; margin-bottom: 5px; color: white; font-size: 13px;">${line}</div>`;
+      }
+      if (line.startsWith('• Топ:')) {
+        return `<div style="color: #ffdb4d; margin-top: 3px; font-weight: bold;">${line}</div>`;
+      }
+      return `<div style="color: rgba(255,255,255,0.7);">${line}</div>`;
+    }).join('');
+    
+    tooltipDiv.innerHTML = html;
+    tooltipDiv.style.display = 'block';
+    
+    // Принудительный reflow
+    void tooltipDiv.offsetWidth;
+    tooltipDiv.style.opacity = '1';
+    tooltipDiv.style.transform = 'scale(1)';
+    
+    moveHeatmapTooltip(e);
+  }
+
+  function moveHeatmapTooltip(e) {
+    const x = e.clientX;
+    const y = e.clientY;
+    
+    const tooltipWidth = tooltipDiv.offsetWidth;
+    const tooltipHeight = tooltipDiv.offsetHeight;
+    
+    let left = x + 15;
+    let top = y - tooltipHeight - 15;
+    
+    if (left + tooltipWidth > window.innerWidth) {
+      left = x - tooltipWidth - 15;
+    }
+    if (top < 10) {
+      top = y + 20;
+    }
+    
+    tooltipDiv.style.left = left + 'px';
+    tooltipDiv.style.top = top + 'px';
+  }
+
+  function hideHeatmapTooltip() {
+    tooltipDiv.style.opacity = '0';
+    tooltipDiv.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      if (tooltipDiv.style.opacity === '0') {
+        tooltipDiv.style.display = 'none';
+      }
+    }, 100);
+  }
 }

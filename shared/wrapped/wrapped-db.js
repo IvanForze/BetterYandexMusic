@@ -190,6 +190,15 @@ class WrappedDB {
     };
     let explicitCount = 0;
 
+    // Вспомогательные хранилища для новых фич
+    const monthlyTrackCounts = Array.from({ length: 12 }, () => ({}));
+    const dailyListens = {};
+    const dailyListensDuration = {};
+    const dailyTrackCounts = {};
+    const slotCounts = {};
+    let weekdayListensCount = 0;
+    let weekendListensCount = 0;
+
     for (const listen of listens) {
       const track = tracksMap.get(String(listen.trackId));
       if (!track) continue;
@@ -237,6 +246,9 @@ class WrappedDB {
       const month = listenDate.getMonth();
       listensByMonth[month]++;
 
+      // Собираем популярные треки по месяцам
+      monthlyTrackCounts[month][strTrackId] = (monthlyTrackCounts[month][strTrackId] || 0) + 1;
+
       // Активность по часам
       const hour = listenDate.getHours();
       hourlyListens[hour]++;
@@ -244,13 +256,40 @@ class WrappedDB {
       // Активность по дням недели
       const day = listenDate.getDay();
       weeklyListens[day]++;
+
+      // Будни vs Выходные
+      if (day === 0 || day === 6) {
+        weekendListensCount++;
+      } else {
+        weekdayListensCount++;
+      }
+
+      // Прослушивания по дням (всегда в локальном часовом поясе)
+      const dateStr = `${listenDate.getFullYear()}-${String(listenDate.getMonth() + 1).padStart(2, '0')}-${String(listenDate.getDate()).padStart(2, '0')}`;
+      dailyListens[dateStr] = (dailyListens[dateStr] || 0) + 1;
+      
+      const listenDur = listen.durationListened || track.duration || 0;
+      dailyListensDuration[dateStr] = (dailyListensDuration[dateStr] || 0) + listenDur;
+
+      if (!dailyTrackCounts[dateStr]) {
+        dailyTrackCounts[dateStr] = {};
+      }
+      dailyTrackCounts[dateStr][strTrackId] = (dailyTrackCounts[dateStr][strTrackId] || 0) + 1;
+
+      // Слот активности (день_час)
+      const slotKey = `${day}_${hour}`;
+      slotCounts[slotKey] = (slotCounts[slotKey] || 0) + 1;
     }
 
     const topTracks = Object.entries(trackCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
       .map(([id, count]) => {
-        const track = tracksMap.get(String(id));
+        const rawTrack = tracksMap.get(String(id));
+        if (!rawTrack) return { track: null, count };
+        
+        // Клонируем объект трека, чтобы избежать мутации в tracksMap
+        const track = { ...rawTrack };
         if (track && Array.isArray(track.artists)) {
           // Разрешаем ID артистов в полноценные объекты с именами и обложками
           track.artists = track.artists.map(artistId => {
@@ -281,6 +320,177 @@ class WrappedDB {
 
     const explicitPercentage = totalListens > 0 ? Math.round((explicitCount / totalListens) * 100) : 0;
 
+    // 1. Вычисление Музыкального психотипа
+    const topArtistDurationSec = topArtists[0] ? topArtists[0].duration : 0;
+    const topArtistPercent = totalDurationSec > 0 ? (topArtistDurationSec / totalDurationSec) * 100 : 0;
+    
+    const totalEraCount = Object.values(eraCounts).reduce((a, b) => a + b, 0);
+    const olderEraCount = (eraCounts['2000s'] || 0) + (eraCounts['90s'] || 0) + (eraCounts['Earlier'] || 0);
+    const olderEraPercent = totalEraCount > 0 ? (olderEraCount / totalEraCount) * 100 : 0;
+    
+    const uniqueArtistsCount = Object.keys(artistCounts).length;
+    const explorerRatio = totalListens > 0 ? uniqueArtistsCount / totalListens : 0;
+    
+    const peakHour = hourlyListens.indexOf(Math.max(...hourlyListens));
+
+    let personaName = 'Меломан';
+    let personaDescription = 'Вы любите самую разную музыку и находите идеальный баланс во всех жанрах и эпохах.';
+    if (olderEraPercent > 30) {
+      personaName = 'Путешественник во времени';
+      personaDescription = 'Ваше сердце бьется под ритмы прошлых десятилетий. Вы цените классику и проверенные временем хиты.';
+    } else if (topArtistPercent > 25) {
+      personaName = 'Преданный фанат';
+      const artistName = topArtists[0]?.artist?.name || 'своего любимого артиста';
+      personaDescription = `Вы невероятно верны своему вкусу. Ваше прослушивание во многом крутится вокруг творчества ${artistName}.`;
+    } else if (explorerRatio > 0.5) {
+      personaName = 'Первооткрыватель';
+      personaDescription = 'Вы постоянно ищете новое звучание. Ваша фонотека полна уникальных имен, а знакомые треки редко повторяются.';
+    } else if (peakHour >= 0 && peakHour < 6) {
+      personaName = 'Ночная сова';
+      personaDescription = 'Для вас музыка — лучший спутник под покровом ночи. Вы часто слушаете треки, когда весь остальной мир спит.';
+    } else if (peakHour >= 6 && peakHour < 12) {
+      personaName = 'Ранняя пташка';
+      personaDescription = 'Музыка заряжает вас энергией на весь день. Вы предпочитаете слушать любимые плейлисты в утренние часы.';
+    }
+    const listeningPersona = { name: personaName, description: personaDescription };
+
+    // 2. Вычисление Музыкального календаря по месяцам
+    const monthlyTopTracks = new Array(12).fill(null);
+    for (let m = 0; m < 12; m++) {
+      const counts = monthlyTrackCounts[m];
+      const entries = Object.entries(counts);
+      if (entries.length > 0) {
+        entries.sort((a, b) => b[1] - a[1]);
+        const [trackId, count] = entries[0];
+        const track = tracksMap.get(String(trackId));
+        if (track) {
+          let coverUrl = track.cover || 'https://music.yandex.ru/blocks/playlist-cover/playlist-cover_like.png';
+          if (coverUrl && !coverUrl.startsWith('http') && !coverUrl.startsWith('//')) {
+            coverUrl = 'https://' + coverUrl;
+          }
+          let artistName = '';
+          if (Array.isArray(track.artists)) {
+            artistName = track.artists.map(artId => {
+              if (artId && typeof artId === 'object') {
+                return artId.name || 'Неизвестный исполнитель';
+              }
+              const artObj = artistsMap.get(String(artId));
+              return artObj ? artObj.name : String(artId);
+            }).join(', ');
+          }
+          monthlyTopTracks[m] = {
+            trackId,
+            title: track.title,
+            cover: coverUrl,
+            artist: artistName,
+            count
+          };
+        }
+      }
+    }
+
+    // 2.5 Вычисление Топ-трека на каждый день
+    const dailyTopTrack = {};
+    for (const [dStr, counts] of Object.entries(dailyTrackCounts)) {
+      const entries = Object.entries(counts);
+      if (entries.length > 0) {
+        entries.sort((a, b) => b[1] - a[1]);
+        const [trackId, count] = entries[0];
+        const track = tracksMap.get(String(trackId));
+        if (track) {
+          let artistName = '';
+          if (Array.isArray(track.artists)) {
+            artistName = track.artists.map(artId => {
+              if (artId && typeof artId === 'object') return artId.name || 'Неизвестный исполнитель';
+              const artObj = artistsMap.get(String(artId));
+              return artObj ? artObj.name : String(artId);
+            }).join(', ');
+          }
+          dailyTopTrack[dStr] = {
+            title: track.title,
+            artist: artistName,
+            count
+          };
+        }
+      }
+    }
+
+    // 3. Вычисление Личных рекордов
+    let peakDayStr = '-';
+    let peakDayCount = 0;
+    const dailyEntries = Object.entries(dailyListens);
+    if (dailyEntries.length > 0) {
+      dailyEntries.sort((a, b) => b[1] - a[1]);
+      peakDayStr = dailyEntries[0][0];
+      peakDayCount = dailyEntries[0][1];
+      try {
+        const [y, m, d] = peakDayStr.split('-');
+        const monthsNamesRU = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+        peakDayStr = `${parseInt(d)} ${monthsNamesRU[parseInt(m) - 1]} ${y}`;
+      } catch (e) {}
+    }
+
+    const weekdayPercent = totalListens > 0 ? Math.round((weekdayListensCount / totalListens) * 100) : 0;
+    const weekendPercent = totalListens > 0 ? Math.round((weekendListensCount / totalListens) * 100) : 0;
+
+    let favSlotStr = '-';
+    const slotEntries = Object.entries(slotCounts);
+    if (slotEntries.length > 0) {
+      slotEntries.sort((a, b) => b[1] - a[1]);
+      const [bestKey, _] = slotEntries[0];
+      const [d, h] = bestKey.split('_');
+      const daysNamesRU = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+      favSlotStr = `${daysNamesRU[parseInt(d)]}, около ${h}:00`;
+    }
+
+    const avgTrackDurationMin = totalListens > 0 ? Math.round((totalDurationSec / totalListens) / 60 * 10) / 10 : 0;
+
+    // 4. Вычисление Жанровой палитры и перевод
+    const genreDict = {
+      'rusrap': { name: 'Русский Рэп', color: '#9b5de5' },
+      'ruspop': { name: 'Русский Поп', color: '#f15bb5' },
+      'pop': { name: 'Поп-музыка', color: '#00bbf9' },
+      'rap': { name: 'Рэп / Хип-хоп', color: '#3f37c9' },
+      'rock': { name: 'Рок', color: '#e63946' },
+      'alternative': { name: 'Альтернатива', color: '#a8dadc' },
+      'electronic': { name: 'Электроника', color: '#00f5d4' },
+      'dance': { name: 'Танцевальная', color: '#fee440' },
+      'indie': { name: 'Инди', color: '#48cae4' },
+      'metal': { name: 'Метал', color: '#1a1a1a' },
+      'jazz': { name: 'Джаз', color: '#fb8500' },
+      'classical': { name: 'Классика', color: '#e0e0e0' },
+      'soundtrack': { name: 'Саундтреки', color: '#ffb703' },
+      'rnb': { name: 'R&B', color: '#7209b7' },
+      'lofi': { name: 'Лоу-фай', color: '#b5e2fa' },
+      'chillout': { name: 'Чиллаут', color: '#90e0ef' },
+      'latin': { name: 'Латино', color: '#ff477e' },
+      'folk': { name: 'Фолк', color: '#ad2831' },
+      'local-indie': { name: 'Локальный инди', color: '#0096c7' }
+    };
+
+    const top3Genres = topGenres.slice(0, 3).map(g => {
+      const cleanName = g.name.toLowerCase().trim();
+      const info = genreDict[cleanName] || {
+        name: g.name,
+        color: '#' + Math.floor((Math.abs(Math.sin(cleanName.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) * 16777215) % 1) * 16777215).toString(16).padStart(6, '0')
+      };
+      return {
+        code: g.name,
+        name: g.name,
+        color: info.color,
+        count: g.count
+      };
+    });
+
+    let paletteGradient = 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)';
+    if (top3Genres.length === 1) {
+      paletteGradient = `linear-gradient(135deg, ${top3Genres[0].color}20 0%, ${top3Genres[0].color}05 100%)`;
+    } else if (top3Genres.length === 2) {
+      paletteGradient = `linear-gradient(135deg, ${top3Genres[0].color}20 0%, ${top3Genres[1].color}10 100%)`;
+    } else if (top3Genres.length >= 3) {
+      paletteGradient = `linear-gradient(135deg, ${top3Genres[0].color}20 0%, ${top3Genres[1].color}12 50%, ${top3Genres[2].color}08 100%)`;
+    }
+
     return {
       totalListens,
       totalHours: (totalDurationSec / 3600).toFixed(1),
@@ -291,7 +501,22 @@ class WrappedDB {
       listensByMonth,
       hourlyListens,
       weeklyListens,
-      explicitPercentage
+      explicitPercentage,
+      listeningPersona,
+      monthlyTopTracks,
+      personalRecords: {
+        peakDay: peakDayStr,
+        peakDayCount: peakDayCount,
+        weekdayPercent,
+        weekendPercent,
+        favSlot: favSlotStr,
+        avgTrackDurationMin
+      },
+      top3Genres,
+      paletteGradient,
+      dailyListensDuration,
+      dailyListens,
+      dailyTopTrack
     };
   }
 

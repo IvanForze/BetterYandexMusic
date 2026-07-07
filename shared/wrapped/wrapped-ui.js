@@ -250,6 +250,7 @@ function createWrappedOverlay() {
       <button class="ym-wrapped-tab-btn" data-tab="artists">Топ Артистов</button>
       <button class="ym-wrapped-tab-btn" data-tab="tracks">Топ Треков</button>
       <button class="ym-wrapped-tab-btn" data-tab="genres">Жанры и Эпохи</button>
+      <button class="ym-wrapped-tab-btn" data-tab="calendar">Календарь</button>
       <button class="ym-wrapped-tab-btn" data-tab="activity">Активность</button>
       <button class="ym-wrapped-tab-btn" data-tab="settings">Данные и Настройки</button>
       <button class="ym-wrapped-tab-btn" data-tab="stories" style="background: linear-gradient(135deg, #cc00ff 0%, #ff8c00 100%); color: white; font-weight: bold; border: none; margin-top: auto; padding: 12px 20px; border-radius: 12px; cursor: pointer; text-align: center; text-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: all 0.2s ease;">
@@ -263,6 +264,7 @@ function createWrappedOverlay() {
       <div id="ym-wrapped-tab-artists" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-tracks" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-genres" class="ym-wrapped-tab-content"></div>
+      <div id="ym-wrapped-tab-calendar" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-activity" class="ym-wrapped-tab-content"></div>
       <div id="ym-wrapped-tab-settings" class="ym-wrapped-tab-content"></div>
     </div>
