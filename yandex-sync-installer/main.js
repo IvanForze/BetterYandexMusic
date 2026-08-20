@@ -6,6 +6,30 @@ const { flipFuses, FuseVersion, FuseV1Options } = require('@electron/fuses');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
 
+// Подавление асинхронных ошибок закрытого потока вывода (write EIO / EPIPE) при запуске AppImage / GUI
+if (process.stdout && process.stdout.on) {
+  process.stdout.on('error', (err) => {
+    if (err.code === 'EPIPE' || err.code === 'EIO') return;
+  });
+}
+if (process.stderr && process.stderr.on) {
+  process.stderr.on('error', (err) => {
+    if (err.code === 'EPIPE' || err.code === 'EIO') return;
+  });
+}
+process.on('uncaughtException', (err) => {
+  if (err && (err.code === 'EIO' || err.code === 'EPIPE' || err.message?.includes('write EIO') || err.message?.includes('write EPIPE'))) {
+    return;
+  }
+  console.error('Неперехваченная ошибка:', err);
+});
+
+// Автоматическое отключение песочницы Chromium при запуске от имени root (sudo) на Linux
+if (process.platform === 'linux' && process.getuid && process.getuid() === 0) {
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu-sandbox');
+}
+
 let mainWindow;
 
 function createWindow() {
@@ -35,8 +59,9 @@ app.on('window-all-closed', () => {
 
 function findResourcesDir() {
   let possiblePaths = [];
+  const homeDir = app.getPath('home');
+
   if (process.platform === 'darwin') {
-    const homeDir = app.getPath('home');
     possiblePaths = [
       '/Applications/Yandex Music.app/Contents/Resources',
       '/Applications/Яндекс Музыка.app/Contents/Resources',
@@ -44,20 +69,69 @@ function findResourcesDir() {
       path.join(homeDir, 'Applications', 'Яндекс Музыка.app', 'Contents', 'Resources')
     ];
   } else if (process.platform === 'linux') {
-    const homeDir = app.getPath('home');
+    // 1. Стандартные системные пути (/opt, /usr)
     possiblePaths = [
-      // Flatpak установка (ru.yandex.music)
-      path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'yandex-music', 'resources'),
-      '/var/lib/flatpak/app/ru.yandex.music/current/active/files/extra/resources',
-      // deb/rpm установка (через apt)
+      '/opt/Яндекс Музыка/resources',
+      '/opt/Яндекс Музыка',
+      '/opt/Яндекс.Музыка/resources',
+      '/opt/Яндекс.Музыка',
+      '/opt/ЯндексМузыка/resources',
+      '/opt/ЯндексМузыка',
+      '/opt/yandex-music/resources',
+      '/opt/yandex-music',
+      '/opt/yandex-music-app/resources',
+      '/opt/yandex-music-app',
+      '/opt/YandexMusic/resources',
+      '/opt/YandexMusic',
+      '/opt/Yandex Music/resources',
+      '/opt/Yandex Music',
       '/opt/yandex/music/resources',
+      '/opt/yandex/music',
       '/usr/lib/yandex-music/resources',
+      '/usr/lib/yandex-music',
+      '/usr/lib/Яндекс Музыка/resources',
+      '/usr/lib/Яндекс Музыка',
       '/usr/share/yandex-music/resources',
-      // AppImage (распакованный в home)
+      '/usr/share/yandex-music',
+      '/usr/share/Яндекс Музыка/resources',
+      '/usr/share/Яндекс Музыка',
+      // Flatpak
+      path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'yandex-music', 'resources'),
+      path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'Яндекс Музыка', 'resources'),
+      '/var/lib/flatpak/app/ru.yandex.music/current/active/files/extra/resources',
+      // Пользовательские директории (AppImage / .local)
+      path.join(homeDir, 'Applications', 'Яндекс Музыка', 'resources'),
       path.join(homeDir, 'Applications', 'yandex-music', 'resources'),
+      path.join(homeDir, 'Applications', 'yandex-music'),
+      path.join(homeDir, '.local', 'share', 'Яндекс Музыка', 'resources'),
       path.join(homeDir, '.local', 'share', 'yandex-music', 'resources'),
       path.join(homeDir, 'yandex-music', 'resources'),
+      path.join(homeDir, 'Яндекс Музыка', 'resources')
     ];
+
+    // Динамический поиск в /opt, /usr/lib, ~/.local/share, ~/Applications
+    const searchBases = [
+      '/opt',
+      '/usr/lib',
+      '/usr/share',
+      path.join(homeDir, 'Applications'),
+      path.join(homeDir, '.local', 'share')
+    ];
+
+    for (const base of searchBases) {
+      try {
+        if (fs.existsSync(base)) {
+          const entries = fs.readdirSync(base);
+          for (const entry of entries) {
+            const lower = entry.toLowerCase();
+            if (lower.includes('yandex') || lower.includes('яндекс') || lower.includes('music') || lower.includes('музыка')) {
+              possiblePaths.push(path.join(base, entry, 'resources'));
+              possiblePaths.push(path.join(base, entry));
+            }
+          }
+        }
+      } catch (e) {}
+    }
   } else {
     const localAppData = process.env.LOCALAPPDATA;
     if (localAppData) {
@@ -71,7 +145,15 @@ function findResourcesDir() {
   }
 
   for (const p of possiblePaths) {
-    if (p && fs.existsSync(p)) return p;
+    if (!p) continue;
+    try {
+      if (fs.existsSync(path.join(p, 'app.asar'))) {
+        return p;
+      }
+      if (fs.existsSync(path.join(p, 'resources', 'app.asar'))) {
+        return path.join(p, 'resources');
+      }
+    } catch (e) {}
   }
   return null;
 }
@@ -106,7 +188,16 @@ ipcMain.on('close-app', () => {
 });
 
 ipcMain.handle('install-mod', async (event) => {
-  const log = (msg) => { console.log(msg); event.sender.send('install-log', msg); };
+  const log = (msg) => {
+    if (process.stdout && process.stdout.isTTY) {
+      try { console.log(msg); } catch(e) {}
+    }
+    try {
+      if (event?.sender && !event.sender.isDestroyed()) {
+        event.sender.send('install-log', msg);
+      }
+    } catch(e) {}
+  };
   
   // ОТКЛЮЧАЕМ ВНУТРЕННИЙ ПЕРЕХВАТ ASAR ЭЛЕКТРОНОМ
   // Иначе он думает, что app.asar — это папка, и fs.accessSync выдает ошибку!
@@ -123,11 +214,16 @@ ipcMain.handle('install-mod', async (event) => {
 
     log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
     if (process.platform === 'darwin') {
+      try { await exec('osascript -e \'quit app "Yandex Music"\''); } catch(e) {}
+      try { await exec('osascript -e \'quit app "Яндекс Музыка"\''); } catch(e) {}
       try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
       try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
     } else if (process.platform === 'linux') {
       try { await exec('pkill -f "yandex-music"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс.Музыка"'); } catch(e) {}
       try { await exec('pkill -f "YandexMusic"'); } catch(e) {}
+      try { await exec('pkill -f "yandex_music"'); } catch(e) {}
     } else if (process.platform === 'win32') {
       try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
       try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}
@@ -135,21 +231,52 @@ ipcMain.handle('install-mod', async (event) => {
       try { await exec('taskkill /F /IM "Yandex Music.exe" /T'); } catch(e) {}
     }
     
-    log("Ожидаем снятия блокировки с файлов...");
-    let isLocked = true;
-    for (let i = 0; i < 25; i++) {
-      try { 
-        const fd = fs.openSync(asarPath, 'r+');
-        fs.closeSync(fd);
-        isLocked = false;
-        break; 
-      } catch (err) {
+    if (process.platform === 'win32') {
+      log("Ожидаем снятия блокировки с файлов...");
+      let isLocked = true;
+      for (let i = 0; i < 25; i++) {
+        try { 
+          const fd = fs.openSync(asarPath, 'r+');
+          fs.closeSync(fd);
+          isLocked = false;
+          break; 
+        } catch (err) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+
+      if (isLocked) {
+        throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+      }
+    } else if (process.platform === 'darwin') {
+      log("Проверяем закрытие приложения...");
+      let isRunning = true;
+      for (let i = 0; i < 25; i++) {
+        try {
+          const { stdout } = await exec('pgrep -f "Yandex Music|Яндекс Музыка"');
+          if (!stdout || stdout.trim() === '') {
+            isRunning = false;
+            break;
+          }
+        } catch (e) {
+          isRunning = false;
+          break;
+        }
         await new Promise(resolve => setTimeout(resolve, 200));
       }
-    }
 
-    if (isLocked) {
-      throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+      if (isRunning) {
+        throw new Error("Яндекс Музыка всё ещё запущена. Пожалуйста, закройте приложение (Cmd+Q)!");
+      }
+    } else {
+      // Linux: проверка прав записи
+      try {
+        fs.accessSync(asarPath, fs.constants.W_OK);
+      } catch (accessErr) {
+        if (accessErr.code === 'EACCES') {
+          throw new Error("Нет прав на запись в /opt. Запустите установщик с sudo:\nsudo ./BetterYandexMusic.Installer... --no-sandbox");
+        }
+      }
     }
 
     const unpackedDir = path.join(resourcesDir, 'app-unpacked');
@@ -158,11 +285,47 @@ ipcMain.handle('install-mod', async (event) => {
     asar.uncacheAll();
     asar.extractAll(asarPath, unpackedDir);
 
-    // Удаляем DevTools из index.js
+    // Удаляем DevTools из index.js и внедряем IPC-обработчики
     const indexJSPath = path.join(unpackedDir, 'index.js');
     if (fs.existsSync(indexJSPath)) {
       let indexContent = fs.readFileSync(indexJSPath, 'utf8');
       indexContent = indexContent.replace(/\r?\n\s*window\.webContents\.openDevTools\(\);/g, '');
+      
+      if (indexContent.includes('// --- YM SYNC EXPORT PATCH ---')) {
+        indexContent = indexContent.replace(/\/\/ --- YM SYNC EXPORT PATCH ---[\s\S]*?\/\/ --- END YM SYNC EXPORT PATCH ---/g, '');
+      }
+
+      if (!indexContent.includes('ym-sync-net-fetch')) {
+        indexContent += `
+// --- YM SYNC EXPORT PATCH ---
+try {
+  const { ipcMain, dialog, net } = require('electron');
+  try { ipcMain.removeHandler('ym-sync-show-save-dialog'); } catch(e) {}
+  ipcMain.handle('ym-sync-show-save-dialog', async (event, options) => {
+    const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
+    if (parentWindow) {
+      return await dialog.showSaveDialog(parentWindow, options);
+    } else {
+      return await dialog.showSaveDialog(options);
+    }
+  });
+
+  try { ipcMain.removeHandler('ym-sync-net-fetch'); } catch(e) {}
+  ipcMain.handle('ym-sync-net-fetch', async (event, { url, options }) => {
+    try {
+      const res = await net.fetch(url, options || {});
+      const text = await res.text();
+      return { ok: true, status: res.status, text };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
+} catch(e) {
+  console.error('[SYNC] Failed to inject ym-sync IPC handlers:', e);
+}
+// --- END YM SYNC EXPORT PATCH ---
+`;
+      }
       fs.writeFileSync(indexJSPath, indexContent, 'utf8');
     }
 
@@ -218,34 +381,27 @@ ipcMain.handle('install-mod', async (event) => {
     await asar.createPackage(unpackedDir, asarPath);
     asar.uncacheAll();
 
-    log("Отключаем проверку целостности (asar integrity)...");
-    let exePath = null;
-    if (process.platform === 'darwin') {
-      const macOsDir = path.join(path.dirname(resourcesDir), 'MacOS');
-      const exeFile = fs.readdirSync(macOsDir).find(f => !f.startsWith('.'));
-      if (exeFile) exePath = path.join(macOsDir, exeFile);
-    } else if (process.platform === 'linux') {
-      // На Linux бинарник обычно лежит на уровень выше resources/ или в /opt
-      const parentDir = path.dirname(resourcesDir);
-      const exeFile = fs.readdirSync(parentDir).find(f => {
-        const fullPath = path.join(parentDir, f);
-        try {
-          const stat = fs.statSync(fullPath);
-          return stat.isFile() && (stat.mode & 0o111) && !f.includes('.') && !f.startsWith('.');
-        } catch { return false; }
-      });
-      if (exeFile) exePath = path.join(parentDir, exeFile);
-    } else {
-      const parentDir = path.dirname(resourcesDir);
-      const exeFile = fs.readdirSync(parentDir).find(f => f.endsWith('.exe') && !f.toLowerCase().includes('uninstall'));
-      if (exeFile) exePath = path.join(parentDir, exeFile);
-    }
+    if (process.platform !== 'linux') {
+      log("Отключаем проверку целостности (asar integrity)...");
+      let exePath = null;
+      if (process.platform === 'darwin') {
+        const macOsDir = path.join(path.dirname(resourcesDir), 'MacOS');
+        const exeFile = fs.readdirSync(macOsDir).find(f => !f.startsWith('.'));
+        if (exeFile) exePath = path.join(macOsDir, exeFile);
+      } else {
+        const parentDir = path.dirname(resourcesDir);
+        const exeFile = fs.readdirSync(parentDir).find(f => f.endsWith('.exe') && !f.toLowerCase().includes('uninstall'));
+        if (exeFile) exePath = path.join(parentDir, exeFile);
+      }
 
-    if (exePath) {
-      await flipFuses(exePath, {
-        version: FuseVersion.V1,
-        [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: false
-      });
+      if (exePath) {
+        try {
+          await flipFuses(exePath, {
+            version: FuseVersion.V1,
+            [FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: false
+          });
+        } catch (fuseErr) {}
+      }
     }
 
     if (process.platform === 'darwin') {
@@ -269,7 +425,16 @@ ipcMain.handle('install-mod', async (event) => {
 });
 
 ipcMain.handle('uninstall-mod', async (event) => {
-  const log = (msg) => { console.log(msg); event.sender.send('install-log', msg); };
+  const log = (msg) => {
+    if (process.stdout && process.stdout.isTTY) {
+      try { console.log(msg); } catch(e) {}
+    }
+    try {
+      if (event?.sender && !event.sender.isDestroyed()) {
+        event.sender.send('install-log', msg);
+      }
+    } catch(e) {}
+  };
   
   const originalNoAsar = process.noAsar;
   process.noAsar = true;
@@ -284,11 +449,16 @@ ipcMain.handle('uninstall-mod', async (event) => {
 
     log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
     if (process.platform === 'darwin') {
+      try { await exec('osascript -e \'quit app "Yandex Music"\''); } catch(e) {}
+      try { await exec('osascript -e \'quit app "Яндекс Музыка"\''); } catch(e) {}
       try { await exec('pkill -f "Yandex Music"'); } catch(e) {}
       try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
     } else if (process.platform === 'linux') {
       try { await exec('pkill -f "yandex-music"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс Музыка"'); } catch(e) {}
+      try { await exec('pkill -f "Яндекс.Музыка"'); } catch(e) {}
       try { await exec('pkill -f "YandexMusic"'); } catch(e) {}
+      try { await exec('pkill -f "yandex_music"'); } catch(e) {}
     } else if (process.platform === 'win32') {
       try { await exec('taskkill /F /IM "YandexMusic.exe" /T'); } catch(e) {}
       try { await exec('taskkill /F /IM "yandex-music-app.exe" /T'); } catch(e) {}
@@ -296,21 +466,52 @@ ipcMain.handle('uninstall-mod', async (event) => {
       try { await exec('taskkill /F /IM "Yandex Music.exe" /T'); } catch(e) {}
     }
     
-    log("Ожидаем снятия блокировки с файлов...");
-    let isLocked = true;
-    for (let i = 0; i < 25; i++) {
-      try { 
-        const fd = fs.openSync(asarPath, 'r+');
-        fs.closeSync(fd);
-        isLocked = false;
-        break; 
-      } catch (err) {
+    if (process.platform === 'win32') {
+      log("Ожидаем снятия блокировки с файлов...");
+      let isLocked = true;
+      for (let i = 0; i < 25; i++) {
+        try { 
+          const fd = fs.openSync(asarPath, 'r+');
+          fs.closeSync(fd);
+          isLocked = false;
+          break; 
+        } catch (err) {
+          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+      }
+
+      if (isLocked) {
+        throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+      }
+    } else if (process.platform === 'darwin') {
+      log("Проверяем закрытие приложения...");
+      let isRunning = true;
+      for (let i = 0; i < 25; i++) {
+        try {
+          const { stdout } = await exec('pgrep -f "Yandex Music|Яндекс Музыка"');
+          if (!stdout || stdout.trim() === '') {
+            isRunning = false;
+            break;
+          }
+        } catch (e) {
+          isRunning = false;
+          break;
+        }
         await new Promise(resolve => setTimeout(resolve, 200));
       }
-    }
 
-    if (isLocked) {
-      throw new Error("Файл app.asar заблокирован. Закройте Яндекс Музыку вручную!");
+      if (isRunning) {
+        throw new Error("Яндекс Музыка всё ещё запущена. Пожалуйста, закройте приложение (Cmd+Q)!");
+      }
+    } else {
+      // Linux: проверка прав записи
+      try {
+        fs.accessSync(asarPath, fs.constants.W_OK);
+      } catch (accessErr) {
+        if (accessErr.code === 'EACCES') {
+          throw new Error("Нет прав на запись в /opt. Запустите установщик с sudo:\nsudo ./BetterYandexMusic.Installer... --no-sandbox");
+        }
+      }
     }
 
     const unpackedDir = path.join(resourcesDir, 'app-unpacked');

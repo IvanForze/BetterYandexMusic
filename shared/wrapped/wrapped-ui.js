@@ -54,6 +54,7 @@ function createWrappedOverlay() {
       display: flex;
       flex-direction: column;
       background: transparent;
+      flex-shrink: 0;
     }
     .ym-wrapped-aside h2 {
       margin: 0 0 40px 10px;
@@ -71,14 +72,20 @@ function createWrappedOverlay() {
       font-weight: 500;
       border-radius: 12px;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
       margin-bottom: 8px;
       font-family: inherit;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .ym-wrapped-tab-btn:hover {
       color: var(--ym-popover-text, white);
       background: rgba(255, 255, 255, 0.04);
       border-color: rgba(255, 255, 255, 0.04);
+    }
+    .ym-wrapped-tab-btn:active {
+      transform: scale(0.98);
     }
     .ym-wrapped-tab-btn.active {
       color: var(--ym-popover-active, #ffdb4d);
@@ -97,7 +104,8 @@ function createWrappedOverlay() {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       background: rgba(0, 0, 0, 0.03);
     }
     
@@ -116,7 +124,7 @@ function createWrappedOverlay() {
       align-items: center;
       justify-content: center;
       transition: background 0.2s, transform 0.2s, color 0.2s;
-      z-index: 10;
+      z-index: 100;
     }
     .ym-wrapped-close:hover {
       background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.2));
@@ -126,12 +134,12 @@ function createWrappedOverlay() {
     
     .ym-wrapped-tab-content {
       display: none;
-      height: 100%;
       width: 100%;
+      min-width: 0;
       flex-direction: column;
       box-sizing: border-box;
       min-height: 0;
-      animation: fadeIn 0.4s ease;
+      animation: fadeIn 0.3s ease;
       max-width: 1200px;
       margin: 0 auto;
     }
@@ -141,10 +149,16 @@ function createWrappedOverlay() {
 
     .ym-wrapped-columns {
       display: flex;
-      gap: 30px;
+      flex-direction: row;
+      gap: 20px;
       flex: 1;
       min-height: 0;
+      min-width: 0;
       width: 100%;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-columns > * {
+      min-width: 0;
     }
 
     .ym-glass-card {
@@ -153,31 +167,96 @@ function createWrappedOverlay() {
       border-radius: 16px !important;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
       box-sizing: border-box !important;
+      min-width: 0 !important;
     }
 
     .ym-wrapped-row {
       display: flex;
+      flex-direction: row;
       gap: 20px;
       width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-row > * {
+      min-width: 0;
+    }
+
+    .ym-chart-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 240px;
+      flex: 1;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .ym-chart-wrapper canvas {
+      max-width: 100% !important;
     }
     
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    @media (max-width: 1100px) {
+    /* Custom modern scrollbars for Wrapped */
+    #ym-wrapped-overlay * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-button,
+    #ym-wrapped-overlay *::-webkit-scrollbar-corner {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* Screen width <= 950px: switch sidebar to horizontal top bar, keep 2-column layout */
+    @media (max-width: 950px) {
       #ym-wrapped-overlay {
         flex-direction: column !important;
       }
       .ym-wrapped-aside {
         width: 100% !important;
         box-sizing: border-box !important;
-        padding: 15px 20px !important;
+        padding: 12px 65px 12px 16px !important;
         flex-direction: row !important;
         overflow-x: auto !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        overflow-y: hidden !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(18, 18, 24, 0.6) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
         flex-shrink: 0 !important;
+        scroll-behavior: smooth !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .ym-wrapped-aside::-webkit-scrollbar {
+        height: 3px !important;
+        display: block !important;
+      }
+      .ym-wrapped-aside::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border-radius: 999px !important;
       }
       .ym-wrapped-aside h2 {
         display: none !important;
@@ -188,30 +267,61 @@ function createWrappedOverlay() {
         white-space: nowrap !important;
         padding: 8px 16px !important;
         font-size: 14px !important;
+        flex-shrink: 0 !important;
       }
       .ym-wrapped-tab-btn[data-tab="stories"] {
         margin-top: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      .ym-wrapped-close {
+        position: fixed !important;
+        top: 10px !important;
+        right: 12px !important;
+        width: 36px !important;
+        height: 36px !important;
+        z-index: 1000000 !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
       }
       .ym-wrapped-main {
-        padding: 20px !important;
-        height: calc(100vh - 75px) !important;
+        padding: 20px 24px !important;
+        height: calc(100vh - 65px) !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
       }
       .ym-wrapped-tab-content {
         height: auto !important;
         min-height: auto !important;
         overflow-y: visible !important;
+        overflow-x: hidden !important;
       }
       .ym-wrapped-main h2 {
-        font-size: 24px !important;
-        margin-bottom: 15px !important;
+        font-size: 26px !important;
+        margin-bottom: 16px !important;
+      }
+      .ym-wrapped-columns {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 16px !important;
+        width: 100% !important;
+      }
+      .ym-wrapped-row {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 14px !important;
+        width: 100% !important;
+      }
+    }
+
+    /* Screen width <= 650px: narrow mobile screens, collapse to 1 column */
+    @media (max-width: 650px) {
+      .ym-wrapped-main {
+        padding: 16px 12px !important;
       }
       .ym-wrapped-columns {
         flex-direction: column !important;
-        height: auto !important;
-        min-height: auto !important;
-        overflow-y: visible !important;
-        gap: 20px !important;
+        gap: 14px !important;
         flex: none !important;
       }
       .ym-wrapped-columns > div {
@@ -222,7 +332,7 @@ function createWrappedOverlay() {
       }
       .ym-wrapped-row {
         flex-direction: column !important;
-        gap: 15px !important;
+        gap: 12px !important;
         flex: none !important;
       }
       .ym-wrapped-row > div {
@@ -231,7 +341,8 @@ function createWrappedOverlay() {
         height: auto !important;
       }
       canvas {
-        max-height: 220px !important;
+        max-height: 240px !important;
+        min-height: 180px !important;
       }
     }
   `;
@@ -240,7 +351,7 @@ function createWrappedOverlay() {
 
   wrappedOverlay.innerHTML = `
     <button class="ym-wrapped-close" aria-label="Закрыть">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
       </svg>
     </button>
@@ -271,6 +382,17 @@ function createWrappedOverlay() {
   `;
 
   document.body.appendChild(wrappedOverlay);
+
+  // Обработка горизонтального скролла колесиком мыши для вкладок
+  const asideElem = wrappedOverlay.querySelector('.ym-wrapped-aside');
+  if (asideElem) {
+    asideElem.addEventListener('wheel', (e) => {
+      if (asideElem.scrollWidth > asideElem.clientWidth) {
+        e.preventDefault();
+        asideElem.scrollLeft += (e.deltaY || e.deltaX) * 0.9;
+      }
+    }, { passive: false });
+  }
 
   // Обработка закрытия
   wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', (e) => {
@@ -319,8 +441,42 @@ function createWrappedOverlay() {
       // Ставим active на нажатую
       btn.classList.add('active');
       const content = wrappedOverlay.querySelector('#ym-wrapped-tab-' + tabId);
-      if (content) content.classList.add('active');
+      if (content) {
+        content.classList.add('active');
+      }
+
+      // Центрируем вкладку в панели при клике
+      try {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } catch(e) {}
+
+      // Пересчитываем размеры графиков при переключении вкладки
+      setTimeout(() => {
+        if (window.Chart && Chart.instances) {
+          Object.values(Chart.instances).forEach(chart => {
+            try {
+              chart.resize();
+            } catch(e) {}
+          });
+        }
+      }, 50);
     });
+  });
+
+  // Автоматический пересчет размеров графиков при изменении размера окна
+  let resizeDebounce = null;
+  window.addEventListener('resize', () => {
+    if (!wrappedOverlay || !wrappedOverlay.classList.contains('ym-wrapped-overlay-visible')) return;
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(() => {
+      if (window.Chart && Chart.instances) {
+        Object.values(Chart.instances).forEach(chart => {
+          try {
+            chart.resize();
+          } catch(e) {}
+        });
+      }
+    }, 80);
   });
 
   return wrappedOverlay;

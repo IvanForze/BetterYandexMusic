@@ -49,6 +49,7 @@ async function renderWrappedCharts() {
     // Общие настройки Chart.js для темной темы
     Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
     Chart.defaults.font.family = '"YS Text", sans-serif';
+    Chart.defaults.animation = false; // Отключаем внутренний аниматор Chart.js для мгновенной отрисовки и устранения крашей tick
 
     // Рендер вкладки Обзор
     renderOverviewTab(containerOverview, stats);
@@ -140,7 +141,7 @@ function renderOverviewTab(container, stats) {
       
       <div class="ym-glass-card" style="flex: 1.1; min-height: 0; padding: 25px; display: flex; flex-direction: column;">
         <h3 style="margin-top: 0; margin-bottom: 15px; color: rgba(255,255,255,0.8); flex-shrink: 0;">Активность по месяцам</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-months"></canvas>
         </div>
       </div>
@@ -242,12 +243,12 @@ function renderArtistsTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Артистов</h2>
     <div class="ym-wrapped-columns">
-      <div class="ym-glass-card" style="flex: 1.1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
-        <div style="flex: 1; min-height: 0; position: relative;">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-artists"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.9; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 0.9; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
         <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">Лидеры по времени</h3>
         <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
           ${listHtml}
@@ -279,7 +280,7 @@ function renderArtistsTab(container, stats) {
         data: data,
         backgroundColor: sliceColors,
         borderWidth: 0,
-        hoverOffset: 10
+        hoverOffset: 8
       }]
     },
     options: {
@@ -325,11 +326,12 @@ function renderTracksTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Треков</h2>
     <div class="ym-wrapped-columns">
-      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 0; padding-right: 5px;">
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 300px; padding-right: 5px;">
         ${cardsHtml}
       </div>
-      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
-        <div style="flex: 1; min-height: 0; position: relative;">
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
+        <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">Частота прослушиваний</h3>
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-tracks"></canvas>
         </div>
       </div>
@@ -562,22 +564,22 @@ function renderGenresTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Жанры и Эпохи</h2>
     <div class="ym-wrapped-columns" style="flex: 1.2; margin-bottom: 20px;">
-      <div class="ym-glass-card" style="flex: 1.2; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 1.2; padding: 20px; display: flex; flex-direction: column; min-height: 240px;">
         <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Популярные Жанры</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-genres"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.8; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 0.8; padding: 20px; display: flex; flex-direction: column; min-height: 240px;">
         <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Распределение по Эпохам</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-eras"></canvas>
         </div>
       </div>
     </div>
     
     <div class="ym-wrapped-columns" style="flex: 0.8; gap: 20px;">
-      <div class="ym-glass-card" style="flex: 1.1; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 20px; display: flex; flex-direction: column; min-height: 180px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Топ-5 Жанров</h3>
         <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
           ${genresListHtml}
@@ -688,15 +690,15 @@ function renderActivityTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Активность</h2>
     <div style="display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0;">
-      <div class="ym-glass-card" style="flex: 1.1; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+      <div class="ym-glass-card" style="flex: 1.1; min-height: 240px; display: flex; flex-direction: column; padding: 20px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Прослушивания по времени суток</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-hours"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.9; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+      <div class="ym-glass-card" style="flex: 0.9; min-height: 240px; display: flex; flex-direction: column; padding: 20px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Активность по дням недели</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-days"></canvas>
         </div>
       </div>
@@ -886,7 +888,7 @@ function renderCalendarTab(container, stats) {
     const heatmapCardHtml = `
       <div class="ym-glass-card" style="padding: 20px; margin-bottom: 25px; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;">
         <h3 style="margin: 0 0 15px 0; font-size: 16px; color: rgba(255,255,255,0.8); font-weight: bold;">Карта активности (минут прослушивания)</h3>
-        <div style="overflow-x: auto; padding-bottom: 10px; width: 100%; box-sizing: border-box;">
+        <div class="ym-heatmap-scroller" style="overflow-x: auto; padding-bottom: 10px; width: 100%; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
           <div style="display: grid; grid-template-columns: auto repeat(53, 1fr); grid-template-rows: auto repeat(7, 1fr); gap: 3px; width: 100%; min-width: 650px; align-items: center; box-sizing: border-box;">
             ${cellsHtml}
           </div>
@@ -956,6 +958,17 @@ function renderCalendarTab(container, stats) {
       </div>
     </div>
   `;
+
+  // Поддержка горизонтального колесика мыши для heatmap
+  const scroller = container.querySelector('.ym-heatmap-scroller');
+  if (scroller) {
+    scroller.addEventListener('wheel', (e) => {
+      if (scroller.scrollWidth > scroller.clientWidth) {
+        e.preventDefault();
+        scroller.scrollLeft += (e.deltaY || e.deltaX) * 0.9;
+      }
+    }, { passive: false });
+  }
   } catch (err) {
     console.error("Ошибка рендеринга календаря:", err);
     container.innerHTML = `<div style="color:red; padding: 20px;">Ошибка рендеринга календаря: ${err.message}</div>`;

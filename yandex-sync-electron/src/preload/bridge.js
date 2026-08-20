@@ -247,35 +247,59 @@ if (typeof window !== 'undefined') {
             }, '*');
           });
       } else if (type === 'RZT_GET_RATINGS') {
-        const query = payload.title;
+        const rawTitle = payload.title || '';
+        const cleanTitle = rawTitle.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim();
+        const query = cleanTitle || rawTitle;
         const url = `https://risazatvorchestvo.com/search?query=${encodeURIComponent(query)}&type=releases`;
-        nodeHttpsRequest(url, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-            'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+        
+        const fetchHeaders = {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+          'Accept-Language': 'ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7'
+        };
+
+        const executeFetch = async () => {
+          // 1. Try native net.fetch via IPC from main process (No CORS, passes SmartCaptcha)
+          try {
+            const electron = require('electron');
+            if (electron && electron.ipcRenderer) {
+              const res = await electron.ipcRenderer.invoke('ym-sync-net-fetch', {
+                url,
+                options: { headers: fetchHeaders }
+              });
+              if (res && res.ok && res.text) {
+                return res.text;
+              }
+            }
+          } catch (ipcErr) {
+            console.warn('[RZT] IPC net-fetch failed, falling back:', ipcErr.message);
           }
-        })
-        .then(html => {
-          const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
-          if (apiObj) {
-            const ratings = apiObj.parseScoresFromHtml(html, payload.title, payload.artist);
+
+          // 2. Fallback to nodeHttpsRequest
+          return await nodeHttpsRequest(url, { headers: fetchHeaders });
+        };
+
+        executeFetch()
+          .then(html => {
+            const apiObj = typeof RztAPI !== 'undefined' ? RztAPI : (window.RztAPI || null);
+            if (apiObj) {
+              const ratings = apiObj.parseScoresFromHtml(html, payload.title, payload.artist);
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: true, data: ratings }
+              }, '*');
+            } else {
+              throw new Error('RztAPI is not defined in preload context');
+            }
+          })
+          .catch(err => {
             window.postMessage({
               __ym_sc_bridge_response: true,
               requestId,
-              response: { ok: true, data: ratings }
+              response: { ok: false, error: err.message }
             }, '*');
-          } else {
-            throw new Error('RztAPI is not defined in preload context');
-          }
-        })
-        .catch(err => {
-          window.postMessage({
-            __ym_sc_bridge_response: true,
-            requestId,
-            response: { ok: false, error: err.message }
-          }, '*');
-        });
+          });
       } else if (type === 'GENIUS_SEARCH') {
         const query = `${payload.artist} - ${payload.title}`;
         const url = `https://genius.com/api/search/multi?q=${encodeURIComponent(query)}`;

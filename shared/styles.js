@@ -1483,6 +1483,33 @@ function injectStyles() {
       display: flex;
       flex-direction: column;
     }
+
+    /* Custom modern scrollbars for Wrapped */
+    #ym-wrapped-overlay * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-button,
+    #ym-wrapped-overlay *::-webkit-scrollbar-corner {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
   `;
   document.head.appendChild(style);
 }

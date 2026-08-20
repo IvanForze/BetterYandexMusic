@@ -13,6 +13,67 @@ if (process.platform === 'darwin') {
     path.join(homeDir, 'Applications', 'Yandex Music.app', 'Contents', 'Resources'),
     path.join(homeDir, 'Applications', 'Яндекс Музыка.app', 'Contents', 'Resources')
   ];
+} else if (process.platform === 'linux') {
+  const homeDir = process.env.HOME || '';
+  possiblePaths = [
+    '/opt/Яндекс Музыка/resources',
+    '/opt/Яндекс Музыка',
+    '/opt/Яндекс.Музыка/resources',
+    '/opt/Яндекс.Музыка',
+    '/opt/ЯндексМузыка/resources',
+    '/opt/ЯндексМузыка',
+    '/opt/yandex-music/resources',
+    '/opt/yandex-music',
+    '/opt/yandex-music-app/resources',
+    '/opt/yandex-music-app',
+    '/opt/YandexMusic/resources',
+    '/opt/YandexMusic',
+    '/opt/Yandex Music/resources',
+    '/opt/Yandex Music',
+    '/opt/yandex/music/resources',
+    '/opt/yandex/music',
+    '/usr/lib/yandex-music/resources',
+    '/usr/lib/yandex-music',
+    '/usr/lib/Яндекс Музыка/resources',
+    '/usr/lib/Яндекс Музыка',
+    '/usr/share/yandex-music/resources',
+    '/usr/share/yandex-music',
+    '/usr/share/Яндекс Музыка/resources',
+    '/usr/share/Яндекс Музыка',
+    path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'yandex-music', 'resources'),
+    path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'Яндекс Музыка', 'resources'),
+    '/var/lib/flatpak/app/ru.yandex.music/current/active/files/extra/resources',
+    path.join(homeDir, 'Applications', 'Яндекс Музыка', 'resources'),
+    path.join(homeDir, 'Applications', 'yandex-music', 'resources'),
+    path.join(homeDir, 'Applications', 'yandex-music'),
+    path.join(homeDir, '.local', 'share', 'Яндекс Музыка', 'resources'),
+    path.join(homeDir, '.local', 'share', 'yandex-music', 'resources'),
+    path.join(homeDir, 'yandex-music', 'resources'),
+    path.join(homeDir, 'Яндекс Музыка', 'resources')
+  ];
+
+  const searchBases = [
+    '/opt',
+    '/usr/lib',
+    '/usr/share',
+    path.join(homeDir, 'Applications'),
+    path.join(homeDir, '.local', 'share')
+  ];
+
+  for (const base of searchBases) {
+    try {
+      if (fs.existsSync(base)) {
+        const entries = fs.readdirSync(base);
+        for (const entry of entries) {
+          const lower = entry.toLowerCase();
+          if (lower.includes('yandex') || lower.includes('яндекс') || lower.includes('music') || lower.includes('музыка')) {
+            possiblePaths.push(path.join(base, entry, 'resources'));
+            possiblePaths.push(path.join(base, entry));
+          }
+        }
+      }
+    } catch (e) {}
+  }
 } else {
   const localAppData = process.env.LOCALAPPDATA;
   if (localAppData) {
@@ -25,10 +86,17 @@ if (process.platform === 'darwin') {
 
 let resourcesDir = null;
 for (const p of possiblePaths) {
-  if (p && fs.existsSync(p)) {
-    resourcesDir = p;
-    break;
-  }
+  if (!p) continue;
+  try {
+    if (fs.existsSync(path.join(p, 'app.asar'))) {
+      resourcesDir = p;
+      break;
+    }
+    if (fs.existsSync(path.join(p, 'resources', 'app.asar'))) {
+      resourcesDir = path.join(p, 'resources');
+      break;
+    }
+  } catch(e) {}
 }
 
 if (!resourcesDir) {
@@ -75,13 +143,21 @@ if (fs.existsSync(indexJSPath)) {
     }
   }
 
-  // Внедряем IPC-обработчик для диалога сохранения
-  if (!content.includes('ym-sync-show-save-dialog')) {
-    console.log("Внедряем IPC-обработчик ym-sync-show-save-dialog в index.js...");
+  // Внедряем IPC-обработчики в главный процесс index.js
+  if (content.includes('// --- YM SYNC EXPORT PATCH ---')) {
+    content = content.replace(/\/\/ --- YM SYNC EXPORT PATCH ---[\s\S]*?\/\/ --- END YM SYNC EXPORT PATCH ---/g, '');
+  }
+
+  if (!content.includes('ym-sync-net-fetch')) {
+    console.log("Внедряем IPC-обработчики (save dialog и net.fetch) в index.js...");
     content += `
 // --- YM SYNC EXPORT PATCH ---
 try {
-  const { ipcMain, dialog } = require('electron');
+  const { ipcMain, dialog, net } = require('electron');
+  
+  try {
+    ipcMain.removeHandler('ym-sync-show-save-dialog');
+  } catch(e) {}
   ipcMain.handle('ym-sync-show-save-dialog', async (event, options) => {
     const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
     if (parentWindow) {
@@ -90,9 +166,23 @@ try {
       return await dialog.showSaveDialog(options);
     }
   });
+
+  try {
+    ipcMain.removeHandler('ym-sync-net-fetch');
+  } catch(e) {}
+  ipcMain.handle('ym-sync-net-fetch', async (event, { url, options }) => {
+    try {
+      const res = await net.fetch(url, options || {});
+      const text = await res.text();
+      return { ok: true, status: res.status, text };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
 } catch(e) {
-  console.error('[SYNC] Failed to inject ym-sync-show-save-dialog:', e);
+  console.error('[SYNC] Failed to inject ym-sync IPC handlers:', e);
 }
+// --- END YM SYNC EXPORT PATCH ---
 `;
   }
   fs.writeFileSync(indexJSPath, content, 'utf8');

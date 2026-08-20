@@ -485,7 +485,6 @@ function ymTriggerMouseMove() {
       clientY: window.innerHeight / 2
     });
     fullscreenRoot.dispatchEvent(event);
-    document.dispatchEvent(event);
   }
 }
 

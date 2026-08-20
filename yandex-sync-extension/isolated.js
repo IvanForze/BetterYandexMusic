@@ -1484,6 +1484,33 @@ function injectStyles() {
       display: flex;
       flex-direction: column;
     }
+
+    /* Custom modern scrollbars for Wrapped */
+    #ym-wrapped-overlay * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-button,
+    #ym-wrapped-overlay *::-webkit-scrollbar-corner {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -1957,91 +1984,145 @@ const RztAPI = {
       .trim();
   },
 
-  hasArtistMatch(chunk, artistName) {
-    if (!artistName) return true;
-    const cleanArtist = this.normalizeText(artistName);
-    const cleanChunk = this.normalizeText(chunk);
+  hasArtistMatch(artistListOrString, targetArtist) {
+    if (!targetArtist) return true;
+    const cleanTarget = this.normalizeText(targetArtist);
     
-    if (cleanChunk.includes(cleanArtist)) return true;
-    
-    // Split by common artist separators and check each one
-    const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => this.normalizeText(a)).filter(Boolean);
-    for (const a of artists) {
-      if (cleanChunk.includes(a)) return true;
+    let artistNames = [];
+    if (Array.isArray(artistListOrString)) {
+      artistNames = artistListOrString.map(a => typeof a === 'string' ? a : (a.title || a.name || ''));
+    } else if (typeof artistListOrString === 'string') {
+      artistNames = [artistListOrString];
     }
     
+    const combined = artistNames.map(a => this.normalizeText(a)).join(' ');
+    if (combined.includes(cleanTarget) || cleanTarget.includes(combined)) return true;
+
+    const targetTokens = targetArtist.split(/(?:feat\.?|feat|&|,|\bи\b|\/|\+)/i).map(a => this.normalizeText(a)).filter(Boolean);
+    for (const t of targetTokens) {
+      if (combined.includes(t)) return true;
+      for (const a of artistNames) {
+        const cleanA = this.normalizeText(a);
+        if (cleanA.includes(t) || t.includes(cleanA)) return true;
+      }
+    }
     return false;
+  },
+
+  parseRscReleases(html) {
+    const releases = [];
+    const unescaped = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    
+    // 1. Try matching full JSON data object
+    const regex = /"data"\s*:\s*(\{\s*"kind"\s*:\s*"release"[\s\S]*?"nestEnabled"\s*:\s*true\s*\})/g;
+    let match;
+    while ((match = regex.exec(unescaped)) !== null) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        if (parsed && parsed.title) {
+          releases.push(parsed);
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Fallback regex for partial RSC release slices
+    if (releases.length === 0) {
+      const blockRegex = /"kind"\s*:\s*"release"[\s\S]*?"title"\s*:\s*"([^"]+)"[\s\S]*?"artists"\s*:\s*(\[[^\]]*\])[\s\S]*?"meta"\s*:\s*\{([^}]+)\}/g;
+      let bMatch;
+      while ((bMatch = blockRegex.exec(unescaped)) !== null) {
+        try {
+          const title = bMatch[1];
+          let artists = [];
+          try { artists = JSON.parse(bMatch[2]); } catch (err) {}
+          const metaStr = '{' + bMatch[3] + '}';
+          let meta = {};
+          try { meta = JSON.parse(metaStr); } catch (err) {}
+          releases.push({ title, artists, meta });
+        } catch (e) {}
+      }
+    }
+
+    return releases;
   },
 
   parseScoresFromHtml(html, trackTitle, artistName) {
     if (!html) return null;
     const titleClean = this.normalizeText(trackTitle);
-    
-    // 1. Gather all occurrence positions of the track title
-    const indices = [];
-    let idx = html.toLowerCase().indexOf(titleClean);
-    while (idx !== -1) {
-      indices.push(idx);
-      idx = html.toLowerCase().indexOf(titleClean, idx + 1);
-    }
-    
-    // Fallback 1: try title without bracketed info if no matches found
-    if (indices.length === 0) {
-      const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
-      if (simpleTitle && simpleTitle !== titleClean) {
-        let idx2 = html.toLowerCase().indexOf(simpleTitle);
-        while (idx2 !== -1) {
-          indices.push(idx2);
-          idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+    const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
+
+    // 1. Try Next.js RSC structured releases parsing (100% precision)
+    const releases = this.parseRscReleases(html);
+    if (releases.length > 0) {
+      // 1a. Look for matching title AND matching artist
+      for (const rel of releases) {
+        const relTitle = this.normalizeText(rel.title);
+        if (relTitle === titleClean || relTitle === simpleTitle || titleClean.includes(relTitle) || relTitle.includes(titleClean)) {
+          if (this.hasArtistMatch(rel.artists, artistName)) {
+            const meta = rel.meta || {};
+            return {
+              flomaster: meta.total_rating != null && meta.total_rating > 0 ? meta.total_rating : (meta.total_rating === 0 ? 0 : null),
+              withReviews: meta.score_reviews_avg != null && meta.score_reviews_avg > 0 ? meta.score_reviews_avg : null,
+              withoutReviews: meta.users_avg_total != null && meta.users_avg_total > 0 ? meta.users_avg_total : null
+            };
+          }
         }
       }
-    }
 
-    // 2. Scan occurrences and look for the one matching the artist
-    for (const pos of indices) {
-      const chunk = html.slice(pos, pos + 3000);
-      if (this.hasArtistMatch(chunk, artistName)) {
-        const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-        const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-        if (matches.length > 0) {
+      // 1b. Fallback: match by title alone
+      for (const rel of releases) {
+        const relTitle = this.normalizeText(rel.title);
+        if (relTitle === titleClean || relTitle === simpleTitle) {
+          const meta = rel.meta || {};
           return {
-            flomaster: matches[2] || null,
-            withReviews: matches[0] || null,
-            withoutReviews: matches[1] || null
+            flomaster: meta.total_rating != null && meta.total_rating > 0 ? meta.total_rating : null,
+            withReviews: meta.score_reviews_avg != null && meta.score_reviews_avg > 0 ? meta.score_reviews_avg : null,
+            withoutReviews: meta.users_avg_total != null && meta.users_avg_total > 0 ? meta.users_avg_total : null
           };
         }
       }
     }
 
-    // Fallback 2: if no matches had the artist, parse ratings from the first track title match
-    if (indices.length > 0) {
-      const chunk = html.slice(indices[0], indices[0] + 3000);
-      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-      if (matches.length > 0) {
-        return {
-          flomaster: matches[2] || null,
-          withReviews: matches[0] || null,
-          withoutReviews: matches[1] || null
-        };
+    // 2. Fallback: DOM / Regex parsing for new and old site designs
+    const unescaped = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    const indices = [];
+    let idx = unescaped.toLowerCase().indexOf(titleClean);
+    while (idx !== -1) {
+      indices.push(idx);
+      idx = unescaped.toLowerCase().indexOf(titleClean, idx + 1);
+    }
+    if (indices.length === 0 && simpleTitle && simpleTitle !== titleClean) {
+      let idx2 = unescaped.toLowerCase().indexOf(simpleTitle);
+      while (idx2 !== -1) {
+        indices.push(idx2);
+        idx2 = unescaped.toLowerCase().indexOf(simpleTitle, idx2 + 1);
       }
     }
 
-    // Fallback 3: try the first track link in the entire search results page
-    const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
-    const match = html.match(fallbackRegex);
-    if (match) {
-      const pos = html.indexOf(match[0]);
-      const chunk = html.slice(pos, pos + 3000);
-      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-      if (matches.length > 0) {
+    const extractCircles = (chunk) => {
+      const circleRegex = /(?:rounded-full|size-8|size-7|size-12)[^>]*>\s*(?:<span[^>]*>)?\s*([0-9]{1,3})\s*(?:<\/span>)?\s*<\/div>/g;
+      const matches = [...chunk.matchAll(circleRegex)].map(m => parseInt(m[1], 10)).filter(n => n >= 0 && n <= 100);
+      if (matches.length >= 2) {
         return {
-          flomaster: matches[2] || null,
-          withReviews: matches[0] || null,
-          withoutReviews: matches[1] || null
+          withReviews: matches[0] != null ? matches[0] : null,
+          withoutReviews: matches[1] != null ? matches[1] : null,
+          flomaster: matches[2] != null ? matches[2] : null
         };
       }
+      return null;
+    };
+
+    for (const pos of indices) {
+      const chunk = unescaped.slice(pos, pos + 4000);
+      if (this.hasArtistMatch(chunk, artistName)) {
+        const scores = extractCircles(chunk);
+        if (scores) return scores;
+      }
+    }
+
+    if (indices.length > 0) {
+      const chunk = unescaped.slice(indices[0], indices[0] + 4000);
+      const scores = extractCircles(chunk);
+      if (scores) return scores;
     }
 
     return null;
@@ -3227,6 +3308,167 @@ function applyThemeCSS(themeName, customColors) {
 
   styleEl.textContent = cssText;
 }
+
+
+// --- Component: shared/scale-changer.js ---
+// ==========================================
+// SCALE CHANGER (UI Zoom & Scaling Controller)
+// ==========================================
+
+(function() {
+  const STYLE_ID = 'ym-scale-changer-style';
+  const STORAGE_KEY = 'ym-interface-scale';
+  const MIN_SCALE = 0.4;
+  const MAX_SCALE = 2.0;
+  const STEP = 0.05;
+
+  let currentScale = 1.0;
+  let toastTimeout = null;
+
+  function loadSavedScale() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('scale-changer/savedScale');
+      if (saved) {
+        const parsed = parseFloat(saved);
+        if (!isNaN(parsed) && parsed >= MIN_SCALE && parsed <= MAX_SCALE) {
+          return Math.round(parsed * 100) / 100;
+        }
+      }
+    } catch (e) {}
+    return 1.0;
+  }
+
+  function applyScale(scale, showToast = false) {
+    currentScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round(scale * 100) / 100));
+    try {
+      localStorage.setItem(STORAGE_KEY, currentScale.toString());
+      localStorage.setItem('scale-changer/savedScale', currentScale.toString());
+    } catch (e) {}
+
+    let styleEl = document.getElementById(STYLE_ID);
+    if (!styleEl) {
+      styleEl = document.createElement('style');
+      styleEl.id = STYLE_ID;
+      document.head.appendChild(styleEl);
+    }
+
+    styleEl.textContent = `
+      div[class*="DefaultLayout_root_"] {
+        zoom: ${currentScale} !important;
+      }
+    `;
+
+    // Оповещаем другие компоненты (например, слайдер в настройках)
+    window.dispatchEvent(new CustomEvent('ym-scale-changed', { detail: { scale: currentScale } }));
+
+    if (showToast) {
+      showScaleToast(currentScale);
+    }
+  }
+
+  function showScaleToast(scale) {
+    let toast = document.getElementById('ym-scale-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'ym-scale-toast';
+      toast.style.cssText = `
+        position: fixed;
+        top: 24px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-10px);
+        background: rgba(20, 20, 26, 0.88);
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 14px;
+        font-family: Yandex Sans Text, system-ui, sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 999999;
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      `;
+      document.body.appendChild(toast);
+    }
+
+    const percent = Math.round(scale * 100);
+    toast.innerHTML = `
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fc0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        <line x1="11" y1="8" x2="11" y2="14"></line>
+        <line x1="8" y1="11" x2="14" y2="11"></line>
+      </svg>
+      <span>Масштаб: <b style="color: #fc0;">${percent}%</b></span>
+    `;
+
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+
+    if (toastTimeout) clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => {
+      if (toast) {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(-50%) translateY(-10px)';
+      }
+    }, 1200);
+  }
+
+  // Горячие клавиши (Ctrl/Cmd + Plus, Minus, 0 и Колесико мыши)
+  window.addEventListener('keydown', (e) => {
+    if (!e.ctrlKey && !e.metaKey) return;
+    
+    // Пропускаем, если фокус в текстовом поле ввода
+    const targetTag = e.target?.tagName?.toLowerCase();
+    if (targetTag === 'input' || targetTag === 'textarea' || e.target?.isContentEditable) {
+      if (e.key !== '+' && e.key !== '=' && e.key !== '-' && e.key !== '0') return;
+    }
+
+    if (e.key === '+' || e.key === '=' || e.key === 'Add' || e.code === 'NumpadAdd') {
+      e.preventDefault();
+      applyScale(currentScale + STEP, true);
+    } else if (e.key === '-' || e.key === '_' || e.key === 'Subtract' || e.code === 'NumpadSubtract') {
+      e.preventDefault();
+      applyScale(currentScale - STEP, true);
+    } else if (e.key === '0' || e.code === 'Numpad0') {
+      e.preventDefault();
+      applyScale(1.0, true);
+    }
+  }, { passive: false });
+
+  // Масштабирование через Ctrl + Колесо мыши
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      if (e.deltaY < 0) {
+        applyScale(currentScale + STEP, true);
+      } else if (e.deltaY > 0) {
+        applyScale(currentScale - STEP, true);
+      }
+    }
+  }, { passive: false });
+
+  // Глобальный API
+  window.ymScaleChanger = {
+    getScale: () => currentScale,
+    setScale: (val, showToast = false) => applyScale(val, showToast),
+    reset: (showToast = true) => applyScale(1.0, showToast),
+    increase: () => applyScale(currentScale + STEP, true),
+    decrease: () => applyScale(currentScale - STEP, true)
+  };
+
+  // Мгновенная инициализация
+  currentScale = loadSavedScale();
+  applyScale(currentScale, false);
+})();
 
 
 // --- Component: shared/navbar-sync.js ---
@@ -7153,7 +7395,6 @@ function ymTriggerMouseMove() {
       clientY: window.innerHeight / 2
     });
     fullscreenRoot.dispatchEvent(event);
-    document.dispatchEvent(event);
   }
 }
 

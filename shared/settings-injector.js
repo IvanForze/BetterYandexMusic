@@ -114,6 +114,30 @@ function checkAndInjectSettings() {
     <!-- Заголовок секции BetterYandexMusic -->
     <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">BetterYandexMusic</div>
     
+    <!-- Секция Масштаб интерфейса -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Масштаб интерфейса</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Увеличение или уменьшение размера элементов приложения (<span style="opacity: 0.8;">Ctrl +, Ctrl -, Ctrl 0 или Ctrl + колесо мыши</span>)
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; max-width: 480px; margin-top: 10px;">
+          <button type="button" id="ym-scale-dec-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">−</button>
+          <input type="range" id="ym-scale-slider" min="0.4" max="2.0" step="0.05" value="${window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0}" style="flex: 1; accent-color: #fc0; cursor: pointer;">
+          <button type="button" id="ym-scale-inc-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">+</button>
+          <span id="ym-scale-val-label" style="min-width: 52px; font-size: 14px; font-weight: 700; color: #fc0; text-align: center;">${Math.round((window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0) * 100)}%</span>
+          <button type="button" id="ym-scale-reset-btn" class="ym-btn" style="padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); cursor: pointer; font-size: 12px; font-weight: 600;">100%</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="0.8" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">80%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="0.9" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">90%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.0" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">100%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.1" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">110%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.25" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">125%</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Секция Текст Песен -->
     <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
       <div style="flex: 1; padding-right: 16px;">
@@ -437,6 +461,64 @@ function checkAndInjectSettings() {
   } else {
     listContainer.appendChild(block);
   }
+
+  // === Обработчики Масштаба Интерфейса ===
+  const scaleSlider = block.querySelector('#ym-scale-slider');
+  const scaleLabel = block.querySelector('#ym-scale-val-label');
+  const scaleDecBtn = block.querySelector('#ym-scale-dec-btn');
+  const scaleIncBtn = block.querySelector('#ym-scale-inc-btn');
+  const scaleResetBtn = block.querySelector('#ym-scale-reset-btn');
+  const scalePresetBtns = block.querySelectorAll('.ym-scale-preset-btn');
+
+  function updateSettingsScaleUI(scale) {
+    if (scaleSlider) scaleSlider.value = scale;
+    if (scaleLabel) scaleLabel.textContent = `${Math.round(scale * 100)}%`;
+  }
+
+  if (scaleSlider) {
+    scaleSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (window.ymScaleChanger) window.ymScaleChanger.setScale(val);
+      updateSettingsScaleUI(val);
+    });
+  }
+  if (scaleDecBtn) {
+    scaleDecBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.decrease();
+        updateSettingsScaleUI(window.ymScaleChanger.getScale());
+      }
+    });
+  }
+  if (scaleIncBtn) {
+    scaleIncBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.increase();
+        updateSettingsScaleUI(window.ymScaleChanger.getScale());
+      }
+    });
+  }
+  if (scaleResetBtn) {
+    scaleResetBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.reset(true);
+        updateSettingsScaleUI(1.0);
+      }
+    });
+  }
+  scalePresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = parseFloat(btn.getAttribute('data-scale'));
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.setScale(val, true);
+        updateSettingsScaleUI(val);
+      }
+    });
+  });
+
+  window.addEventListener('ym-scale-changed', (e) => {
+    if (e.detail?.scale) updateSettingsScaleUI(e.detail.scale);
+  });
 
   const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
   if (lyricsModeSelect) {

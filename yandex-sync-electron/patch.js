@@ -23,6 +23,67 @@ if (process.platform === 'darwin') {
     path.join(homeDir, 'Applications', 'Yandex Music.app', 'Contents', 'Resources'),
     path.join(homeDir, 'Applications', 'Яндекс Музыка.app', 'Contents', 'Resources')
   ];
+} else if (process.platform === 'linux') {
+  const homeDir = process.env.HOME || '';
+  possiblePaths = [
+    '/opt/Яндекс Музыка/resources',
+    '/opt/Яндекс Музыка',
+    '/opt/Яндекс.Музыка/resources',
+    '/opt/Яндекс.Музыка',
+    '/opt/ЯндексМузыка/resources',
+    '/opt/ЯндексМузыка',
+    '/opt/yandex-music/resources',
+    '/opt/yandex-music',
+    '/opt/yandex-music-app/resources',
+    '/opt/yandex-music-app',
+    '/opt/YandexMusic/resources',
+    '/opt/YandexMusic',
+    '/opt/Yandex Music/resources',
+    '/opt/Yandex Music',
+    '/opt/yandex/music/resources',
+    '/opt/yandex/music',
+    '/usr/lib/yandex-music/resources',
+    '/usr/lib/yandex-music',
+    '/usr/lib/Яндекс Музыка/resources',
+    '/usr/lib/Яндекс Музыка',
+    '/usr/share/yandex-music/resources',
+    '/usr/share/yandex-music',
+    '/usr/share/Яндекс Музыка/resources',
+    '/usr/share/Яндекс Музыка',
+    path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'yandex-music', 'resources'),
+    path.join(homeDir, '.var', 'app', 'ru.yandex.music', 'data', 'Яндекс Музыка', 'resources'),
+    '/var/lib/flatpak/app/ru.yandex.music/current/active/files/extra/resources',
+    path.join(homeDir, 'Applications', 'Яндекс Музыка', 'resources'),
+    path.join(homeDir, 'Applications', 'yandex-music', 'resources'),
+    path.join(homeDir, 'Applications', 'yandex-music'),
+    path.join(homeDir, '.local', 'share', 'Яндекс Музыка', 'resources'),
+    path.join(homeDir, '.local', 'share', 'yandex-music', 'resources'),
+    path.join(homeDir, 'yandex-music', 'resources'),
+    path.join(homeDir, 'Яндекс Музыка', 'resources')
+  ];
+
+  const searchBases = [
+    '/opt',
+    '/usr/lib',
+    '/usr/share',
+    path.join(homeDir, 'Applications'),
+    path.join(homeDir, '.local', 'share')
+  ];
+
+  for (const base of searchBases) {
+    try {
+      if (fs.existsSync(base)) {
+        const entries = fs.readdirSync(base);
+        for (const entry of entries) {
+          const lower = entry.toLowerCase();
+          if (lower.includes('yandex') || lower.includes('яндекс') || lower.includes('music') || lower.includes('музыка')) {
+            possiblePaths.push(path.join(base, entry, 'resources'));
+            possiblePaths.push(path.join(base, entry));
+          }
+        }
+      }
+    } catch (e) {}
+  }
 } else {
   const localAppData = process.env.LOCALAPPDATA;
   if (localAppData) {
@@ -37,16 +98,25 @@ if (process.platform === 'darwin') {
 
 let resourcesDir = null;
 for (const p of possiblePaths) {
-  if (p && fs.existsSync(p)) {
-    resourcesDir = p;
-    break;
-  }
+  if (!p) continue;
+  try {
+    if (fs.existsSync(path.join(p, 'app.asar'))) {
+      resourcesDir = p;
+      break;
+    }
+    if (fs.existsSync(path.join(p, 'resources', 'app.asar'))) {
+      resourcesDir = path.join(p, 'resources');
+      break;
+    }
+  } catch(e) {}
 }
 
 if (!resourcesDir) {
   console.error("Ошибка: Папка ресурсов Яндекс Музыки не найдена.");
   if (process.platform === 'darwin') {
     console.error("Убедитесь, что приложение установлено в папку /Applications или ~/Applications.");
+  } else if (process.platform === 'linux') {
+    console.error("Убедитесь, что Яндекс Музыка установлена в /opt, Flatpak или ~/.local/share.");
   } else {
     console.error("Убедитесь, что приложение установлено по стандартному пути в AppData.");
   }
@@ -62,10 +132,45 @@ if (!fs.existsSync(asarPath)) {
   process.exit(1);
 }
 
-// Проверка блокировки файла (запущено ли приложение)
+// Авто-закрытие приложения перед патчем
+console.log("Закрываем приложение Яндекс Музыки (если оно открыто)...");
+if (process.platform === 'darwin') {
+  try { execSync('osascript -e \'quit app "Yandex Music"\'', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('osascript -e \'quit app "Яндекс Музыка"\'', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('pkill -f "Yandex Music"', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('pkill -f "Яндекс Музыка"', { stdio: 'ignore' }); } catch(e) {}
+} else if (process.platform === 'win32') {
+  try { execSync('taskkill /F /IM "YandexMusic.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('taskkill /F /IM "yandex-music-app.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('taskkill /F /IM "Яндекс Музыка.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('taskkill /F /IM "Yandex Music.exe" /T', { stdio: 'ignore' }); } catch(e) {}
+} else if (process.platform === 'linux') {
+  try { execSync('pkill -f "yandex-music"', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('pkill -f "Яндекс Музыка"', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('pkill -f "Яндекс.Музыка"', { stdio: 'ignore' }); } catch(e) {}
+  try { execSync('pkill -f "YandexMusic"', { stdio: 'ignore' }); } catch(e) {}
+}
+
+if (process.platform === 'darwin') {
+  try {
+    const res = execSync('pgrep -f "Yandex Music|Яндекс Музыка"', { stdio: 'pipe' }).toString();
+    if (res && res.trim().length > 0) {
+      console.warn("\n[ВНИМАНИЕ] Яндекс Музыка всё ещё запущена. Пожалуйста, закройте приложение через Cmd+Q.\n");
+    }
+  } catch(e) {}
+}
+
+// Проверка блокировки файла (запущено ли приложение / права доступа)
 try {
   fs.accessSync(asarPath, fs.constants.W_OK);
 } catch (err) {
+  if (err.code === 'EACCES') {
+    console.error("\n[ОШИБКА ДОСТУПА] У вас нет прав на запись в файл:");
+    console.error(`  ${asarPath}`);
+    console.error("На Linux файлы в /opt требуют прав администратора. Запустите скрипт через sudo:");
+    console.error("  sudo node ./patch.js\n");
+    process.exit(1);
+  }
   console.error("\n[ВНИМАНИЕ] Файл app.asar заблокирован!");
   console.error("Пожалуйста, полностью закройте приложение Яндекс.Музыка перед запуском патча.\n");
   process.exit(1);
@@ -73,17 +178,38 @@ try {
 
 // 2. Распаковка архива app.asar
 console.log("Распаковка архива app.asar...");
+let asarExtracted = false;
+
+// Пробуем прямой импорт @electron/asar (JS API)
 try {
-  // Пробуем использовать npx asar
-  execSync(`npx -y @electron/asar extract "${asarPath}" "${unpackedDir}"`, { stdio: 'inherit' });
+  let asarLib = null;
+  try { asarLib = require('@electron/asar'); } catch(e) {
+    try { asarLib = require(path.join(__dirname, '..', 'yandex-sync-installer', 'node_modules', '@electron/asar')); } catch(e2) {}
+  }
+  if (asarLib && typeof asarLib.extractAll === 'function') {
+    asarLib.uncacheAll?.();
+    asarLib.extractAll(asarPath, unpackedDir);
+    asarExtracted = true;
+  }
 } catch (e) {
-  console.log("Ошибка npx @electron/asar, пробуем глобальный/локальный asar...");
+  console.warn("Предупреждение при прямом вызове @electron/asar:", e.message || e);
+}
+
+if (!asarExtracted) {
   try {
-    execSync(`asar extract "${asarPath}" "${unpackedDir}"`, { stdio: 'inherit' });
-  } catch (e2) {
-    console.error("Ошибка распаковки: убедитесь, что пакет asar установлен (npm install -g asar)");
-    console.error(e2);
-    process.exit(1);
+    // Пробуем использовать npx asar с сохранением текущего PATH
+    execSync(`npx -y @electron/asar extract "${asarPath}" "${unpackedDir}"`, { stdio: 'inherit', env: process.env });
+    asarExtracted = true;
+  } catch (e) {
+    console.log("Ошибка npx @electron/asar, пробуем глобальный/локальный asar...");
+    try {
+      execSync(`asar extract "${asarPath}" "${unpackedDir}"`, { stdio: 'inherit', env: process.env });
+      asarExtracted = true;
+    } catch (e2) {
+      console.error("Ошибка распаковки: убедитесь, что пакет asar установлен (npm install -g asar или npx доступен)");
+      console.error(e2.message || e2);
+      process.exit(1);
+    }
   }
 }
 
@@ -96,13 +222,21 @@ if (fs.existsSync(indexJSPath)) {
     indexContent = indexContent.replace(/\r?\n\s*window\.webContents\.openDevTools\(\);/g, '');
   }
 
-  // Внедряем IPC-обработчик для диалога сохранения
-  if (!indexContent.includes('ym-sync-show-save-dialog')) {
-    console.log("Внедряем IPC-обработчик ym-sync-show-save-dialog в index.js...");
+  // Внедряем IPC-обработчики в главный процесс index.js
+  if (indexContent.includes('// --- YM SYNC EXPORT PATCH ---')) {
+    indexContent = indexContent.replace(/\/\/ --- YM SYNC EXPORT PATCH ---[\s\S]*?\/\/ --- END YM SYNC EXPORT PATCH ---/g, '');
+  }
+  
+  if (!indexContent.includes('ym-sync-net-fetch')) {
+    console.log("Внедряем IPC-обработчики (save dialog и net.fetch) в index.js...");
     indexContent += `
 // --- YM SYNC EXPORT PATCH ---
 try {
-  const { ipcMain, dialog } = require('electron');
+  const { ipcMain, dialog, net } = require('electron');
+  
+  try {
+    ipcMain.removeHandler('ym-sync-show-save-dialog');
+  } catch(e) {}
   ipcMain.handle('ym-sync-show-save-dialog', async (event, options) => {
     const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
     if (parentWindow) {
@@ -111,9 +245,23 @@ try {
       return await dialog.showSaveDialog(options);
     }
   });
+
+  try {
+    ipcMain.removeHandler('ym-sync-net-fetch');
+  } catch(e) {}
+  ipcMain.handle('ym-sync-net-fetch', async (event, { url, options }) => {
+    try {
+      const res = await net.fetch(url, options || {});
+      const text = await res.text();
+      return { ok: true, status: res.status, text };
+    } catch (err) {
+      return { ok: false, error: err.message };
+    }
+  });
 } catch(e) {
-  console.error('[SYNC] Failed to inject ym-sync-show-save-dialog:', e);
+  console.error('[SYNC] Failed to inject ym-sync IPC handlers:', e);
 }
+// --- END YM SYNC EXPORT PATCH ---
 `;
   }
   fs.writeFileSync(indexJSPath, indexContent, 'utf8');
@@ -254,14 +402,34 @@ fs.appendFileSync(preloadPath, '\n' + injectionLoader);
 
 // 6. Запаковка архива app.asar обратно
 console.log("Запаковка модифицированного архива в app.asar...");
+let asarPacked = false;
+
 try {
-  execSync(`npx -y @electron/asar pack "${unpackedDir}" "${asarPath}"`, { stdio: 'inherit' });
+  let asarLib = null;
+  try { asarLib = require('@electron/asar'); } catch(e) {
+    try { asarLib = require(path.join(__dirname, '..', 'yandex-sync-installer', 'node_modules', '@electron/asar')); } catch(e2) {}
+  }
+  if (asarLib && typeof asarLib.createPackageSync === 'function') {
+    asarLib.createPackageSync(unpackedDir, asarPath);
+    asarPacked = true;
+  }
 } catch (e) {
+  console.warn("Предупреждение при прямом вызове @electron/asar pack:", e.message || e);
+}
+
+if (!asarPacked) {
   try {
-    execSync(`asar pack "${unpackedDir}" "${asarPath}"`, { stdio: 'inherit' });
-  } catch (e2) {
-    console.error("Ошибка запаковки: не удалось упаковать app.asar.");
-    process.exit(1);
+    execSync(`npx -y @electron/asar pack "${unpackedDir}" "${asarPath}"`, { stdio: 'inherit', env: process.env });
+    asarPacked = true;
+  } catch (e) {
+    try {
+      execSync(`asar pack "${unpackedDir}" "${asarPath}"`, { stdio: 'inherit', env: process.env });
+      asarPacked = true;
+    } catch (e2) {
+      console.error("Ошибка запаковки: не удалось упаковать app.asar.");
+      console.error(e2.message || e2);
+      process.exit(1);
+    }
   }
 }
 
@@ -278,6 +446,19 @@ try {
         exePath = path.join(macOsDir, exeFile);
       }
     }
+  } else if (process.platform === 'linux') {
+    const parentDir = path.dirname(resourcesDir);
+    const parentFiles = fs.readdirSync(parentDir);
+    const exeFile = parentFiles.find(f => {
+      try {
+        const full = path.join(parentDir, f);
+        const st = fs.statSync(full);
+        return st.isFile() && (st.mode & 0o111) && !f.endsWith('.so') && !f.endsWith('.bin') && !f.endsWith('.dat');
+      } catch(e) { return false; }
+    });
+    if (exeFile) {
+      exePath = path.join(parentDir, exeFile);
+    }
   } else {
     const parentDir = path.dirname(resourcesDir);
     const parentFiles = fs.readdirSync(parentDir);
@@ -290,7 +471,24 @@ try {
   if (exePath) {
     console.log(`Найден исполняемый файл приложения: ${exePath}`);
     console.log("Отключение Fuse: EnableEmbeddedAsarIntegrityValidation...");
-    execSync(`npx -y @electron/fuses write --app "${exePath}" EnableEmbeddedAsarIntegrityValidation=off`, { stdio: 'inherit' });
+    let fuseFlipped = false;
+    try {
+      let fusesLib = null;
+      try { fusesLib = require('@electron/fuses'); } catch(e) {
+        try { fusesLib = require(path.join(__dirname, '..', 'yandex-sync-installer', 'node_modules', '@electron/fuses')); } catch(e2) {}
+      }
+      if (fusesLib && fusesLib.flipFuses) {
+        fusesLib.flipFuses(exePath, {
+          version: fusesLib.FuseVersion.V1,
+          [fusesLib.FuseV1Options.EnableEmbeddedAsarIntegrityValidation]: false
+        });
+        fuseFlipped = true;
+      }
+    } catch(e) {}
+
+    if (!fuseFlipped) {
+      execSync(`npx -y @electron/fuses write --app "${exePath}" EnableEmbeddedAsarIntegrityValidation=off`, { stdio: 'inherit', env: process.env });
+    }
   } else {
     console.warn("Предупреждение: Исполняемый файл приложения не найден, пропуск отключения asar integrity.");
   }

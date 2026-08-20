@@ -665,6 +665,30 @@ function checkAndInjectSettings() {
     <!-- Заголовок секции BetterYandexMusic -->
     <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">BetterYandexMusic</div>
     
+    <!-- Секция Масштаб интерфейса -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.06);">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Масштаб интерфейса</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Увеличение или уменьшение размера элементов приложения (<span style="opacity: 0.8;">Ctrl +, Ctrl -, Ctrl 0 или Ctrl + колесо мыши</span>)
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; max-width: 480px; margin-top: 10px;">
+          <button type="button" id="ym-scale-dec-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">−</button>
+          <input type="range" id="ym-scale-slider" min="0.4" max="2.0" step="0.05" value="${window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0}" style="flex: 1; accent-color: #fc0; cursor: pointer;">
+          <button type="button" id="ym-scale-inc-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">+</button>
+          <span id="ym-scale-val-label" style="min-width: 52px; font-size: 14px; font-weight: 700; color: #fc0; text-align: center;">${Math.round((window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0) * 100)}%</span>
+          <button type="button" id="ym-scale-reset-btn" class="ym-btn" style="padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); cursor: pointer; font-size: 12px; font-weight: 600;">100%</button>
+        </div>
+        <div style="display: flex; gap: 6px; margin-top: 10px;">
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="0.8" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">80%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="0.9" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">90%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.0" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">100%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.1" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">110%</button>
+          <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.25" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">125%</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Секция Текст Песен -->
     <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
       <div style="flex: 1; padding-right: 16px;">
@@ -988,6 +1012,64 @@ function checkAndInjectSettings() {
   } else {
     listContainer.appendChild(block);
   }
+
+  // === Обработчики Масштаба Интерфейса ===
+  const scaleSlider = block.querySelector('#ym-scale-slider');
+  const scaleLabel = block.querySelector('#ym-scale-val-label');
+  const scaleDecBtn = block.querySelector('#ym-scale-dec-btn');
+  const scaleIncBtn = block.querySelector('#ym-scale-inc-btn');
+  const scaleResetBtn = block.querySelector('#ym-scale-reset-btn');
+  const scalePresetBtns = block.querySelectorAll('.ym-scale-preset-btn');
+
+  function updateSettingsScaleUI(scale) {
+    if (scaleSlider) scaleSlider.value = scale;
+    if (scaleLabel) scaleLabel.textContent = `${Math.round(scale * 100)}%`;
+  }
+
+  if (scaleSlider) {
+    scaleSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      if (window.ymScaleChanger) window.ymScaleChanger.setScale(val);
+      updateSettingsScaleUI(val);
+    });
+  }
+  if (scaleDecBtn) {
+    scaleDecBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.decrease();
+        updateSettingsScaleUI(window.ymScaleChanger.getScale());
+      }
+    });
+  }
+  if (scaleIncBtn) {
+    scaleIncBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.increase();
+        updateSettingsScaleUI(window.ymScaleChanger.getScale());
+      }
+    });
+  }
+  if (scaleResetBtn) {
+    scaleResetBtn.addEventListener('click', () => {
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.reset(true);
+        updateSettingsScaleUI(1.0);
+      }
+    });
+  }
+  scalePresetBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = parseFloat(btn.getAttribute('data-scale'));
+      if (window.ymScaleChanger) {
+        window.ymScaleChanger.setScale(val, true);
+        updateSettingsScaleUI(val);
+      }
+    });
+  });
+
+  window.addEventListener('ym-scale-changed', (e) => {
+    if (e.detail?.scale) updateSettingsScaleUI(e.detail.scale);
+  });
 
   const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
   if (lyricsModeSelect) {
@@ -1314,6 +1396,7 @@ function createWrappedOverlay() {
       display: flex;
       flex-direction: column;
       background: transparent;
+      flex-shrink: 0;
     }
     .ym-wrapped-aside h2 {
       margin: 0 0 40px 10px;
@@ -1331,14 +1414,20 @@ function createWrappedOverlay() {
       font-weight: 500;
       border-radius: 12px;
       cursor: pointer;
-      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
       margin-bottom: 8px;
       font-family: inherit;
+      white-space: nowrap;
+      user-select: none;
+      -webkit-user-select: none;
     }
     .ym-wrapped-tab-btn:hover {
       color: var(--ym-popover-text, white);
       background: rgba(255, 255, 255, 0.04);
       border-color: rgba(255, 255, 255, 0.04);
+    }
+    .ym-wrapped-tab-btn:active {
+      transform: scale(0.98);
     }
     .ym-wrapped-tab-btn.active {
       color: var(--ym-popover-active, #ffdb4d);
@@ -1357,7 +1446,8 @@ function createWrappedOverlay() {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       background: rgba(0, 0, 0, 0.03);
     }
     
@@ -1376,7 +1466,7 @@ function createWrappedOverlay() {
       align-items: center;
       justify-content: center;
       transition: background 0.2s, transform 0.2s, color 0.2s;
-      z-index: 10;
+      z-index: 100;
     }
     .ym-wrapped-close:hover {
       background: var(--ym-popover-item-hover-bg, rgba(255,255,255,0.2));
@@ -1386,12 +1476,12 @@ function createWrappedOverlay() {
     
     .ym-wrapped-tab-content {
       display: none;
-      height: 100%;
       width: 100%;
+      min-width: 0;
       flex-direction: column;
       box-sizing: border-box;
       min-height: 0;
-      animation: fadeIn 0.4s ease;
+      animation: fadeIn 0.3s ease;
       max-width: 1200px;
       margin: 0 auto;
     }
@@ -1401,10 +1491,16 @@ function createWrappedOverlay() {
 
     .ym-wrapped-columns {
       display: flex;
-      gap: 30px;
+      flex-direction: row;
+      gap: 20px;
       flex: 1;
       min-height: 0;
+      min-width: 0;
       width: 100%;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-columns > * {
+      min-width: 0;
     }
 
     .ym-glass-card {
@@ -1413,31 +1509,96 @@ function createWrappedOverlay() {
       border-radius: 16px !important;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25) !important;
       box-sizing: border-box !important;
+      min-width: 0 !important;
     }
 
     .ym-wrapped-row {
       display: flex;
+      flex-direction: row;
       gap: 20px;
       width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+    .ym-wrapped-row > * {
+      min-width: 0;
+    }
+
+    .ym-chart-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
+      min-height: 240px;
+      flex: 1;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+    .ym-chart-wrapper canvas {
+      max-width: 100% !important;
     }
     
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    @media (max-width: 1100px) {
+    /* Custom modern scrollbars for Wrapped */
+    #ym-wrapped-overlay * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      transition: background 0.2s ease;
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+    #ym-wrapped-overlay *::-webkit-scrollbar-button,
+    #ym-wrapped-overlay *::-webkit-scrollbar-corner {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* Screen width <= 950px: switch sidebar to horizontal top bar, keep 2-column layout */
+    @media (max-width: 950px) {
       #ym-wrapped-overlay {
         flex-direction: column !important;
       }
       .ym-wrapped-aside {
         width: 100% !important;
         box-sizing: border-box !important;
-        padding: 15px 20px !important;
+        padding: 12px 65px 12px 16px !important;
         flex-direction: row !important;
         overflow-x: auto !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        overflow-y: hidden !important;
+        scrollbar-width: thin !important;
+        scrollbar-color: rgba(255, 255, 255, 0.15) transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+        background: rgba(18, 18, 24, 0.6) !important;
+        backdrop-filter: blur(16px) !important;
+        -webkit-backdrop-filter: blur(16px) !important;
         flex-shrink: 0 !important;
+        scroll-behavior: smooth !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      .ym-wrapped-aside::-webkit-scrollbar {
+        height: 3px !important;
+        display: block !important;
+      }
+      .ym-wrapped-aside::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.25) !important;
+        border-radius: 999px !important;
       }
       .ym-wrapped-aside h2 {
         display: none !important;
@@ -1448,30 +1609,61 @@ function createWrappedOverlay() {
         white-space: nowrap !important;
         padding: 8px 16px !important;
         font-size: 14px !important;
+        flex-shrink: 0 !important;
       }
       .ym-wrapped-tab-btn[data-tab="stories"] {
         margin-top: 0 !important;
+        flex-shrink: 0 !important;
+      }
+      .ym-wrapped-close {
+        position: fixed !important;
+        top: 10px !important;
+        right: 12px !important;
+        width: 36px !important;
+        height: 36px !important;
+        z-index: 1000000 !important;
+        background: rgba(255, 255, 255, 0.15) !important;
+        backdrop-filter: blur(12px) !important;
+        -webkit-backdrop-filter: blur(12px) !important;
       }
       .ym-wrapped-main {
-        padding: 20px !important;
-        height: calc(100vh - 75px) !important;
+        padding: 20px 24px !important;
+        height: calc(100vh - 65px) !important;
         overflow-y: auto !important;
+        overflow-x: hidden !important;
       }
       .ym-wrapped-tab-content {
         height: auto !important;
         min-height: auto !important;
         overflow-y: visible !important;
+        overflow-x: hidden !important;
       }
       .ym-wrapped-main h2 {
-        font-size: 24px !important;
-        margin-bottom: 15px !important;
+        font-size: 26px !important;
+        margin-bottom: 16px !important;
+      }
+      .ym-wrapped-columns {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 16px !important;
+        width: 100% !important;
+      }
+      .ym-wrapped-row {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 14px !important;
+        width: 100% !important;
+      }
+    }
+
+    /* Screen width <= 650px: narrow mobile screens, collapse to 1 column */
+    @media (max-width: 650px) {
+      .ym-wrapped-main {
+        padding: 16px 12px !important;
       }
       .ym-wrapped-columns {
         flex-direction: column !important;
-        height: auto !important;
-        min-height: auto !important;
-        overflow-y: visible !important;
-        gap: 20px !important;
+        gap: 14px !important;
         flex: none !important;
       }
       .ym-wrapped-columns > div {
@@ -1482,7 +1674,7 @@ function createWrappedOverlay() {
       }
       .ym-wrapped-row {
         flex-direction: column !important;
-        gap: 15px !important;
+        gap: 12px !important;
         flex: none !important;
       }
       .ym-wrapped-row > div {
@@ -1491,7 +1683,8 @@ function createWrappedOverlay() {
         height: auto !important;
       }
       canvas {
-        max-height: 220px !important;
+        max-height: 240px !important;
+        min-height: 180px !important;
       }
     }
   `;
@@ -1500,7 +1693,7 @@ function createWrappedOverlay() {
 
   wrappedOverlay.innerHTML = `
     <button class="ym-wrapped-close" aria-label="Закрыть">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
         <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
       </svg>
     </button>
@@ -1531,6 +1724,17 @@ function createWrappedOverlay() {
   `;
 
   document.body.appendChild(wrappedOverlay);
+
+  // Обработка горизонтального скролла колесиком мыши для вкладок
+  const asideElem = wrappedOverlay.querySelector('.ym-wrapped-aside');
+  if (asideElem) {
+    asideElem.addEventListener('wheel', (e) => {
+      if (asideElem.scrollWidth > asideElem.clientWidth) {
+        e.preventDefault();
+        asideElem.scrollLeft += (e.deltaY || e.deltaX) * 0.9;
+      }
+    }, { passive: false });
+  }
 
   // Обработка закрытия
   wrappedOverlay.querySelector('.ym-wrapped-close').addEventListener('click', (e) => {
@@ -1579,8 +1783,42 @@ function createWrappedOverlay() {
       // Ставим active на нажатую
       btn.classList.add('active');
       const content = wrappedOverlay.querySelector('#ym-wrapped-tab-' + tabId);
-      if (content) content.classList.add('active');
+      if (content) {
+        content.classList.add('active');
+      }
+
+      // Центрируем вкладку в панели при клике
+      try {
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      } catch(e) {}
+
+      // Пересчитываем размеры графиков при переключении вкладки
+      setTimeout(() => {
+        if (window.Chart && Chart.instances) {
+          Object.values(Chart.instances).forEach(chart => {
+            try {
+              chart.resize();
+            } catch(e) {}
+          });
+        }
+      }, 50);
     });
+  });
+
+  // Автоматический пересчет размеров графиков при изменении размера окна
+  let resizeDebounce = null;
+  window.addEventListener('resize', () => {
+    if (!wrappedOverlay || !wrappedOverlay.classList.contains('ym-wrapped-overlay-visible')) return;
+    clearTimeout(resizeDebounce);
+    resizeDebounce = setTimeout(() => {
+      if (window.Chart && Chart.instances) {
+        Object.values(Chart.instances).forEach(chart => {
+          try {
+            chart.resize();
+          } catch(e) {}
+        });
+      }
+    }, 80);
   });
 
   return wrappedOverlay;
@@ -2605,6 +2843,7 @@ async function renderWrappedCharts() {
     // Общие настройки Chart.js для темной темы
     Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
     Chart.defaults.font.family = '"YS Text", sans-serif';
+    Chart.defaults.animation = false; // Отключаем внутренний аниматор Chart.js для мгновенной отрисовки и устранения крашей tick
 
     // Рендер вкладки Обзор
     renderOverviewTab(containerOverview, stats);
@@ -2696,7 +2935,7 @@ function renderOverviewTab(container, stats) {
       
       <div class="ym-glass-card" style="flex: 1.1; min-height: 0; padding: 25px; display: flex; flex-direction: column;">
         <h3 style="margin-top: 0; margin-bottom: 15px; color: rgba(255,255,255,0.8); flex-shrink: 0;">Активность по месяцам</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-months"></canvas>
         </div>
       </div>
@@ -2798,12 +3037,12 @@ function renderArtistsTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Артистов</h2>
     <div class="ym-wrapped-columns">
-      <div class="ym-glass-card" style="flex: 1.1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
-        <div style="flex: 1; min-height: 0; position: relative;">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-artists"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.9; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 0.9; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
         <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">Лидеры по времени</h3>
         <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
           ${listHtml}
@@ -2835,7 +3074,7 @@ function renderArtistsTab(container, stats) {
         data: data,
         backgroundColor: sliceColors,
         borderWidth: 0,
-        hoverOffset: 10
+        hoverOffset: 8
       }]
     },
     options: {
@@ -2881,11 +3120,12 @@ function renderTracksTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Топ Треков</h2>
     <div class="ym-wrapped-columns">
-      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 0; padding-right: 5px;">
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; min-height: 300px; padding-right: 5px;">
         ${cardsHtml}
       </div>
-      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; min-height: 0;">
-        <div style="flex: 1; min-height: 0; position: relative;">
+      <div class="ym-glass-card" style="flex: 1; padding: 25px; display: flex; flex-direction: column; min-height: 300px;">
+        <h3 style="margin-top: 0; margin-bottom: 15px; flex-shrink: 0;">Частота прослушиваний</h3>
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-tracks"></canvas>
         </div>
       </div>
@@ -3118,22 +3358,22 @@ function renderGenresTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Жанры и Эпохи</h2>
     <div class="ym-wrapped-columns" style="flex: 1.2; margin-bottom: 20px;">
-      <div class="ym-glass-card" style="flex: 1.2; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 1.2; padding: 20px; display: flex; flex-direction: column; min-height: 240px;">
         <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Популярные Жанры</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-genres"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.8; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 0.8; padding: 20px; display: flex; flex-direction: column; min-height: 240px;">
         <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 16px; flex-shrink: 0;">Распределение по Эпохам</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-eras"></canvas>
         </div>
       </div>
     </div>
     
     <div class="ym-wrapped-columns" style="flex: 0.8; gap: 20px;">
-      <div class="ym-glass-card" style="flex: 1.1; padding: 20px; display: flex; flex-direction: column; min-height: 0;">
+      <div class="ym-glass-card" style="flex: 1.1; padding: 20px; display: flex; flex-direction: column; min-height: 180px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Топ-5 Жанров</h3>
         <div style="flex: 1; overflow-y: auto; min-height: 0; padding-right: 5px;">
           ${genresListHtml}
@@ -3244,15 +3484,15 @@ function renderActivityTab(container, stats) {
   container.innerHTML = `
     <h2 style="font-size: 32px; margin-top: 0; margin-bottom: 20px; flex-shrink: 0;">Активность</h2>
     <div style="display: flex; flex-direction: column; gap: 20px; flex: 1; min-height: 0;">
-      <div class="ym-glass-card" style="flex: 1.1; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+      <div class="ym-glass-card" style="flex: 1.1; min-height: 240px; display: flex; flex-direction: column; padding: 20px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Прослушивания по времени суток</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-hours"></canvas>
         </div>
       </div>
-      <div class="ym-glass-card" style="flex: 0.9; min-height: 0; display: flex; flex-direction: column; padding: 20px;">
+      <div class="ym-glass-card" style="flex: 0.9; min-height: 240px; display: flex; flex-direction: column; padding: 20px;">
         <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px; flex-shrink: 0;">Активность по дням недели</h3>
-        <div style="flex: 1; min-height: 0; position: relative;">
+        <div class="ym-chart-wrapper">
           <canvas id="ym-chart-days"></canvas>
         </div>
       </div>
@@ -3442,7 +3682,7 @@ function renderCalendarTab(container, stats) {
     const heatmapCardHtml = `
       <div class="ym-glass-card" style="padding: 20px; margin-bottom: 25px; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;">
         <h3 style="margin: 0 0 15px 0; font-size: 16px; color: rgba(255,255,255,0.8); font-weight: bold;">Карта активности (минут прослушивания)</h3>
-        <div style="overflow-x: auto; padding-bottom: 10px; width: 100%; box-sizing: border-box;">
+        <div class="ym-heatmap-scroller" style="overflow-x: auto; padding-bottom: 10px; width: 100%; box-sizing: border-box; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;">
           <div style="display: grid; grid-template-columns: auto repeat(53, 1fr); grid-template-rows: auto repeat(7, 1fr); gap: 3px; width: 100%; min-width: 650px; align-items: center; box-sizing: border-box;">
             ${cellsHtml}
           </div>
@@ -3512,6 +3752,17 @@ function renderCalendarTab(container, stats) {
       </div>
     </div>
   `;
+
+  // Поддержка горизонтального колесика мыши для heatmap
+  const scroller = container.querySelector('.ym-heatmap-scroller');
+  if (scroller) {
+    scroller.addEventListener('wheel', (e) => {
+      if (scroller.scrollWidth > scroller.clientWidth) {
+        e.preventDefault();
+        scroller.scrollLeft += (e.deltaY || e.deltaX) * 0.9;
+      }
+    }, { passive: false });
+  }
   } catch (err) {
     console.error("Ошибка рендеринга календаря:", err);
     container.innerHTML = `<div style="color:red; padding: 20px;">Ошибка рендеринга календаря: ${err.message}</div>`;

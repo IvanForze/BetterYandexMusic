@@ -257,13 +257,20 @@ function updateDiscordPresencePreload(trackId, isPause, position, metadata) {
     stateText = `[Пауза] ${stateText}`;
   }
 
+  let largeTooltip = 'Яндекс Музыка';
+  if (metadata.album) {
+    largeTooltip = `Альбом: ${metadata.album}`;
+  } else if (qualityInfo) {
+    largeTooltip = `Качество: ${qualityInfo}`;
+  }
+
   const activity = {
     details: metadata.title,
     state: stateText,
     type: 2, // 2 = Listening (Слушает)
     assets: {
       large_image: metadata.coverUrl,
-      large_text: qualityInfo ? `${metadata.title} — ${metadata.artist} [${qualityInfo}]` : `${metadata.title} — ${metadata.artist}`
+      large_text: largeTooltip
     }
   };
 

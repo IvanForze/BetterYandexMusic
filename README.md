@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="yandex-sync-installer/public/Icon.png" width="128" height="128" alt="BetterYandexMusic Logo" style="border-radius: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.4);">
+</p>
+
 <h1 align="center" style="font-weight: 800; border-bottom: none; margin-bottom: 10px;">BetterYandexMusic</h1>
 
 <p align="center" style="font-size: 1.2em; color: #8b949e; margin-top: 0;">
@@ -5,7 +9,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.3-cc00ff?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.3.1-cc00ff?style=for-the-badge" alt="Version">
+  <a href="../../releases"><img src="https://img.shields.io/github/downloads/IvanForze/BetterYandexMusic/total.svg?style=for-the-badge&logo=github&color=0969da" alt="Total Downloads"></a>
   <img src="https://img.shields.io/badge/Node.js-16%2B-green?style=for-the-badge&logo=node.js&logoColor=white&color=339933" alt="Node Version">
   <img src="https://img.shields.io/badge/Socket.io-v4-black?style=for-the-badge&logo=socket.io&logoColor=white&color=010101" alt="Socket.io Version">
   <img src="https://img.shields.io/badge/Electron-Compatible-blue?style=for-the-badge&logo=electron&logoColor=white&color=47848F" alt="Electron">
@@ -116,6 +121,14 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
 
 ---
 
+### 🔍 Масштабирование интерфейса (Zoom) — *новое в v1.3*
+Возможность гибко увеличивать или уменьшать масштаб всех элементов приложения от 40% до 200%:
+* **Горячие клавиши:** <kbd>Ctrl</kbd> + <kbd>+</kbd> (увеличить), <kbd>Ctrl</kbd> + <kbd>-</kbd> (уменьшить), <kbd>Ctrl</kbd> + <kbd>0</kbd> (сбросить на 100%), <kbd>Ctrl</kbd> + <kbd>Колесо мыши</kbd>.
+* **Всплывающий индикатор:** Стильный бейдж с текущим процентом масштаба при переключении.
+* **Настройки:** Удобный ползунок со шкалой и быстрыми пресетами (80%, 90%, 100%, 110%, 125%) в разделе настроек приложения.
+
+---
+
 ### Другие функции:
 *   **Discord Rich Presence:** Отображение текущего трека, обложки и таймлайна в статусе Discord.
 *   **Контейнеризация (Docker):** Наличие Dockerfile и docker-compose.yml для развертывания сервера.
@@ -209,7 +222,30 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
 
 1. Скачайте установщик для вашей ОС из последнего релиза:
    * **Windows:** Скачайте и запустите `BetterYandexMusic Installer.exe`.
-   * **Linux:** Скачайте `BetterYandexMusic Installer.AppImage`, сделайте файл исполняемым и запустите.
+   * **Linux:** 
+     * **Вариант А (Рекомендуемый — запуск AppImage в 1 клик):**
+       1. Установите библиотеку FUSE и выдайте права на запуск файла (нужно выполнить 1 раз):
+          ```bash
+          sudo apt install -y libfuse2
+          chmod +x "BetterYandexMusic Installer-1.3.1.AppImage"
+          ```
+       2. Выдайте права на папку Яндекс Музыки вашему пользователю (чтобы установщику не требовался root доступ):
+          ```bash
+          sudo chown -R $USER:$USER "/opt/Яндекс Музыка"
+          ```
+       3. Запускайте установщик обычным двойным кликом или `./"BetterYandexMusic Installer-1.3.1.AppImage"`.
+     * **Вариант Б (Запуск без установки дополнительных пакетов):**
+       Запустите AppImage в режиме прямой распаковки:
+       ```bash
+       sudo ./"BetterYandexMusic Installer-1.3.1.AppImage" --appimage-extract-and-run --no-sandbox
+       ```
+     * **Вариант В (.deb пакет для Debian / Ubuntu / Kali):**
+       Скачайте `.deb` файл из релизов и установите через пакетный менеджер:
+       ```bash
+       sudo dpkg -i yandex-sync-installer_1.3.1_amd64.deb
+       # или
+       sudo apt install ./yandex-sync-installer_1.3.1_amd64.deb
+       ```
    * **macOS:** Скачайте `BetterYandexMusic Installer.dmg`, откройте его и перетащите приложение в папку "Программы" (Applications).
      > [!WARNING]
      > В macOS из-за системы защиты (Gatekeeper) может появиться ошибка "Приложение повреждено". Чтобы это исправить, откройте приложение **Терминал** и выполните команду:
@@ -248,7 +284,12 @@ docker-compose up -d --build
 > Перед использованием локальных исходников обязательно скомпилируйте общие файлы командой `npm run build`.
 
 * **Для браузера:** После выполнения сборки, загрузите папку `yandex-sync-extension` как распакованное расширение в настройках браузера.
-* **Для десктопа:** После сборки перейдите в терминале в папку `yandex-sync-electron` и запустите команду `node patch.js` (приложение Яндекс Музыки должно быть закрыто).
+* **Для десктопа (Ручной скрипт патча):**
+  * **Windows / macOS:** Перейдите в папку `yandex-sync-electron` и запустите `node patch.js` (или `node debug-patch.js`).
+  * **Linux:** Так как Яндекс Музыка установлена в системную директорию `/opt/`, запустите через sudo:
+    ```bash
+    sudo env "PATH=$PATH" node patch.js
+    ```
 
 ---
 

@@ -107,6 +107,13 @@ function getTrackMetadata(activePlayer) {
       artistsStr = dataObj.artist;
     }
 
+    let album = '';
+    if (Array.isArray(dataObj.albums) && dataObj.albums.length > 0 && dataObj.albums[0]?.title) {
+      album = dataObj.albums[0].title;
+    } else if (dataObj.album?.title) {
+      album = dataObj.album.title;
+    }
+
     let durationMs = 0;
     if (dataObj.durationMs) {
       durationMs = dataObj.durationMs;
@@ -147,6 +154,7 @@ function getTrackMetadata(activePlayer) {
     return {
       title: fullTitle,
       artist: artistsStr,
+      album,
       durationMs,
       coverUrl,
       quality,

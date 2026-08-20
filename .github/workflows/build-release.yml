@@ -58,6 +58,7 @@ jobs:
           npm install
           npx electron-builder --linux --x64 --arm64
           cp dist/*.AppImage ../dist/ || true
+          cp dist/*.deb ../dist/ || true
           cd ..
 
       - name: Upload Linux Artifacts
@@ -152,6 +153,7 @@ jobs:
             dist-merged/yandex-music-sync-desktop.zip
             dist-merged/*.exe
             dist-merged/*.AppImage
+            dist-merged/*.deb
             dist-merged/*.dmg
           draft: false
           prerelease: false

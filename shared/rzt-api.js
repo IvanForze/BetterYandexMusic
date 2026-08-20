@@ -59,91 +59,145 @@ const RztAPI = {
       .trim();
   },
 
-  hasArtistMatch(chunk, artistName) {
-    if (!artistName) return true;
-    const cleanArtist = this.normalizeText(artistName);
-    const cleanChunk = this.normalizeText(chunk);
+  hasArtistMatch(artistListOrString, targetArtist) {
+    if (!targetArtist) return true;
+    const cleanTarget = this.normalizeText(targetArtist);
     
-    if (cleanChunk.includes(cleanArtist)) return true;
-    
-    // Split by common artist separators and check each one
-    const artists = artistName.split(/(?:feat\.?|feat|&|,|\bи\b)/i).map(a => this.normalizeText(a)).filter(Boolean);
-    for (const a of artists) {
-      if (cleanChunk.includes(a)) return true;
+    let artistNames = [];
+    if (Array.isArray(artistListOrString)) {
+      artistNames = artistListOrString.map(a => typeof a === 'string' ? a : (a.title || a.name || ''));
+    } else if (typeof artistListOrString === 'string') {
+      artistNames = [artistListOrString];
     }
     
+    const combined = artistNames.map(a => this.normalizeText(a)).join(' ');
+    if (combined.includes(cleanTarget) || cleanTarget.includes(combined)) return true;
+
+    const targetTokens = targetArtist.split(/(?:feat\.?|feat|&|,|\bи\b|\/|\+)/i).map(a => this.normalizeText(a)).filter(Boolean);
+    for (const t of targetTokens) {
+      if (combined.includes(t)) return true;
+      for (const a of artistNames) {
+        const cleanA = this.normalizeText(a);
+        if (cleanA.includes(t) || t.includes(cleanA)) return true;
+      }
+    }
     return false;
+  },
+
+  parseRscReleases(html) {
+    const releases = [];
+    const unescaped = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    
+    // 1. Try matching full JSON data object
+    const regex = /"data"\s*:\s*(\{\s*"kind"\s*:\s*"release"[\s\S]*?"nestEnabled"\s*:\s*true\s*\})/g;
+    let match;
+    while ((match = regex.exec(unescaped)) !== null) {
+      try {
+        const parsed = JSON.parse(match[1]);
+        if (parsed && parsed.title) {
+          releases.push(parsed);
+        }
+      } catch (e) {}
+    }
+    
+    // 2. Fallback regex for partial RSC release slices
+    if (releases.length === 0) {
+      const blockRegex = /"kind"\s*:\s*"release"[\s\S]*?"title"\s*:\s*"([^"]+)"[\s\S]*?"artists"\s*:\s*(\[[^\]]*\])[\s\S]*?"meta"\s*:\s*\{([^}]+)\}/g;
+      let bMatch;
+      while ((bMatch = blockRegex.exec(unescaped)) !== null) {
+        try {
+          const title = bMatch[1];
+          let artists = [];
+          try { artists = JSON.parse(bMatch[2]); } catch (err) {}
+          const metaStr = '{' + bMatch[3] + '}';
+          let meta = {};
+          try { meta = JSON.parse(metaStr); } catch (err) {}
+          releases.push({ title, artists, meta });
+        } catch (e) {}
+      }
+    }
+
+    return releases;
   },
 
   parseScoresFromHtml(html, trackTitle, artistName) {
     if (!html) return null;
     const titleClean = this.normalizeText(trackTitle);
-    
-    // 1. Gather all occurrence positions of the track title
-    const indices = [];
-    let idx = html.toLowerCase().indexOf(titleClean);
-    while (idx !== -1) {
-      indices.push(idx);
-      idx = html.toLowerCase().indexOf(titleClean, idx + 1);
-    }
-    
-    // Fallback 1: try title without bracketed info if no matches found
-    if (indices.length === 0) {
-      const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
-      if (simpleTitle && simpleTitle !== titleClean) {
-        let idx2 = html.toLowerCase().indexOf(simpleTitle);
-        while (idx2 !== -1) {
-          indices.push(idx2);
-          idx2 = html.toLowerCase().indexOf(simpleTitle, idx2 + 1);
+    const simpleTitle = this.normalizeText(trackTitle.split(/[(\[]/)[0]);
+
+    // 1. Try Next.js RSC structured releases parsing (100% precision)
+    const releases = this.parseRscReleases(html);
+    if (releases.length > 0) {
+      // 1a. Look for matching title AND matching artist
+      for (const rel of releases) {
+        const relTitle = this.normalizeText(rel.title);
+        if (relTitle === titleClean || relTitle === simpleTitle || titleClean.includes(relTitle) || relTitle.includes(titleClean)) {
+          if (this.hasArtistMatch(rel.artists, artistName)) {
+            const meta = rel.meta || {};
+            return {
+              flomaster: meta.total_rating != null && meta.total_rating > 0 ? meta.total_rating : (meta.total_rating === 0 ? 0 : null),
+              withReviews: meta.score_reviews_avg != null && meta.score_reviews_avg > 0 ? meta.score_reviews_avg : null,
+              withoutReviews: meta.users_avg_total != null && meta.users_avg_total > 0 ? meta.users_avg_total : null
+            };
+          }
         }
       }
-    }
 
-    // 2. Scan occurrences and look for the one matching the artist
-    for (const pos of indices) {
-      const chunk = html.slice(pos, pos + 3000);
-      if (this.hasArtistMatch(chunk, artistName)) {
-        const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-        const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-        if (matches.length > 0) {
+      // 1b. Fallback: match by title alone
+      for (const rel of releases) {
+        const relTitle = this.normalizeText(rel.title);
+        if (relTitle === titleClean || relTitle === simpleTitle) {
+          const meta = rel.meta || {};
           return {
-            flomaster: matches[2] || null,
-            withReviews: matches[0] || null,
-            withoutReviews: matches[1] || null
+            flomaster: meta.total_rating != null && meta.total_rating > 0 ? meta.total_rating : null,
+            withReviews: meta.score_reviews_avg != null && meta.score_reviews_avg > 0 ? meta.score_reviews_avg : null,
+            withoutReviews: meta.users_avg_total != null && meta.users_avg_total > 0 ? meta.users_avg_total : null
           };
         }
       }
     }
 
-    // Fallback 2: if no matches had the artist, parse ratings from the first track title match
-    if (indices.length > 0) {
-      const chunk = html.slice(indices[0], indices[0] + 3000);
-      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-      if (matches.length > 0) {
-        return {
-          flomaster: matches[2] || null,
-          withReviews: matches[0] || null,
-          withoutReviews: matches[1] || null
-        };
+    // 2. Fallback: DOM / Regex parsing for new and old site designs
+    const unescaped = html.replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+    const indices = [];
+    let idx = unescaped.toLowerCase().indexOf(titleClean);
+    while (idx !== -1) {
+      indices.push(idx);
+      idx = unescaped.toLowerCase().indexOf(titleClean, idx + 1);
+    }
+    if (indices.length === 0 && simpleTitle && simpleTitle !== titleClean) {
+      let idx2 = unescaped.toLowerCase().indexOf(simpleTitle);
+      while (idx2 !== -1) {
+        indices.push(idx2);
+        idx2 = unescaped.toLowerCase().indexOf(simpleTitle, idx2 + 1);
       }
     }
 
-    // Fallback 3: try the first track link in the entire search results page
-    const fallbackRegex = /href=\\?"\/track\/([^"]+)\\?"|href=\\?"\/release\/([^"]+)\\?"/i;
-    const match = html.match(fallbackRegex);
-    if (match) {
-      const pos = html.indexOf(match[0]);
-      const chunk = html.slice(pos, pos + 3000);
-      const regex = /class=\\?"[^"]*inline-flex size-7[^"]*rounded-full[^"]*\\?"[^>]*>([0-9]+)<\/div>/g;
-      const matches = [...chunk.matchAll(regex)].map(m => parseInt(m[1], 10));
-      if (matches.length > 0) {
+    const extractCircles = (chunk) => {
+      const circleRegex = /(?:rounded-full|size-8|size-7|size-12)[^>]*>\s*(?:<span[^>]*>)?\s*([0-9]{1,3})\s*(?:<\/span>)?\s*<\/div>/g;
+      const matches = [...chunk.matchAll(circleRegex)].map(m => parseInt(m[1], 10)).filter(n => n >= 0 && n <= 100);
+      if (matches.length >= 2) {
         return {
-          flomaster: matches[2] || null,
-          withReviews: matches[0] || null,
-          withoutReviews: matches[1] || null
+          withReviews: matches[0] != null ? matches[0] : null,
+          withoutReviews: matches[1] != null ? matches[1] : null,
+          flomaster: matches[2] != null ? matches[2] : null
         };
       }
+      return null;
+    };
+
+    for (const pos of indices) {
+      const chunk = unescaped.slice(pos, pos + 4000);
+      if (this.hasArtistMatch(chunk, artistName)) {
+        const scores = extractCircles(chunk);
+        if (scores) return scores;
+      }
+    }
+
+    if (indices.length > 0) {
+      const chunk = unescaped.slice(indices[0], indices[0] + 4000);
+      const scores = extractCircles(chunk);
+      if (scores) return scores;
     }
 
     return null;
