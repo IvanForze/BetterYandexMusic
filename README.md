@@ -242,9 +242,9 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
      * **Вариант В (.deb пакет для Debian / Ubuntu / Kali):**
        Скачайте `.deb` файл из релизов и установите через пакетный менеджер:
        ```bash
-       sudo dpkg -i yandex-sync-installer_1.3.1_amd64.deb
+       sudo dpkg -i "BetterYandexMusic Installer-1.3.1-x64.deb"
        # или
-       sudo apt install ./yandex-sync-installer_1.3.1_amd64.deb
+       sudo apt install ./"BetterYandexMusic Installer-1.3.1-x64.deb"
        ```
    * **macOS:** Скачайте `BetterYandexMusic Installer.dmg`, откройте его и перетащите приложение в папку "Программы" (Applications).
      > [!WARNING]
