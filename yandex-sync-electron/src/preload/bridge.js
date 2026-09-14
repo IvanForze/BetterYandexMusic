@@ -427,9 +427,163 @@ if (typeof window !== 'undefined') {
             response: { ok: false, error: err.message }
           }, '*');
         }
+      } else if (type === 'YM_DOWNLOAD_TRACK') {
+        const fs = require('fs');
+        const path = require('path');
+        const os = require('os');
+        const crypto = require('crypto');
+        const electron = require('electron');
+
+        (async () => {
+          try {
+            const { downloadInfo, metadata } = payload;
+            if (!downloadInfo || !downloadInfo.url || !downloadInfo.key) {
+              throw new Error('Отсутствуют данные потока (url или key)');
+            }
+
+            console.log('[PRELOAD-DOWNLOAD] Начинаем загрузку трека:', metadata?.title, downloadInfo.codec);
+            
+            // 1. Скачиваем зашифрованный поток из хранилища
+            const encryptedBuffer = await nodeHttpsRequest(downloadInfo.url, { binary: true });
+            if (!encryptedBuffer || encryptedBuffer.length === 0) {
+              throw new Error('Пустой ответ при загрузке аудиопотока');
+            }
+
+            // 2. Расшифровываем AES-128-CTR (с нулевым IV)
+            const keyBuffer = Buffer.from(downloadInfo.key, 'hex');
+            const iv = Buffer.alloc(16, 0);
+            const decipher = crypto.createDecipheriv('aes-128-ctr', keyBuffer, iv);
+            const decryptedBuffer = Buffer.concat([decipher.update(encryptedBuffer), decipher.final()]);
+
+            // 3. Определяем формат
+            const codecLower = (downloadInfo.codec || '').toLowerCase();
+            const isFlac = codecLower.includes('flac');
+            const ext = isFlac ? 'flac' : 'mp3';
+
+            // 4. Скачиваем обложку (если есть)
+            let coverBuffer = null;
+            if (metadata && metadata.coverUri) {
+              try {
+                let coverUrl = metadata.coverUri;
+                if (coverUrl.includes('%%')) {
+                  coverUrl = 'https://' + coverUrl.replace('%%', 'orig');
+                } else if (!coverUrl.startsWith('http')) {
+                  coverUrl = 'https://' + coverUrl;
+                }
+                coverBuffer = await nodeHttpsRequest(coverUrl, { binary: true });
+              } catch(coverErr) {
+                console.warn('[PRELOAD-DOWNLOAD] Не удалось загрузить обложку:', coverErr.message);
+              }
+            }
+
+            // 5. Вшивание тегов
+            let finalBuffer = decryptedBuffer;
+            if (!isFlac) {
+              try {
+                const id3Tag = buildId3v2Tag({
+                  title: metadata?.title || '',
+                  artist: metadata?.artist || '',
+                  album: metadata?.album || '',
+                  year: metadata?.year || ''
+                }, coverBuffer);
+                if (id3Tag && id3Tag.length > 0) {
+                  finalBuffer = Buffer.concat([id3Tag, decryptedBuffer]);
+                }
+              } catch(tagErr) {
+                console.warn('[PRELOAD-DOWNLOAD] Ошибка вшивания ID3:', tagErr.message);
+              }
+            }
+
+            // 6. Формируем имя файла и целевую папку
+            const safeArtist = (metadata?.artist || 'Неизвестный исполнитель').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+            const safeTitle = (metadata?.title || 'Трек').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+            const fileName = `${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
+
+            const downloadsDir = path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+            if (!fs.existsSync(downloadsDir)) {
+              fs.mkdirSync(downloadsDir, { recursive: true });
+            }
+
+            const targetFilePath = path.join(downloadsDir, fileName);
+            fs.writeFileSync(targetFilePath, finalBuffer);
+            console.log('[PRELOAD-DOWNLOAD] Файл успешно сохранен на диск:', targetFilePath);
+
+            try {
+              electron.shell.showItemInFolder(targetFilePath);
+            } catch(e) {}
+
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, filePath: targetFilePath, fileName }
+            }, '*');
+          } catch(err) {
+            console.error('[PRELOAD-DOWNLOAD] Ошибка обработки трека:', err);
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          }
+        })();
       }
     }
   });
+}
+
+function buildId3v2Tag(metadata, coverBuffer) {
+  try {
+    const frames = [];
+
+    function makeTextFrame(id, text) {
+      if (!text) return null;
+      const str = String(text);
+      const bom = Buffer.from([0xFF, 0xFE]);
+      const textBuf = Buffer.from(str, 'utf16le');
+      const content = Buffer.concat([Buffer.from([0x01]), bom, textBuf]);
+      const header = Buffer.alloc(10);
+      header.write(id, 0, 4, 'ascii');
+      header.writeUInt32BE(content.length, 4);
+      return Buffer.concat([header, content]);
+    }
+
+    if (metadata.title) frames.push(makeTextFrame('TIT2', metadata.title));
+    if (metadata.artist) frames.push(makeTextFrame('TPE1', metadata.artist));
+    if (metadata.album) frames.push(makeTextFrame('TALB', metadata.album));
+    if (metadata.year) frames.push(makeTextFrame('TYER', metadata.year));
+
+    if (coverBuffer && Buffer.isBuffer(coverBuffer) && coverBuffer.length > 0) {
+      const mime = Buffer.from('image/jpeg\0', 'ascii');
+      const headerPart = Buffer.concat([Buffer.from([0x00]), mime, Buffer.from([0x03, 0x00])]);
+      const apicContent = Buffer.concat([headerPart, coverBuffer]);
+      const apicHeader = Buffer.alloc(10);
+      apicHeader.write('APIC', 0, 4, 'ascii');
+      apicHeader.writeUInt32BE(apicContent.length, 4);
+      frames.push(Buffer.concat([apicHeader, apicContent]));
+    }
+
+    const validFrames = frames.filter(Boolean);
+    if (validFrames.length === 0) return Buffer.alloc(0);
+
+    const framesBuffer = Buffer.concat(validFrames);
+    const tagSize = framesBuffer.length;
+
+    const synchsafe = Buffer.alloc(4);
+    synchsafe[0] = (tagSize >> 21) & 0x7F;
+    synchsafe[1] = (tagSize >> 14) & 0x7F;
+    synchsafe[2] = (tagSize >> 7) & 0x7F;
+    synchsafe[3] = tagSize & 0x7F;
+
+    const id3Header = Buffer.concat([
+      Buffer.from([0x49, 0x44, 0x33, 0x03, 0x00, 0x00]),
+      synchsafe
+    ]);
+
+    return Buffer.concat([id3Header, framesBuffer]);
+  } catch(e) {
+    console.warn('[PRELOAD] Ошибка построения ID3 тегов:', e.message);
+    return Buffer.alloc(0);
+  }
 }
 
 initDiscordRPC();

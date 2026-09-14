@@ -1510,6 +1510,63 @@ function injectStyles() {
       width: 0 !important;
       height: 0 !important;
     }
+
+    /* Track Downloader Button in Player */
+    .ym-player-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.6) !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      margin-right: 6px !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      position: relative !important;
+      z-index: 3 !important;
+      vertical-align: middle !important;
+    }
+    .ym-player-download-btn:hover {
+      color: #ffffff !important;
+      background: transparent !important;
+      transform: scale(1.1) !important;
+    }
+    .ym-player-download-btn:active {
+      transform: scale(0.95) !important;
+    }
+    .ym-player-download-btn svg {
+      width: 18px !important;
+      height: 18px !important;
+      stroke: currentColor !important;
+      transition: stroke 0.2s ease !important;
+      display: block !important;
+    }
+    .ym-player-download-btn.ym-downloading {
+      color: #ffdb4d !important;
+      background: transparent !important;
+      pointer-events: none !important;
+    }
+    .ym-download-spinner {
+      animation: ym-dl-spin 0.8s linear infinite !important;
+    }
+    @keyframes ym-dl-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .ym-player-download-btn.ym-download-success {
+      color: #ffdb4d !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .ym-player-download-btn.ym-download-error {
+      color: #ff4d4d !important;
+      background: transparent !important;
+    }
   `;
   document.head.appendChild(style);
 }

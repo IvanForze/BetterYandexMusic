@@ -1511,6 +1511,63 @@ function injectStyles() {
       width: 0 !important;
       height: 0 !important;
     }
+
+    /* Track Downloader Button in Player */
+    .ym-player-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.6) !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      margin-right: 6px !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease !important;
+      outline: none !important;
+      position: relative !important;
+      z-index: 3 !important;
+      vertical-align: middle !important;
+    }
+    .ym-player-download-btn:hover {
+      color: #ffffff !important;
+      background: transparent !important;
+      transform: scale(1.1) !important;
+    }
+    .ym-player-download-btn:active {
+      transform: scale(0.95) !important;
+    }
+    .ym-player-download-btn svg {
+      width: 18px !important;
+      height: 18px !important;
+      stroke: currentColor !important;
+      transition: stroke 0.2s ease !important;
+      display: block !important;
+    }
+    .ym-player-download-btn.ym-downloading {
+      color: #ffdb4d !important;
+      background: transparent !important;
+      pointer-events: none !important;
+    }
+    .ym-download-spinner {
+      animation: ym-dl-spin 0.8s linear infinite !important;
+    }
+    @keyframes ym-dl-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .ym-player-download-btn.ym-download-success {
+      color: #ffdb4d !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+    .ym-player-download-btn.ym-download-error {
+      color: #ff4d4d !important;
+      background: transparent !important;
+    }
   `;
   document.head.appendChild(style);
 }
@@ -5484,6 +5541,36 @@ function checkContextMenuAndAddFullscreenOption(specificMenu) {
     toggleNativeFullscreen();
     contextMenu.remove();
   });
+
+  // Кнопка скачивания трека в контекстном меню
+  const downloadBtn = document.createElement('button');
+  downloadBtn.className = siblingButton ? siblingButton.className : 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM';
+  downloadBtn.type = 'button';
+  downloadBtn.setAttribute('role', 'menuitem');
+  downloadBtn.setAttribute('tabindex', '-1');
+
+  downloadBtn.innerHTML = `
+    <span class="JjlbHZ4FaP9EAcR_1DxF">
+      <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+      Скачать трек
+    </span>
+  `;
+
+  downloadBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (typeof window.triggerDownloadCurrentTrack === 'function') {
+      window.triggerDownloadCurrentTrack();
+    } else {
+      const playerBtn = document.getElementById('ym-player-download-btn');
+      if (playerBtn) playerBtn.click();
+    }
+    contextMenu.remove();
+  });
   
   const vibeBtn = Array.from(container.querySelectorAll('button')).find(btn => {
     const text = (btn.innerText || '').toLowerCase().replace(/\s+/g, ' ');
@@ -5492,10 +5579,12 @@ function checkContextMenuAndAddFullscreenOption(specificMenu) {
   
   if (vibeBtn) {
     vibeBtn.parentNode.insertBefore(newBtn, vibeBtn.nextSibling);
-    console.log('[SYNC] Injected button after "Моя волна по треку" button');
+    vibeBtn.parentNode.insertBefore(downloadBtn, newBtn.nextSibling);
+    console.log('[SYNC] Injected fullscreen and download buttons after "Моя волна по треку" button');
   } else {
-    container.insertBefore(newBtn, container.firstChild);
-    console.log('[SYNC] Injected button at start of context menu');
+    container.insertBefore(downloadBtn, container.firstChild);
+    container.insertBefore(newBtn, downloadBtn);
+    console.log('[SYNC] Injected fullscreen and download buttons at start of context menu');
   }
 }
 

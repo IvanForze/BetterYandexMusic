@@ -44,6 +44,7 @@ function buildElectron() {
     'shared/wrapped/wrapped-charts.js',
     'shared/wrapped/wrapped-stories.js',
     'shared/quality-indicator.js',
+    'shared/track-downloader.js',
     'shared/lyrics/lrclib-client.js',
     'shared/lyrics/lyrics-sidebar.js',
     'shared/lyrics/lyrics-highlight.js',
@@ -161,6 +162,7 @@ function buildExtension() {
     'shared/custom-audio.js',
     'shared/player-faker.js',
     'shared/soundcloud-search.js',
+    'shared/track-downloader.js',
     'main/index.js'
   ];
 
