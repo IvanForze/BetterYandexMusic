@@ -458,7 +458,8 @@ if (typeof window !== 'undefined') {
             // 3. Определяем формат
             const codecLower = (downloadInfo.codec || '').toLowerCase();
             const isFlac = codecLower.includes('flac');
-            const ext = isFlac ? 'flac' : 'mp3';
+            const isAac = codecLower.includes('aac');
+            const ext = isFlac ? 'flac' : (isAac ? 'm4a' : 'mp3');
 
             // 4. Скачиваем обложку (если есть)
             let coverBuffer = null;
@@ -478,7 +479,7 @@ if (typeof window !== 'undefined') {
 
             // 5. Вшивание тегов
             let finalBuffer = decryptedBuffer;
-            if (!isFlac) {
+            if (ext === 'mp3') {
               try {
                 const id3Tag = buildId3v2Tag({
                   title: metadata?.title || '',

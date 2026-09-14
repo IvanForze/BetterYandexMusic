@@ -183,6 +183,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .catch(err => sendResponse({ ok: false, error: err.message }));
     return true; // async response
   }
+
+  if (request.type === 'YM_GET_OAUTH_TOKEN') {
+    (async () => {
+      try {
+        const authUrl = 'https://oauth.yandex.ru/authorize?response_type=token&client_id=23cabbbdc6cd418abb4b39c32c41195d';
+        const res = await fetch(authUrl, {
+          credentials: 'include',
+          redirect: 'follow'
+        });
+        const finalUrl = res.url || '';
+        console.log('[BG] OAuth authorize response URL:', finalUrl);
+        const match = finalUrl.match(/access_token=([^&]+)/);
+        if (match && match[1]) {
+          sendResponse({ ok: true, token: match[1] });
+          return;
+        }
+        sendResponse({ ok: false, error: 'Token not found in redirect URL' });
+      } catch(err) {
+        console.warn('[BG] Failed to get OAuth token:', err);
+        sendResponse({ ok: false, error: err.message });
+      }
+    })();
+    return true; // async response
+  }
 });
 
 function rztNormalizeText(text) {

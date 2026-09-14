@@ -109,6 +109,20 @@ function checkAndInjectSettings() {
 
   // Читаем настройку кастомных текстов
   const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
+  // Читаем настройку качества скачивания треков
+  const downloadQuality = localStorage.getItem('ymDownloadPreferredQuality') || localStorage.getItem('ymDownloadQuality') || 'lossless';
+  // Читаем настройку масштаба
+  let savedScale = 1.0;
+  try {
+    if (window.ymScaleChanger && typeof window.ymScaleChanger.getScale === 'function') {
+      savedScale = window.ymScaleChanger.getScale();
+    } else {
+      const stored = localStorage.getItem('ym-interface-scale') || localStorage.getItem('scale-changer/savedScale');
+      if (stored) savedScale = parseFloat(stored) || 1.0;
+    }
+  } catch (e) {
+    savedScale = 1.0;
+  }
 
   block.innerHTML = `
     <!-- Заголовок секции BetterYandexMusic -->
@@ -123,9 +137,9 @@ function checkAndInjectSettings() {
         </div>
         <div style="display: flex; align-items: center; gap: 12px; max-width: 480px; margin-top: 10px;">
           <button type="button" id="ym-scale-dec-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">−</button>
-          <input type="range" id="ym-scale-slider" min="0.4" max="2.0" step="0.05" value="${window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0}" style="flex: 1; accent-color: #fc0; cursor: pointer;">
+          <input type="range" id="ym-scale-slider" min="0.4" max="2.0" step="0.05" value="${savedScale}" style="flex: 1; accent-color: #fc0; cursor: pointer;">
           <button type="button" id="ym-scale-inc-btn" class="ym-btn" style="width: 32px; height: 32px; padding: 0; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; font-size: 16px; font-weight: bold; display: flex; align-items: center; justify-content: center;">+</button>
-          <span id="ym-scale-val-label" style="min-width: 52px; font-size: 14px; font-weight: 700; color: #fc0; text-align: center;">${Math.round((window.ymScaleChanger ? window.ymScaleChanger.getScale() : 1.0) * 100)}%</span>
+          <span id="ym-scale-val-label" style="min-width: 52px; font-size: 14px; font-weight: 700; color: #fc0; text-align: center;">${Math.round(savedScale * 100)}%</span>
           <button type="button" id="ym-scale-reset-btn" class="ym-btn" style="padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.85); cursor: pointer; font-size: 12px; font-weight: 600;">100%</button>
         </div>
         <div style="display: flex; gap: 6px; margin-top: 10px;">
@@ -150,6 +164,22 @@ function checkAndInjectSettings() {
             <option value="disabled" ${customLyricsMode === 'disabled' ? 'selected' : ''}>Выключить</option>
             <option value="fallback" ${customLyricsMode === 'fallback' ? 'selected' : ''}>Только если нет текста от Яндекса</option>
             <option value="always" ${customLyricsMode === 'always' ? 'selected' : ''}>Всегда заменять текст на свой</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Скачивание треков -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Качество скачиваемых треков</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Формат и битрейт для загрузки одиночных треков и ZIP-архивов
+        </div>
+        <div style="max-width: 420px; margin-top: 8px;">
+          <select id="ym-download-quality-select" class="ym-select">
+            <option value="lossless" ${downloadQuality === 'lossless' ? 'selected' : ''}>FLAC Lossless (Максимальное качество звука)</option>
+            <option value="nq" ${downloadQuality === 'nq' ? 'selected' : ''}>MP3 320 kbps (Высокое качество, экономия места)</option>
           </select>
         </div>
       </div>
@@ -471,59 +501,108 @@ function checkAndInjectSettings() {
   const scalePresetBtns = block.querySelectorAll('.ym-scale-preset-btn');
 
   function updateSettingsScaleUI(scale) {
-    if (scaleSlider) scaleSlider.value = scale;
-    if (scaleLabel) scaleLabel.textContent = `${Math.round(scale * 100)}%`;
+    const rounded = Math.round(scale * 100) / 100;
+    if (scaleSlider) scaleSlider.value = rounded;
+    if (scaleLabel) scaleLabel.textContent = `${Math.round(rounded * 100)}%`;
+  }
+
+  function getCurrentScaleValue() {
+    if (window.ymScaleChanger && typeof window.ymScaleChanger.getScale === 'function') {
+      return window.ymScaleChanger.getScale();
+    }
+    const val = parseFloat(scaleSlider ? scaleSlider.value : localStorage.getItem('ym-interface-scale'));
+    return (!isNaN(val) && val >= 0.4 && val <= 2.0) ? val : 1.0;
+  }
+
+  function setScaleValue(val, showToast = false) {
+    const clamped = Math.min(2.0, Math.max(0.4, Math.round(val * 100) / 100));
+    try {
+      localStorage.setItem('ym-interface-scale', clamped.toString());
+      localStorage.setItem('scale-changer/savedScale', clamped.toString());
+    } catch (e) {}
+
+    if (window.ymScaleChanger && typeof window.ymScaleChanger.setScale === 'function') {
+      window.ymScaleChanger.setScale(clamped, showToast);
+    } else {
+      window.dispatchEvent(new CustomEvent('ym-set-scale', { detail: { scale: clamped, showToast } }));
+      document.dispatchEvent(new CustomEvent('ym-set-scale', { detail: { scale: clamped, showToast } }));
+
+      let styleEl = document.getElementById('ym-scale-changer-style');
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'ym-scale-changer-style';
+        (document.head || document.documentElement).appendChild(styleEl);
+      }
+      styleEl.textContent = `
+        div[class*="DefaultLayout_root"],
+        div[class*="CommonLayout_root"],
+        div[class*="App_root"],
+        div[class*="Layout_root"] {
+          zoom: ${clamped} !important;
+        }
+      `;
+    }
+    updateSettingsScaleUI(clamped);
   }
 
   if (scaleSlider) {
     scaleSlider.addEventListener('input', (e) => {
       const val = parseFloat(e.target.value);
-      if (window.ymScaleChanger) window.ymScaleChanger.setScale(val);
-      updateSettingsScaleUI(val);
+      if (!isNaN(val)) {
+        setScaleValue(val, false);
+      }
     });
   }
   if (scaleDecBtn) {
-    scaleDecBtn.addEventListener('click', () => {
-      if (window.ymScaleChanger) {
-        window.ymScaleChanger.decrease();
-        updateSettingsScaleUI(window.ymScaleChanger.getScale());
-      }
+    scaleDecBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cur = getCurrentScaleValue();
+      setScaleValue(cur - 0.05, true);
     });
   }
   if (scaleIncBtn) {
-    scaleIncBtn.addEventListener('click', () => {
-      if (window.ymScaleChanger) {
-        window.ymScaleChanger.increase();
-        updateSettingsScaleUI(window.ymScaleChanger.getScale());
-      }
+    scaleIncBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const cur = getCurrentScaleValue();
+      setScaleValue(cur + 0.05, true);
     });
   }
   if (scaleResetBtn) {
-    scaleResetBtn.addEventListener('click', () => {
-      if (window.ymScaleChanger) {
-        window.ymScaleChanger.reset(true);
-        updateSettingsScaleUI(1.0);
-      }
+    scaleResetBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      setScaleValue(1.0, true);
     });
   }
   scalePresetBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
       const val = parseFloat(btn.getAttribute('data-scale'));
-      if (window.ymScaleChanger) {
-        window.ymScaleChanger.setScale(val, true);
-        updateSettingsScaleUI(val);
+      if (!isNaN(val)) {
+        setScaleValue(val, true);
       }
     });
   });
 
-  window.addEventListener('ym-scale-changed', (e) => {
-    if (e.detail?.scale) updateSettingsScaleUI(e.detail.scale);
-  });
+  const onScaleChanged = (e) => {
+    if (e.detail && typeof e.detail.scale === 'number') {
+      updateSettingsScaleUI(e.detail.scale);
+    }
+  };
+  window.addEventListener('ym-scale-changed', onScaleChanged);
+  document.addEventListener('ym-scale-changed', onScaleChanged);
 
   const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
   if (lyricsModeSelect) {
     lyricsModeSelect.addEventListener('change', (e) => {
       localStorage.setItem('ymCustomLyricsMode', e.target.value);
+    });
+  }
+
+  const downloadQualitySelect = document.getElementById('ym-download-quality-select');
+  if (downloadQualitySelect) {
+    downloadQualitySelect.addEventListener('change', (e) => {
+      localStorage.setItem('ymDownloadPreferredQuality', e.target.value);
+      localStorage.setItem('ymDownloadQuality', e.target.value);
     });
   }
 

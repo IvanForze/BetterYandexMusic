@@ -61,33 +61,63 @@ function updateTrackUI(metadata) {
 }
 
 function injectPlayerQualityIndicator() {
-  const lyricsBtn = document.querySelector('button[aria-label*="текстомузыку"]') || document.querySelector('button[aria-label*="Lyrics"]');
+  // Очищаем ошибочно внедренные индикаторы из полноэкранного режима или обложки
+  const rogueIndicator = document.querySelector(`
+    [class*="FullscreenPlayer"] #ym-player-quality-indicator,
+    [class*="VibePlayer"] #ym-player-quality-indicator,
+    [class*="coverContainer"] #ym-player-quality-indicator,
+    [class*="Cover_root"] #ym-player-quality-indicator,
+    [class*="VibeCover"] #ym-player-quality-indicator
+  `);
+  if (rogueIndicator) rogueIndicator.remove();
+
+  let existing = document.getElementById('ym-player-quality-indicator');
+  if (existing) {
+    if (existing.closest('[class*="FullscreenPlayer"], [class*="VibePlayer"], [class*="cover"], [class*="Cover"]')) {
+      existing.remove();
+      existing = null;
+    } else {
+      return;
+    }
+  }
+
+  // Ищем строго в фиксированной нижней панели плеера
+  const playerBar = document.querySelector(`
+    [class*="PlayerBarDesktopWithBackgroundProgressBar_player"],
+    [class*="PlayerBarDesktop_root"],
+    [class*="PlayerBar_root"],
+    [class*="PlayerBar_player"],
+    [class*="PlayerBarDesktop_player"]
+  `);
+  if (!playerBar) return;
+  if (playerBar.closest('[class*="FullscreenPlayerDesktop_root"], [class*="FullscreenPlayer_root"], [class*="VibePlayer_root"]')) return;
+
+  const lyricsBtn = playerBar.querySelector('button[aria-label*="текстомузыку"], button[aria-label*="Lyrics"], [class*="lyricsButton"], [class*="LyricsButton"]');
   if (!lyricsBtn) return;
   const parent = lyricsBtn.parentNode;
   if (!parent) return;
-  let indicator = document.getElementById('ym-player-quality-indicator');
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'ym-player-quality-indicator';
-    indicator.style.display = 'none';
-    indicator.style.alignItems = 'center';
-    indicator.style.justifyContent = 'center';
-    indicator.style.fontSize = '9px';
-    indicator.style.fontWeight = '700';
-    indicator.style.textTransform = 'uppercase';
-    indicator.style.letterSpacing = '0.5px';
-    indicator.style.padding = '2px 5px';
-    indicator.style.borderRadius = '4px';
-    indicator.style.marginRight = '8px';
-    indicator.style.userSelect = 'none';
-    indicator.style.transition = 'all 0.2s ease';
-    indicator.style.cursor = 'help';
-    indicator.style.position = 'relative';
-    indicator.style.zIndex = '3';
-    indicator.style.pointerEvents = 'auto';
-    indicator.addEventListener('mouseenter', () => {
-      let tooltip = document.getElementById('ym-quality-tooltip');
-      if (!tooltip) {
+
+  let indicator = document.createElement('div');
+  indicator.id = 'ym-player-quality-indicator';
+  indicator.style.display = 'none';
+  indicator.style.alignItems = 'center';
+  indicator.style.justifyContent = 'center';
+  indicator.style.fontSize = '9px';
+  indicator.style.fontWeight = '700';
+  indicator.style.textTransform = 'uppercase';
+  indicator.style.letterSpacing = '0.5px';
+  indicator.style.padding = '2px 5px';
+  indicator.style.borderRadius = '4px';
+  indicator.style.marginRight = '8px';
+  indicator.style.userSelect = 'none';
+  indicator.style.transition = 'all 0.2s ease';
+  indicator.style.cursor = 'help';
+  indicator.style.position = 'relative';
+  indicator.style.zIndex = '3';
+  indicator.style.pointerEvents = 'auto';
+  indicator.addEventListener('mouseenter', () => {
+    let tooltip = document.getElementById('ym-quality-tooltip');
+    if (!tooltip) {
         tooltip = document.createElement('div');
         tooltip.id = 'ym-quality-tooltip';
         tooltip.className = 'ym-quality-tooltip';
@@ -165,5 +195,4 @@ function injectPlayerQualityIndicator() {
     if (currentTrackMetadata) {
       updateTrackUI(currentTrackMetadata);
     }
-  }
 }

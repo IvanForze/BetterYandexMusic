@@ -137,56 +137,38 @@ function checkContextMenuAndAddFullscreenOption(specificMenu) {
     </span>
   `;
   
-  newBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    e.preventDefault();
+  newBtn.addEventListener('click', () => {
     toggleNativeFullscreen();
-    contextMenu.remove();
+    const escOpts = { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true };
+    document.dispatchEvent(new KeyboardEvent('keydown', escOpts));
+    document.dispatchEvent(new KeyboardEvent('keyup', escOpts));
+    window.dispatchEvent(new KeyboardEvent('keydown', escOpts));
+    setTimeout(() => {
+      if (document.body) document.body.style.pointerEvents = '';
+      const root = document.getElementById('root');
+      if (root) root.style.pointerEvents = '';
+      document.querySelectorAll('[inert]').forEach(el => el.removeAttribute('inert'));
+      document.querySelectorAll('[data-floating-ui-inert]').forEach(el => el.removeAttribute('data-floating-ui-inert'));
+      const portal = contextMenu.closest('[data-floating-ui-portal], [class*="Popover_root"], [class*="Portal_root"]');
+      if (portal && portal !== document.body && portal !== root) {
+        portal.remove();
+      } else {
+        contextMenu.remove();
+      }
+    }, 50);
   });
 
-  // Кнопка скачивания трека в контекстном меню
-  const downloadBtn = document.createElement('button');
-  downloadBtn.className = siblingButton ? siblingButton.className : 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM';
-  downloadBtn.type = 'button';
-  downloadBtn.setAttribute('role', 'menuitem');
-  downloadBtn.setAttribute('tabindex', '-1');
-
-  downloadBtn.innerHTML = `
-    <span class="JjlbHZ4FaP9EAcR_1DxF">
-      <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-      Скачать трек
-    </span>
-  `;
-
-  downloadBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (typeof window.triggerDownloadCurrentTrack === 'function') {
-      window.triggerDownloadCurrentTrack();
-    } else {
-      const playerBtn = document.getElementById('ym-player-download-btn');
-      if (playerBtn) playerBtn.click();
-    }
-    contextMenu.remove();
-  });
-  
   const vibeBtn = Array.from(container.querySelectorAll('button')).find(btn => {
     const text = (btn.innerText || '').toLowerCase().replace(/\s+/g, ' ');
     return text.includes('моя волна по треку');
   });
-  
+
   if (vibeBtn) {
     vibeBtn.parentNode.insertBefore(newBtn, vibeBtn.nextSibling);
-    vibeBtn.parentNode.insertBefore(downloadBtn, newBtn.nextSibling);
-    console.log('[SYNC] Injected fullscreen and download buttons after "Моя волна по треку" button');
+    console.log('[SYNC] Injected fullscreen button after "Моя волна по треку" button');
   } else {
-    container.insertBefore(downloadBtn, container.firstChild);
-    container.insertBefore(newBtn, downloadBtn);
-    console.log('[SYNC] Injected fullscreen and download buttons at start of context menu');
+    container.insertBefore(newBtn, container.firstChild);
+    console.log('[SYNC] Injected fullscreen button at start of context menu');
   }
 }
 

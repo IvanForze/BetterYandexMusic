@@ -131,7 +131,6 @@ function buildExtension() {
     'isolated/scrobbler-init.js',
     'isolated/variables.js',
     'shared/themes.js',
-    'shared/scale-changer.js',
     'shared/navbar-sync.js',
     'shared/sync-popover.js',
     'shared/theme-popover.js',
@@ -151,6 +150,7 @@ function buildExtension() {
   const mainFiles = [
     'main/variables.js',
     'main/player-monitor.js',
+    'shared/scale-changer.js',
     'shared/settings-injector.js',
     'shared/wrapped/chart.js',
     'shared/wrapped/wrapped-ui.js',

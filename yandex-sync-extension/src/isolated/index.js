@@ -74,3 +74,28 @@ setInterval(() => {
   if (typeof handleFullscreenPlayer === 'function') handleFullscreenPlayer();
   if (typeof checkContextMenuAndAddFullscreenOption === 'function') checkContextMenuAndAddFullscreenOption();
 }, 500);
+
+// ==========================================
+// Yandex Music OAuth Token Resolver Bridge
+// ==========================================
+function requestOAuthTokenFromBackground() {
+  chrome.runtime.sendMessage({ type: 'YM_GET_OAUTH_TOKEN' }, (response) => {
+    if (response && response.ok && response.token) {
+      window.postMessage({
+        type: 'YM_RECEIVE_OAUTH_TOKEN',
+        token: 'OAuth ' + response.token
+      }, '*');
+    }
+  });
+}
+
+window.addEventListener('message', (event) => {
+  if (event.source !== window || !event.data) return;
+  if (event.data.type === 'YM_REQUEST_OAUTH_TOKEN') {
+    requestOAuthTokenFromBackground();
+  }
+});
+
+// Автозапрос токена при старте страницы
+setTimeout(requestOAuthTokenFromBackground, 1000);
+

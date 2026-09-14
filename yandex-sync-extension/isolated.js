@@ -1102,8 +1102,8 @@ function injectStyles() {
     /* Genius Toggle Button styling */
     .ym-fullscreen-genius-btn {
       position: absolute !important;
-      top: 108px !important;
-      right: 48px !important;
+      top: 108px;
+      right: 48px;
       width: 40px !important;
       height: 40px !important;
       border-radius: 50% !important;
@@ -1115,7 +1115,7 @@ function injectStyles() {
       justify-content: center !important;
       cursor: pointer !important;
       z-index: 100000 !important;
-      transition: all 0.2s ease !important;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
       outline: none !important;
       padding: 0 !important;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
@@ -1526,19 +1526,20 @@ function injectStyles() {
       margin-right: 6px !important;
       border-radius: 50% !important;
       cursor: pointer !important;
-      transition: all 0.2s ease !important;
+      transition: color 0.15s ease, opacity 0.15s ease !important;
       outline: none !important;
       position: relative !important;
       z-index: 3 !important;
       vertical-align: middle !important;
+      transform: none !important;
     }
     .ym-player-download-btn:hover {
       color: #ffffff !important;
       background: transparent !important;
-      transform: scale(1.1) !important;
+      transform: none !important;
     }
     .ym-player-download-btn:active {
-      transform: scale(0.95) !important;
+      transform: none !important;
     }
     .ym-player-download-btn svg {
       width: 18px !important;
@@ -1567,6 +1568,245 @@ function injectStyles() {
     .ym-player-download-btn.ym-download-error {
       color: #ff4d4d !important;
       background: transparent !important;
+    }
+
+    /* Track Row Download Button in Lists / Collection */
+    .ym-track-row-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      margin: 0 4px !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      opacity: 0.75 !important;
+      transition: opacity 0.15s ease, color 0.15s ease !important;
+      outline: none !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn svg {
+      width: 17px !important;
+      height: 17px !important;
+      display: block !important;
+    }
+    /* Hover and active states */
+    [class*="CommonTrack_root"]:hover .ym-track-row-download-btn,
+    [class*="HorizontalCardContainer_root"]:hover .ym-track-row-download-btn,
+    .ym-track-row-download-btn.ym-row-dl-active {
+      opacity: 0.9 !important;
+    }
+    .ym-track-row-download-btn:hover {
+      color: #ffffff !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn:active {
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-loading {
+      color: #ffdb4d !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-success {
+      color: #ffdb4d !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-error {
+      color: #ff4d4d !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    /* Playlist / Album Header "Скачать в ZIP" Button */
+    .ym-playlist-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+      color: #ffffff !important;
+      height: 44px;
+      min-height: 40px;
+      max-height: 48px !important;
+      padding: 0 16px !important;
+      border-radius: 9999px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      font-family: 'YS Text', 'Yandex Sans Text', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+      line-height: 20px !important;
+      cursor: pointer !important;
+      transition: background-color 0.15s ease !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      vertical-align: middle !important;
+      user-select: none !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+      flex-shrink: 0 !important;
+      width: auto !important;
+      min-width: max-content !important;
+      max-width: none !important;
+      transform: none !important;
+    }
+    @media (min-width: 1280px) {
+      .ym-playlist-download-btn {
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px !important;
+        padding: 0 20px !important;
+        font-size: 15px !important;
+      }
+      .ym-playlist-download-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+      }
+    }
+    .ym-playlist-download-btn:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .ym-playlist-download-btn:active {
+      background: rgba(255, 255, 255, 0.18) !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .ym-playlist-download-btn svg {
+      width: 16px !important;
+      height: 16px !important;
+      stroke: currentColor !important;
+      flex-shrink: 0 !important;
+    }
+    .ym-playlist-download-btn span {
+      font-family: 'YS Text', 'Yandex Sans Text', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      letter-spacing: normal !important;
+      white-space: nowrap !important;
+      display: inline !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Floating Batch Download Progress Widget */
+    #ym-batch-download-widget {
+      position: fixed;
+      bottom: 110px;
+      right: 28px;
+      width: 320px;
+      background: rgba(24, 24, 28, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 9999999;
+      color: #ffffff;
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      box-sizing: border-box;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      animation: ym-batch-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes ym-batch-in {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #ym-batch-download-widget .ym-batch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    #ym-batch-download-widget .ym-batch-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    #ym-batch-download-widget .ym-batch-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffdb4d;
+    }
+    #ym-batch-download-widget .ym-batch-current {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+    }
+    #ym-batch-download-widget .ym-batch-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    #ym-batch-download-widget .ym-batch-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffdb4d, #ffa500);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+    #ym-batch-download-widget .ym-batch-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    #ym-batch-download-widget .ym-batch-cancel-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    #ym-batch-download-widget .ym-batch-cancel-btn:hover {
+      background: rgba(255, 77, 77, 0.2);
+      color: #ff4d4d;
+    }
+
+    /* Расположение виджета ближе к нижнему краю на главной странице */
+    #ym-batch-download-widget.ym-bottom-low {
+      bottom: 24px !important;
+    }
+
+    /* Запрет отображения кнопок нижней панели внутри полноэкранного режима или на обложке */
+    [class*="FullscreenPlayer"] #ym-player-quality-indicator,
+    [class*="FullscreenPlayer"] #ym-player-download-btn,
+    [class*="VibePlayer"] #ym-player-quality-indicator,
+    [class*="VibePlayer"] #ym-player-download-btn,
+    [class*="Cover_root"] #ym-player-quality-indicator,
+    [class*="Cover_root"] #ym-player-download-btn,
+    [class*="coverContainer"] #ym-player-quality-indicator,
+    [class*="coverContainer"] #ym-player-download-btn,
+    [class*="VibeCover"] #ym-player-quality-indicator,
+    [class*="VibeCover"] #ym-player-download-btn {
+      display: none !important;
     }
   `;
   document.head.appendChild(style);
@@ -3367,167 +3607,6 @@ function applyThemeCSS(themeName, customColors) {
 }
 
 
-// --- Component: shared/scale-changer.js ---
-// ==========================================
-// SCALE CHANGER (UI Zoom & Scaling Controller)
-// ==========================================
-
-(function() {
-  const STYLE_ID = 'ym-scale-changer-style';
-  const STORAGE_KEY = 'ym-interface-scale';
-  const MIN_SCALE = 0.4;
-  const MAX_SCALE = 2.0;
-  const STEP = 0.05;
-
-  let currentScale = 1.0;
-  let toastTimeout = null;
-
-  function loadSavedScale() {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('scale-changer/savedScale');
-      if (saved) {
-        const parsed = parseFloat(saved);
-        if (!isNaN(parsed) && parsed >= MIN_SCALE && parsed <= MAX_SCALE) {
-          return Math.round(parsed * 100) / 100;
-        }
-      }
-    } catch (e) {}
-    return 1.0;
-  }
-
-  function applyScale(scale, showToast = false) {
-    currentScale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, Math.round(scale * 100) / 100));
-    try {
-      localStorage.setItem(STORAGE_KEY, currentScale.toString());
-      localStorage.setItem('scale-changer/savedScale', currentScale.toString());
-    } catch (e) {}
-
-    let styleEl = document.getElementById(STYLE_ID);
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = STYLE_ID;
-      document.head.appendChild(styleEl);
-    }
-
-    styleEl.textContent = `
-      div[class*="DefaultLayout_root_"] {
-        zoom: ${currentScale} !important;
-      }
-    `;
-
-    // Оповещаем другие компоненты (например, слайдер в настройках)
-    window.dispatchEvent(new CustomEvent('ym-scale-changed', { detail: { scale: currentScale } }));
-
-    if (showToast) {
-      showScaleToast(currentScale);
-    }
-  }
-
-  function showScaleToast(scale) {
-    let toast = document.getElementById('ym-scale-toast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'ym-scale-toast';
-      toast.style.cssText = `
-        position: fixed;
-        top: 24px;
-        left: 50%;
-        transform: translateX(-50%) translateY(-10px);
-        background: rgba(20, 20, 26, 0.88);
-        color: #fff;
-        padding: 10px 20px;
-        border-radius: 14px;
-        font-family: Yandex Sans Text, system-ui, sans-serif;
-        font-size: 14px;
-        font-weight: 600;
-        letter-spacing: 0.3px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        z-index: 999999;
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      `;
-      document.body.appendChild(toast);
-    }
-
-    const percent = Math.round(scale * 100);
-    toast.innerHTML = `
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fc0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="11" cy="11" r="8"></circle>
-        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-        <line x1="11" y1="8" x2="11" y2="14"></line>
-        <line x1="8" y1="11" x2="14" y2="11"></line>
-      </svg>
-      <span>Масштаб: <b style="color: #fc0;">${percent}%</b></span>
-    `;
-
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateX(-50%) translateY(0)';
-
-    if (toastTimeout) clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-      if (toast) {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(-50%) translateY(-10px)';
-      }
-    }, 1200);
-  }
-
-  // Горячие клавиши (Ctrl/Cmd + Plus, Minus, 0 и Колесико мыши)
-  window.addEventListener('keydown', (e) => {
-    if (!e.ctrlKey && !e.metaKey) return;
-    
-    // Пропускаем, если фокус в текстовом поле ввода
-    const targetTag = e.target?.tagName?.toLowerCase();
-    if (targetTag === 'input' || targetTag === 'textarea' || e.target?.isContentEditable) {
-      if (e.key !== '+' && e.key !== '=' && e.key !== '-' && e.key !== '0') return;
-    }
-
-    if (e.key === '+' || e.key === '=' || e.key === 'Add' || e.code === 'NumpadAdd') {
-      e.preventDefault();
-      applyScale(currentScale + STEP, true);
-    } else if (e.key === '-' || e.key === '_' || e.key === 'Subtract' || e.code === 'NumpadSubtract') {
-      e.preventDefault();
-      applyScale(currentScale - STEP, true);
-    } else if (e.key === '0' || e.code === 'Numpad0') {
-      e.preventDefault();
-      applyScale(1.0, true);
-    }
-  }, { passive: false });
-
-  // Масштабирование через Ctrl + Колесо мыши
-  window.addEventListener('wheel', (e) => {
-    if (e.ctrlKey || e.metaKey) {
-      e.preventDefault();
-      if (e.deltaY < 0) {
-        applyScale(currentScale + STEP, true);
-      } else if (e.deltaY > 0) {
-        applyScale(currentScale - STEP, true);
-      }
-    }
-  }, { passive: false });
-
-  // Глобальный API
-  window.ymScaleChanger = {
-    getScale: () => currentScale,
-    setScale: (val, showToast = false) => applyScale(val, showToast),
-    reset: (showToast = true) => applyScale(1.0, showToast),
-    increase: () => applyScale(currentScale + STEP, true),
-    decrease: () => applyScale(currentScale - STEP, true)
-  };
-
-  // Мгновенная инициализация
-  currentScale = loadSavedScale();
-  applyScale(currentScale, false);
-})();
-
-
 // --- Component: shared/navbar-sync.js ---
 function syncButtonCollapsedState(btnId) {
   const container = document.querySelector('ol[class*="NavbarDesktop_navigationGroup"]');
@@ -4725,33 +4804,63 @@ function updateTrackUI(metadata) {
 }
 
 function injectPlayerQualityIndicator() {
-  const lyricsBtn = document.querySelector('button[aria-label*="текстомузыку"]') || document.querySelector('button[aria-label*="Lyrics"]');
+  // Очищаем ошибочно внедренные индикаторы из полноэкранного режима или обложки
+  const rogueIndicator = document.querySelector(`
+    [class*="FullscreenPlayer"] #ym-player-quality-indicator,
+    [class*="VibePlayer"] #ym-player-quality-indicator,
+    [class*="coverContainer"] #ym-player-quality-indicator,
+    [class*="Cover_root"] #ym-player-quality-indicator,
+    [class*="VibeCover"] #ym-player-quality-indicator
+  `);
+  if (rogueIndicator) rogueIndicator.remove();
+
+  let existing = document.getElementById('ym-player-quality-indicator');
+  if (existing) {
+    if (existing.closest('[class*="FullscreenPlayer"], [class*="VibePlayer"], [class*="cover"], [class*="Cover"]')) {
+      existing.remove();
+      existing = null;
+    } else {
+      return;
+    }
+  }
+
+  // Ищем строго в фиксированной нижней панели плеера
+  const playerBar = document.querySelector(`
+    [class*="PlayerBarDesktopWithBackgroundProgressBar_player"],
+    [class*="PlayerBarDesktop_root"],
+    [class*="PlayerBar_root"],
+    [class*="PlayerBar_player"],
+    [class*="PlayerBarDesktop_player"]
+  `);
+  if (!playerBar) return;
+  if (playerBar.closest('[class*="FullscreenPlayerDesktop_root"], [class*="FullscreenPlayer_root"], [class*="VibePlayer_root"]')) return;
+
+  const lyricsBtn = playerBar.querySelector('button[aria-label*="текстомузыку"], button[aria-label*="Lyrics"], [class*="lyricsButton"], [class*="LyricsButton"]');
   if (!lyricsBtn) return;
   const parent = lyricsBtn.parentNode;
   if (!parent) return;
-  let indicator = document.getElementById('ym-player-quality-indicator');
-  if (!indicator) {
-    indicator = document.createElement('div');
-    indicator.id = 'ym-player-quality-indicator';
-    indicator.style.display = 'none';
-    indicator.style.alignItems = 'center';
-    indicator.style.justifyContent = 'center';
-    indicator.style.fontSize = '9px';
-    indicator.style.fontWeight = '700';
-    indicator.style.textTransform = 'uppercase';
-    indicator.style.letterSpacing = '0.5px';
-    indicator.style.padding = '2px 5px';
-    indicator.style.borderRadius = '4px';
-    indicator.style.marginRight = '8px';
-    indicator.style.userSelect = 'none';
-    indicator.style.transition = 'all 0.2s ease';
-    indicator.style.cursor = 'help';
-    indicator.style.position = 'relative';
-    indicator.style.zIndex = '3';
-    indicator.style.pointerEvents = 'auto';
-    indicator.addEventListener('mouseenter', () => {
-      let tooltip = document.getElementById('ym-quality-tooltip');
-      if (!tooltip) {
+
+  let indicator = document.createElement('div');
+  indicator.id = 'ym-player-quality-indicator';
+  indicator.style.display = 'none';
+  indicator.style.alignItems = 'center';
+  indicator.style.justifyContent = 'center';
+  indicator.style.fontSize = '9px';
+  indicator.style.fontWeight = '700';
+  indicator.style.textTransform = 'uppercase';
+  indicator.style.letterSpacing = '0.5px';
+  indicator.style.padding = '2px 5px';
+  indicator.style.borderRadius = '4px';
+  indicator.style.marginRight = '8px';
+  indicator.style.userSelect = 'none';
+  indicator.style.transition = 'all 0.2s ease';
+  indicator.style.cursor = 'help';
+  indicator.style.position = 'relative';
+  indicator.style.zIndex = '3';
+  indicator.style.pointerEvents = 'auto';
+  indicator.addEventListener('mouseenter', () => {
+    let tooltip = document.getElementById('ym-quality-tooltip');
+    if (!tooltip) {
         tooltip = document.createElement('div');
         tooltip.id = 'ym-quality-tooltip';
         tooltip.className = 'ym-quality-tooltip';
@@ -4829,7 +4938,6 @@ function injectPlayerQualityIndicator() {
     if (currentTrackMetadata) {
       updateTrackUI(currentTrackMetadata);
     }
-  }
 }
 
 // --- Component: shared/lyrics/lrclib-client.js ---
@@ -5535,56 +5643,38 @@ function checkContextMenuAndAddFullscreenOption(specificMenu) {
     </span>
   `;
   
-  newBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    e.preventDefault();
+  newBtn.addEventListener('click', () => {
     toggleNativeFullscreen();
-    contextMenu.remove();
+    const escOpts = { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true };
+    document.dispatchEvent(new KeyboardEvent('keydown', escOpts));
+    document.dispatchEvent(new KeyboardEvent('keyup', escOpts));
+    window.dispatchEvent(new KeyboardEvent('keydown', escOpts));
+    setTimeout(() => {
+      if (document.body) document.body.style.pointerEvents = '';
+      const root = document.getElementById('root');
+      if (root) root.style.pointerEvents = '';
+      document.querySelectorAll('[inert]').forEach(el => el.removeAttribute('inert'));
+      document.querySelectorAll('[data-floating-ui-inert]').forEach(el => el.removeAttribute('data-floating-ui-inert'));
+      const portal = contextMenu.closest('[data-floating-ui-portal], [class*="Popover_root"], [class*="Portal_root"]');
+      if (portal && portal !== document.body && portal !== root) {
+        portal.remove();
+      } else {
+        contextMenu.remove();
+      }
+    }, 50);
   });
 
-  // Кнопка скачивания трека в контекстном меню
-  const downloadBtn = document.createElement('button');
-  downloadBtn.className = siblingButton ? siblingButton.className : 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM';
-  downloadBtn.type = 'button';
-  downloadBtn.setAttribute('role', 'menuitem');
-  downloadBtn.setAttribute('tabindex', '-1');
-
-  downloadBtn.innerHTML = `
-    <span class="JjlbHZ4FaP9EAcR_1DxF">
-      <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="7 10 12 15 17 10" />
-        <line x1="12" y1="15" x2="12" y2="3" />
-      </svg>
-      Скачать трек
-    </span>
-  `;
-
-  downloadBtn.addEventListener('click', e => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (typeof window.triggerDownloadCurrentTrack === 'function') {
-      window.triggerDownloadCurrentTrack();
-    } else {
-      const playerBtn = document.getElementById('ym-player-download-btn');
-      if (playerBtn) playerBtn.click();
-    }
-    contextMenu.remove();
-  });
-  
   const vibeBtn = Array.from(container.querySelectorAll('button')).find(btn => {
     const text = (btn.innerText || '').toLowerCase().replace(/\s+/g, ' ');
     return text.includes('моя волна по треку');
   });
-  
+
   if (vibeBtn) {
     vibeBtn.parentNode.insertBefore(newBtn, vibeBtn.nextSibling);
-    vibeBtn.parentNode.insertBefore(downloadBtn, newBtn.nextSibling);
-    console.log('[SYNC] Injected fullscreen and download buttons after "Моя волна по треку" button');
+    console.log('[SYNC] Injected fullscreen button after "Моя волна по треку" button');
   } else {
-    container.insertBefore(downloadBtn, container.firstChild);
-    container.insertBefore(newBtn, downloadBtn);
-    console.log('[SYNC] Injected fullscreen and download buttons at start of context menu');
+    container.insertBefore(newBtn, container.firstChild);
+    console.log('[SYNC] Injected fullscreen button at start of context menu');
   }
 }
 
@@ -6655,6 +6745,31 @@ function handleFullscreenPlayer() {
     }
   }
 
+function alignGeniusToggleWithCloseBtn(geniusToggle, fullscreenRoot) {
+  if (!geniusToggle || !fullscreenRoot) return;
+  const closeBtn = fullscreenRoot.querySelector(`
+    [class*="FullscreenPlayerDesktop_closeButton"],
+    [class*="closeButton"],
+    header button[aria-label="Закрыть"],
+    button[aria-label*="акрыть"]
+  `);
+  if (!closeBtn) return;
+
+  const closeRect = closeBtn.getBoundingClientRect();
+  const rootRect = fullscreenRoot.getBoundingClientRect();
+  if (closeRect.width === 0 || closeRect.height === 0) return;
+
+  // Center horizontally relative to closeBtn
+  const closeCenterX = closeRect.left + closeRect.width / 2;
+  const geniusWidth = geniusToggle.offsetWidth || 40;
+  const geniusLeft = Math.round(closeCenterX - (geniusWidth / 2) - rootRect.left);
+  const topOffset = Math.round((closeRect.bottom - rootRect.top) + 16);
+
+  geniusToggle.style.setProperty('top', `${topOffset}px`, 'important');
+  geniusToggle.style.setProperty('left', `${geniusLeft}px`, 'important');
+  geniusToggle.style.setProperty('right', 'auto', 'important');
+}
+
   // Set attributes and active class depending on isGeniusMode
   geniusToggle.setAttribute('aria-label', 'Genius');
   geniusToggle.setAttribute('aria-pressed', isGeniusMode ? 'true' : 'false');
@@ -6680,6 +6795,20 @@ function handleFullscreenPlayer() {
 
   // Toggle .ym-hidden class depending on isGeniusMode (forces display: none !important)
   geniusToggle.classList.toggle('ym-hidden', isGeniusMode);
+
+  // Dynamically align Genius toggle right under the close button
+  alignGeniusToggleWithCloseBtn(geniusToggle, fullscreenRoot);
+
+  if (!window.__ym_genius_resize_listener_bound) {
+    window.__ym_genius_resize_listener_bound = true;
+    window.addEventListener('resize', () => {
+      const fs = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+      const btn = fs?.querySelector('.ym-fullscreen-genius-btn');
+      if (fs && btn) {
+        alignGeniusToggleWithCloseBtn(btn, fs);
+      }
+    });
+  }
 
   if (!window.hadLoggedFsEvaluation) {
     console.log('[SYNC-DEBUG] handleFullscreenPlayer evaluation:', {
@@ -7731,5 +7860,30 @@ setInterval(() => {
   if (typeof handleFullscreenPlayer === 'function') handleFullscreenPlayer();
   if (typeof checkContextMenuAndAddFullscreenOption === 'function') checkContextMenuAndAddFullscreenOption();
 }, 500);
+
+// ==========================================
+// Yandex Music OAuth Token Resolver Bridge
+// ==========================================
+function requestOAuthTokenFromBackground() {
+  chrome.runtime.sendMessage({ type: 'YM_GET_OAUTH_TOKEN' }, (response) => {
+    if (response && response.ok && response.token) {
+      window.postMessage({
+        type: 'YM_RECEIVE_OAUTH_TOKEN',
+        token: 'OAuth ' + response.token
+      }, '*');
+    }
+  });
+}
+
+window.addEventListener('message', (event) => {
+  if (event.source !== window || !event.data) return;
+  if (event.data.type === 'YM_REQUEST_OAUTH_TOKEN') {
+    requestOAuthTokenFromBackground();
+  }
+});
+
+// Автозапрос токена при старте страницы
+setTimeout(requestOAuthTokenFromBackground, 1000);
+
 
 

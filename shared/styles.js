@@ -1101,8 +1101,8 @@ function injectStyles() {
     /* Genius Toggle Button styling */
     .ym-fullscreen-genius-btn {
       position: absolute !important;
-      top: 108px !important;
-      right: 48px !important;
+      top: 108px;
+      right: 48px;
       width: 40px !important;
       height: 40px !important;
       border-radius: 50% !important;
@@ -1114,7 +1114,7 @@ function injectStyles() {
       justify-content: center !important;
       cursor: pointer !important;
       z-index: 100000 !important;
-      transition: all 0.2s ease !important;
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
       outline: none !important;
       padding: 0 !important;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
@@ -1525,19 +1525,20 @@ function injectStyles() {
       margin-right: 6px !important;
       border-radius: 50% !important;
       cursor: pointer !important;
-      transition: all 0.2s ease !important;
+      transition: color 0.15s ease, opacity 0.15s ease !important;
       outline: none !important;
       position: relative !important;
       z-index: 3 !important;
       vertical-align: middle !important;
+      transform: none !important;
     }
     .ym-player-download-btn:hover {
       color: #ffffff !important;
       background: transparent !important;
-      transform: scale(1.1) !important;
+      transform: none !important;
     }
     .ym-player-download-btn:active {
-      transform: scale(0.95) !important;
+      transform: none !important;
     }
     .ym-player-download-btn svg {
       width: 18px !important;
@@ -1566,6 +1567,245 @@ function injectStyles() {
     .ym-player-download-btn.ym-download-error {
       color: #ff4d4d !important;
       background: transparent !important;
+    }
+
+    /* Track Row Download Button in Lists / Collection */
+    .ym-track-row-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      background: transparent !important;
+      border: none !important;
+      color: rgba(255, 255, 255, 0.55) !important;
+      width: 32px !important;
+      height: 32px !important;
+      padding: 0 !important;
+      margin: 0 4px !important;
+      border-radius: 50% !important;
+      cursor: pointer !important;
+      opacity: 0.75 !important;
+      transition: opacity 0.15s ease, color 0.15s ease !important;
+      outline: none !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn svg {
+      width: 17px !important;
+      height: 17px !important;
+      display: block !important;
+    }
+    /* Hover and active states */
+    [class*="CommonTrack_root"]:hover .ym-track-row-download-btn,
+    [class*="HorizontalCardContainer_root"]:hover .ym-track-row-download-btn,
+    .ym-track-row-download-btn.ym-row-dl-active {
+      opacity: 0.9 !important;
+    }
+    .ym-track-row-download-btn:hover {
+      color: #ffffff !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn:active {
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-loading {
+      color: #ffdb4d !important;
+      opacity: 1 !important;
+      pointer-events: none !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-success {
+      color: #ffdb4d !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .ym-track-row-download-btn.ym-row-dl-error {
+      color: #ff4d4d !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    /* Playlist / Album Header "Скачать в ZIP" Button */
+    .ym-playlist-download-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      border: none !important;
+      box-shadow: none !important;
+      outline: none !important;
+      color: #ffffff !important;
+      height: 44px;
+      min-height: 40px;
+      max-height: 48px !important;
+      padding: 0 16px !important;
+      border-radius: 9999px !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      font-family: 'YS Text', 'Yandex Sans Text', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+      line-height: 20px !important;
+      cursor: pointer !important;
+      transition: background-color 0.15s ease !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      vertical-align: middle !important;
+      user-select: none !important;
+      white-space: nowrap !important;
+      flex: 0 0 auto !important;
+      flex-shrink: 0 !important;
+      width: auto !important;
+      min-width: max-content !important;
+      max-width: none !important;
+      transform: none !important;
+    }
+    @media (min-width: 1280px) {
+      .ym-playlist-download-btn {
+        height: 48px;
+        min-height: 48px;
+        max-height: 48px !important;
+        padding: 0 20px !important;
+        font-size: 15px !important;
+      }
+      .ym-playlist-download-btn svg {
+        width: 18px !important;
+        height: 18px !important;
+      }
+    }
+    .ym-playlist-download-btn:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .ym-playlist-download-btn:active {
+      background: rgba(255, 255, 255, 0.18) !important;
+      border: none !important;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .ym-playlist-download-btn svg {
+      width: 16px !important;
+      height: 16px !important;
+      stroke: currentColor !important;
+      flex-shrink: 0 !important;
+    }
+    .ym-playlist-download-btn span {
+      font-family: 'YS Text', 'Yandex Sans Text', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      letter-spacing: normal !important;
+      white-space: nowrap !important;
+      display: inline !important;
+      flex-shrink: 0 !important;
+    }
+
+    /* Floating Batch Download Progress Widget */
+    #ym-batch-download-widget {
+      position: fixed;
+      bottom: 110px;
+      right: 28px;
+      width: 320px;
+      background: rgba(24, 24, 28, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 14px;
+      padding: 14px 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 9999999;
+      color: #ffffff;
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      box-sizing: border-box;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      animation: ym-batch-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes ym-batch-in {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    #ym-batch-download-widget .ym-batch-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    #ym-batch-download-widget .ym-batch-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 220px;
+    }
+    #ym-batch-download-widget .ym-batch-count {
+      font-size: 11px;
+      font-weight: 600;
+      color: #ffdb4d;
+    }
+    #ym-batch-download-widget .ym-batch-current {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.6);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 10px;
+    }
+    #ym-batch-download-widget .ym-batch-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    #ym-batch-download-widget .ym-batch-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffdb4d, #ffa500);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.25s ease;
+    }
+    #ym-batch-download-widget .ym-batch-actions {
+      display: flex;
+      justify-content: flex-end;
+    }
+    #ym-batch-download-widget .ym-batch-cancel-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    #ym-batch-download-widget .ym-batch-cancel-btn:hover {
+      background: rgba(255, 77, 77, 0.2);
+      color: #ff4d4d;
+    }
+
+    /* Расположение виджета ближе к нижнему краю на главной странице */
+    #ym-batch-download-widget.ym-bottom-low {
+      bottom: 24px !important;
+    }
+
+    /* Запрет отображения кнопок нижней панели внутри полноэкранного режима или на обложке */
+    [class*="FullscreenPlayer"] #ym-player-quality-indicator,
+    [class*="FullscreenPlayer"] #ym-player-download-btn,
+    [class*="VibePlayer"] #ym-player-quality-indicator,
+    [class*="VibePlayer"] #ym-player-download-btn,
+    [class*="Cover_root"] #ym-player-quality-indicator,
+    [class*="Cover_root"] #ym-player-download-btn,
+    [class*="coverContainer"] #ym-player-quality-indicator,
+    [class*="coverContainer"] #ym-player-download-btn,
+    [class*="VibeCover"] #ym-player-quality-indicator,
+    [class*="VibeCover"] #ym-player-download-btn {
+      display: none !important;
     }
   `;
   document.head.appendChild(style);

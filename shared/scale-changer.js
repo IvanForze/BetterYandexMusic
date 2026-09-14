@@ -3,6 +3,9 @@
 // ==========================================
 
 (function() {
+  if (window.__ymScaleChangerInstalled) return;
+  window.__ymScaleChangerInstalled = true;
+
   const STYLE_ID = 'ym-scale-changer-style';
   const STORAGE_KEY = 'ym-interface-scale';
   const MIN_SCALE = 0.4;
@@ -36,22 +39,36 @@
     if (!styleEl) {
       styleEl = document.createElement('style');
       styleEl.id = STYLE_ID;
-      document.head.appendChild(styleEl);
+      (document.head || document.documentElement).appendChild(styleEl);
     }
 
+    const hasKnownLayout = !!document.querySelector('div[class*="DefaultLayout_root"], div[class*="CommonLayout_root"], div[class*="App_root"], div[class*="Layout_root"]');
+    const targetSelector = hasKnownLayout
+      ? 'div[class*="DefaultLayout_root"], div[class*="CommonLayout_root"], div[class*="App_root"], div[class*="Layout_root"]'
+      : '#root > div:first-child, #root, div[class*="DefaultLayout_root"]';
+
     styleEl.textContent = `
-      div[class*="DefaultLayout_root_"] {
+      ${targetSelector} {
         zoom: ${currentScale} !important;
       }
     `;
 
     // Оповещаем другие компоненты (например, слайдер в настройках)
     window.dispatchEvent(new CustomEvent('ym-scale-changed', { detail: { scale: currentScale } }));
+    document.dispatchEvent(new CustomEvent('ym-scale-changed', { detail: { scale: currentScale } }));
 
     if (showToast) {
       showScaleToast(currentScale);
     }
   }
+
+  function handleExternalSetScale(e) {
+    if (e.detail && typeof e.detail.scale === 'number') {
+      applyScale(e.detail.scale, !!e.detail.showToast);
+    }
+  }
+  window.addEventListener('ym-set-scale', handleExternalSetScale);
+  document.addEventListener('ym-set-scale', handleExternalSetScale);
 
   function showScaleToast(scale) {
     let toast = document.getElementById('ym-scale-toast');

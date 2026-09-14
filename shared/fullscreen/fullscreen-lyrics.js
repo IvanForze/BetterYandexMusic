@@ -1044,6 +1044,31 @@ function handleFullscreenPlayer() {
     }
   }
 
+function alignGeniusToggleWithCloseBtn(geniusToggle, fullscreenRoot) {
+  if (!geniusToggle || !fullscreenRoot) return;
+  const closeBtn = fullscreenRoot.querySelector(`
+    [class*="FullscreenPlayerDesktop_closeButton"],
+    [class*="closeButton"],
+    header button[aria-label="Закрыть"],
+    button[aria-label*="акрыть"]
+  `);
+  if (!closeBtn) return;
+
+  const closeRect = closeBtn.getBoundingClientRect();
+  const rootRect = fullscreenRoot.getBoundingClientRect();
+  if (closeRect.width === 0 || closeRect.height === 0) return;
+
+  // Center horizontally relative to closeBtn
+  const closeCenterX = closeRect.left + closeRect.width / 2;
+  const geniusWidth = geniusToggle.offsetWidth || 40;
+  const geniusLeft = Math.round(closeCenterX - (geniusWidth / 2) - rootRect.left);
+  const topOffset = Math.round((closeRect.bottom - rootRect.top) + 16);
+
+  geniusToggle.style.setProperty('top', `${topOffset}px`, 'important');
+  geniusToggle.style.setProperty('left', `${geniusLeft}px`, 'important');
+  geniusToggle.style.setProperty('right', 'auto', 'important');
+}
+
   // Set attributes and active class depending on isGeniusMode
   geniusToggle.setAttribute('aria-label', 'Genius');
   geniusToggle.setAttribute('aria-pressed', isGeniusMode ? 'true' : 'false');
@@ -1069,6 +1094,20 @@ function handleFullscreenPlayer() {
 
   // Toggle .ym-hidden class depending on isGeniusMode (forces display: none !important)
   geniusToggle.classList.toggle('ym-hidden', isGeniusMode);
+
+  // Dynamically align Genius toggle right under the close button
+  alignGeniusToggleWithCloseBtn(geniusToggle, fullscreenRoot);
+
+  if (!window.__ym_genius_resize_listener_bound) {
+    window.__ym_genius_resize_listener_bound = true;
+    window.addEventListener('resize', () => {
+      const fs = document.querySelector('[class*="FullscreenPlayerDesktop_root"]');
+      const btn = fs?.querySelector('.ym-fullscreen-genius-btn');
+      if (fs && btn) {
+        alignGeniusToggleWithCloseBtn(btn, fs);
+      }
+    });
+  }
 
   if (!window.hadLoggedFsEvaluation) {
     console.log('[SYNC-DEBUG] handleFullscreenPlayer evaluation:', {
