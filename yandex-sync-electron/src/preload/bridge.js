@@ -442,6 +442,50 @@ if (typeof window !== 'undefined') {
             response: { ok: false, error: err.message }
           }, '*');
         }
+      } else if (type === 'SELECT_DOWNLOAD_DIR') {
+        const electron = require('electron');
+        try {
+          const result = await electron.ipcRenderer.invoke('ym-sync-select-folder', payload || {});
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: true, canceled: result?.canceled, folderPath: result?.filePaths?.[0] || null }
+          }, '*');
+        } catch(err) {
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: false, error: err.message }
+          }, '*');
+        }
+      } else if (type === 'OPEN_DOWNLOAD_DIR') {
+        const electron = require('electron');
+        const path = require('path');
+        const os = require('os');
+        const folder = (payload && payload.folderPath) || path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+        try {
+          electron.shell.openPath(folder);
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: true }
+          }, '*');
+        } catch(err) {
+          window.postMessage({
+            __ym_sc_bridge_response: true,
+            requestId,
+            response: { ok: false, error: err.message }
+          }, '*');
+        }
+      } else if (type === 'GET_DEFAULT_DOWNLOAD_DIR') {
+        const path = require('path');
+        const os = require('os');
+        const defaultDir = path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+        window.postMessage({
+          __ym_sc_bridge_response: true,
+          requestId,
+          response: { ok: true, defaultDir }
+        }, '*');
       } else if (type === 'YM_DOWNLOAD_TRACK') {
         const fs = require('fs');
         const path = require('path');
@@ -513,18 +557,41 @@ if (typeof window !== 'undefined') {
             // 6. Формируем имя файла и целевую папку
             const safeArtist = (metadata?.artist || 'Неизвестный исполнитель').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
             const safeTitle = (metadata?.title || 'Трек').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
-            const fileName = `${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
-
-            const downloadsDir = path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
-            if (!fs.existsSync(downloadsDir)) {
-              fs.mkdirSync(downloadsDir, { recursive: true });
+            
+            // Если передан порядковый номер трека в альбоме
+            let fileName;
+            if (metadata?.isBatch && typeof metadata?.trackIndex === 'number') {
+              const num = String(metadata.trackIndex).padStart(2, '0');
+              fileName = `${num}. ${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
+            } else {
+              fileName = `${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
             }
 
-            const targetFilePath = path.join(downloadsDir, fileName);
+            // Базовая папка загрузок: из настроек пользователя или дефолтная
+            const customDir = metadata?.customDownloadDir;
+            let baseDownloadsDir = (customDir && typeof customDir === 'string' && customDir.trim().length > 0)
+              ? customDir.trim()
+              : path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+
+            // Если для скачивания указана отдельная папка (для альбома или плейлиста)
+            let targetDir = baseDownloadsDir;
+            if (metadata?.subFolder) {
+              const safeSubFolder = String(metadata.subFolder).replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+              if (safeSubFolder) {
+                targetDir = path.join(baseDownloadsDir, safeSubFolder);
+              }
+            }
+
+            if (!fs.existsSync(targetDir)) {
+              fs.mkdirSync(targetDir, { recursive: true });
+            }
+
+            const targetFilePath = path.join(targetDir, fileName);
             fs.writeFileSync(targetFilePath, finalBuffer);
             console.log('[PRELOAD-DOWNLOAD] Файл успешно сохранен на диск:', targetFilePath);
 
-            if (!metadata?.isBatch) {
+            // Открываем папку ТОЛЬКО если пользователь прямо включил эту настройку
+            if (metadata?.autoOpenFolder === true) {
               try {
                 electron.shell.showItemInFolder(targetFilePath);
               } catch(e) {}

@@ -2484,6 +2484,50 @@
                 response: { ok: false, error: err.message }
               }, '*');
             }
+          } else if (type === 'SELECT_DOWNLOAD_DIR') {
+            const electron = require('electron');
+            try {
+              const result = await electron.ipcRenderer.invoke('ym-sync-select-folder', payload || {});
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: true, canceled: result?.canceled, folderPath: result?.filePaths?.[0] || null }
+              }, '*');
+            } catch(err) {
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: false, error: err.message }
+              }, '*');
+            }
+          } else if (type === 'OPEN_DOWNLOAD_DIR') {
+            const electron = require('electron');
+            const path = require('path');
+            const os = require('os');
+            const folder = (payload && payload.folderPath) || path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+            try {
+              electron.shell.openPath(folder);
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: true }
+              }, '*');
+            } catch(err) {
+              window.postMessage({
+                __ym_sc_bridge_response: true,
+                requestId,
+                response: { ok: false, error: err.message }
+              }, '*');
+            }
+          } else if (type === 'GET_DEFAULT_DOWNLOAD_DIR') {
+            const path = require('path');
+            const os = require('os');
+            const defaultDir = path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, defaultDir }
+            }, '*');
           } else if (type === 'YM_DOWNLOAD_TRACK') {
             const fs = require('fs');
             const path = require('path');
@@ -2555,18 +2599,41 @@
                 // 6. Формируем имя файла и целевую папку
                 const safeArtist = (metadata?.artist || 'Неизвестный исполнитель').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
                 const safeTitle = (metadata?.title || 'Трек').replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
-                const fileName = `${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
-    
-                const downloadsDir = path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
-                if (!fs.existsSync(downloadsDir)) {
-                  fs.mkdirSync(downloadsDir, { recursive: true });
+                
+                // Если передан порядковый номер трека в альбоме
+                let fileName;
+                if (metadata?.isBatch && typeof metadata?.trackIndex === 'number') {
+                  const num = String(metadata.trackIndex).padStart(2, '0');
+                  fileName = `${num}. ${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
+                } else {
+                  fileName = `${safeArtist} - ${safeTitle}.${ext}`.substring(0, 180);
                 }
     
-                const targetFilePath = path.join(downloadsDir, fileName);
+                // Базовая папка загрузок: из настроек пользователя или дефолтная
+                const customDir = metadata?.customDownloadDir;
+                let baseDownloadsDir = (customDir && typeof customDir === 'string' && customDir.trim().length > 0)
+                  ? customDir.trim()
+                  : path.join(os.homedir(), 'Downloads', 'BetterYandexMusic');
+    
+                // Если для скачивания указана отдельная папка (для альбома или плейлиста)
+                let targetDir = baseDownloadsDir;
+                if (metadata?.subFolder) {
+                  const safeSubFolder = String(metadata.subFolder).replace(/[<>:"/\\|?*\x00-\x1F]/g, '_').trim();
+                  if (safeSubFolder) {
+                    targetDir = path.join(baseDownloadsDir, safeSubFolder);
+                  }
+                }
+    
+                if (!fs.existsSync(targetDir)) {
+                  fs.mkdirSync(targetDir, { recursive: true });
+                }
+    
+                const targetFilePath = path.join(targetDir, fileName);
                 fs.writeFileSync(targetFilePath, finalBuffer);
                 console.log('[PRELOAD-DOWNLOAD] Файл успешно сохранен на диск:', targetFilePath);
     
-                if (!metadata?.isBatch) {
+                // Открываем папку ТОЛЬКО если пользователь прямо включил эту настройку
+                if (metadata?.autoOpenFolder === true) {
                   try {
                     electron.shell.showItemInFolder(targetFilePath);
                   } catch(e) {}
@@ -3960,20 +4027,66 @@ function injectStyles() {
       -webkit-backdrop-filter: blur(25px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 20px;
-      padding: 28px;
+      padding: 24px 16px 24px 28px;
       box-sizing: border-box;
-      overflow-y: auto;
+      overflow: hidden;
       color: #ffffff;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
       text-align: left;
     }
-    .ym-genius-annotation-panel::-webkit-scrollbar {
+
+    /* Genius Annotation Body & Scrollbars */
+    .ym-genius-panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      padding-right: 10px;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar,
+    .ym-genius-annotation-panel::-webkit-scrollbar,
+    .ym-genius-annotation-body::-webkit-scrollbar {
       width: 6px;
     }
-    .ym-genius-annotation-panel::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 3px;
+
+    .ym-genius-panel-body::-webkit-scrollbar-track,
+    .ym-genius-annotation-panel::-webkit-scrollbar-track,
+    .ym-genius-annotation-body::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 9999px;
+      margin: 4px 0;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb:hover,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb:hover,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 219, 77, 0.65);
+      border-color: rgba(255, 219, 77, 0.4);
+      box-shadow: 0 0 8px rgba(255, 219, 77, 0.35);
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb:active,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb:active,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb:active {
+      background: #ffdb4d;
+      border-color: #ffdb4d;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.6);
     }
 
     .ym-genius-annotation-welcome {
@@ -7264,6 +7377,9 @@ function checkAndInjectSettings() {
   const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
   // Читаем настройку качества скачивания треков
   const downloadQuality = localStorage.getItem('ymDownloadPreferredQuality') || localStorage.getItem('ymDownloadQuality') || 'lossless';
+  // Читаем настройки папки сохранения и автооткрытия
+  const downloadDir = localStorage.getItem('ymDownloadDirectory') || '';
+  const downloadAutoOpen = localStorage.getItem('ymDownloadAutoOpenFolder') === 'true';
   // Читаем настройку масштаба
   let savedScale = 1.0;
   try {
@@ -7333,12 +7449,46 @@ function checkAndInjectSettings() {
       <div style="flex: 1; padding-right: 16px;">
         <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Качество скачиваемых треков</div>
         <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
-          Формат и битрейт для загрузки одиночных треков и ZIP-архивов
+          Формат и битрейт для загрузки одиночных треков и скачивания альбомов
         </div>
         <div style="max-width: 420px; margin-top: 8px;">
           <select id="ym-download-quality-select" class="ym-select">
             <option value="lossless" ${downloadQuality === 'lossless' ? 'selected' : ''}>FLAC Lossless (Максимальное качество звука)</option>
             <option value="nq" ${downloadQuality === 'nq' ? 'selected' : ''}>MP3 320 kbps (Высокое качество, экономия места)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Папка для сохранения (только для Electron Desktop) -->
+    <div id="ym-download-dir-section" class="ym-settings-item" style="display: none; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Папка для сохранения музыки</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Куда сохранять скачанные треки (для альбомов внутри автоматически создаётся своя подпапка)
+        </div>
+        <div style="max-width: 540px; margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+          <input type="text" id="ym-download-dir-input" class="ym-input" value="${downloadDir}" placeholder="По умолчанию (Загрузки/BetterYandexMusic)" style="flex: 1; min-width: 0; padding: 7px 12px; font-size: 13px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;" readonly>
+          <button type="button" id="ym-download-dir-browse-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;">Обзор...</button>
+          <button type="button" id="ym-download-dir-open-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;" title="Открыть папку в Проводнике">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+          <button type="button" id="ym-download-dir-reset-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;" title="Сбросить на значение по умолчанию">Сброс</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Автоматическое открытие папки после скачивания (только для Electron Desktop) -->
+    <div id="ym-download-autoopen-section" class="ym-settings-item" style="display: none; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Открывать папку после скачивания</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Автоматически показывать файл в Проводнике Windows сразу после сохранения
+        </div>
+        <div style="max-width: 420px; margin-top: 8px;">
+          <select id="ym-download-autoopen-select" class="ym-select">
+            <option value="false" ${!downloadAutoOpen ? 'selected' : ''}>Не открывать автоматически (Рекомендуется)</option>
+            <option value="true" ${downloadAutoOpen ? 'selected' : ''}>Открывать папку в Проводнике</option>
           </select>
         </div>
       </div>
@@ -7763,6 +7913,99 @@ function checkAndInjectSettings() {
       localStorage.setItem('ymDownloadPreferredQuality', e.target.value);
       localStorage.setItem('ymDownloadQuality', e.target.value);
     });
+  }
+
+  // === Обработчики папки сохранения и автооткрытия для Electron Desktop ===
+  const isDesktopEnv = typeof window !== 'undefined' && 
+    (window.navigator.userAgent.includes('Electron') || 
+     (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+  const dirSection = document.getElementById('ym-download-dir-section');
+  const autoOpenSection = document.getElementById('ym-download-autoopen-section');
+
+  if (isDesktopEnv) {
+    if (dirSection) dirSection.style.display = 'flex';
+    if (autoOpenSection) autoOpenSection.style.display = 'flex';
+
+    const dirInput = document.getElementById('ym-download-dir-input');
+    const browseBtn = document.getElementById('ym-download-dir-browse-btn');
+    const openBtn = document.getElementById('ym-download-dir-open-btn');
+    const resetBtn = document.getElementById('ym-download-dir-reset-btn');
+    const autoOpenSelect = document.getElementById('ym-download-autoopen-select');
+
+    function sendBridgeMsg(type, payload = {}) {
+      return new Promise((resolve) => {
+        const reqId = 'set_' + Math.random().toString(36).substring(2, 9);
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', handler);
+          resolve({ ok: false, error: 'Timeout' });
+        }, 5000);
+
+        const handler = (event) => {
+          if (!event.data || !event.data.__ym_sc_bridge_response || event.data.requestId !== reqId) return;
+          clearTimeout(timeout);
+          window.removeEventListener('message', handler);
+          resolve(event.data.response || { ok: false });
+        };
+
+        window.addEventListener('message', handler);
+        window.postMessage({
+          __ym_sc_bridge: true,
+          type,
+          requestId: reqId,
+          payload
+        }, '*');
+      });
+    }
+
+    // Если кастомный путь не задан, получаем путь по умолчанию из preload
+    if (dirInput && !dirInput.value) {
+      sendBridgeMsg('GET_DEFAULT_DOWNLOAD_DIR').then(res => {
+        if (res && res.defaultDir && !localStorage.getItem('ymDownloadDirectory')) {
+          dirInput.placeholder = res.defaultDir;
+        }
+      });
+    }
+
+    // Выбор папки через нативный системный диалог проводника
+    if (browseBtn) {
+      browseBtn.addEventListener('click', async () => {
+        const current = localStorage.getItem('ymDownloadDirectory') || '';
+        const res = await sendBridgeMsg('SELECT_DOWNLOAD_DIR', { defaultPath: current });
+        if (res && res.ok && !res.canceled && res.folderPath) {
+          localStorage.setItem('ymDownloadDirectory', res.folderPath);
+          if (dirInput) dirInput.value = res.folderPath;
+        }
+      });
+    }
+
+    // Открыть текущую папку в Проводнике Windows
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        const current = localStorage.getItem('ymDownloadDirectory') || '';
+        sendBridgeMsg('OPEN_DOWNLOAD_DIR', { folderPath: current });
+      });
+    }
+
+    // Сбросить путь к папке на значение по умолчанию
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        localStorage.removeItem('ymDownloadDirectory');
+        if (dirInput) {
+          dirInput.value = '';
+          sendBridgeMsg('GET_DEFAULT_DOWNLOAD_DIR').then(res => {
+            if (res && res.defaultDir) dirInput.placeholder = res.defaultDir;
+          });
+        }
+      });
+    }
+
+    // Настройка автоматического открытия папки
+    if (autoOpenSelect) {
+      autoOpenSelect.addEventListener('change', (e) => {
+        localStorage.setItem('ymDownloadAutoOpenFolder', e.target.value === 'true' ? 'true' : 'false');
+      });
+    }
   }
 
   const whatsNewBtn = document.getElementById('ym-settings-whats-new-btn');
@@ -12268,6 +12511,14 @@ async function downloadInBrowser(downloadInfo, metadata) {
 // 7. Вызов Electron Preload Bridge
 function callElectronDownloadBridge(downloadInfo, metadata) {
   return new Promise((resolve, reject) => {
+    const customDir = (typeof localStorage !== 'undefined' && localStorage.getItem('ymDownloadDirectory')) || '';
+    const autoOpen = typeof localStorage !== 'undefined' && localStorage.getItem('ymDownloadAutoOpenFolder') === 'true';
+    const finalMeta = {
+      ...metadata,
+      customDownloadDir: metadata?.customDownloadDir || customDir,
+      autoOpenFolder: typeof metadata?.autoOpenFolder === 'boolean' ? metadata.autoOpenFolder : autoOpen
+    };
+
     const requestId = 'dl_' + Math.random().toString(36).substring(2, 9);
     const timeout = setTimeout(() => {
       window.removeEventListener('message', handler);
@@ -12290,7 +12541,7 @@ function callElectronDownloadBridge(downloadInfo, metadata) {
       __ym_sc_bridge: true,
       type: 'YM_DOWNLOAD_TRACK',
       requestId,
-      payload: { downloadInfo, metadata }
+      payload: { downloadInfo, metadata: finalMeta }
     }, '*');
   });
 }
@@ -13329,9 +13580,11 @@ async function startBatchDownload(title, trackList) {
   const currentNameEl = document.getElementById('ym-batch-current-name');
   const progressBar = document.getElementById('ym-batch-progress-bar');
 
-  const startMsg = totalChunks > 1
-    ? `Старт скачивания: "${title}" (${totalTracks} треков, ${totalChunks} томов ZIP по ${BATCH_ZIP_CHUNK_SIZE} шт.)`
-    : `Старт скачивания: "${title}" (${totalTracks} треков в ZIP)`;
+  const startMsg = isDesktop
+    ? `Старт скачивания: "${title}" (${totalTracks} треков в папку)`
+    : (totalChunks > 1
+      ? `Старт скачивания: "${title}" (${totalTracks} треков, ${totalChunks} томов ZIP по ${BATCH_ZIP_CHUNK_SIZE} шт.)`
+      : `Старт скачивания: "${title}" (${totalTracks} треков в ZIP)`);
   showDownloadToast(startMsg, 'info');
 
   let currentChunkIndex = 0;
@@ -13361,8 +13614,14 @@ async function startBatchDownload(title, trackList) {
 
     try {
       if (isDesktop) {
-        // В десктопном приложении сохраняем напрямую через нативный мост без окон
-        await downloadTrack({ ...trk, isBatch: true });
+        // В десктопном приложении сохраняем в отдельную подпапку альбома/плейлиста
+        await downloadTrack({
+          ...trk,
+          isBatch: true,
+          subFolder: safeTitle,
+          trackIndex: i + 1,
+          totalTracks: totalTracks
+        });
       } else {
         // В браузере загружаем трек в буфер памяти
         const downloadInfo = await resolveTrackDownloadInfo(trk);
@@ -13440,9 +13699,11 @@ async function startBatchDownload(title, trackList) {
       ? '<span style="color:#ff4d4d;font-size:12px;">✕</span>' 
       : '<span style="color:#4dff88;font-size:12px;">✓</span>';
   }
-  const finishToast = totalChunks > 1
-    ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ${currentChunkIndex} томах ZIP`
-    : `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ZIP`;
+  const finishToast = isDesktop
+    ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в папку "${safeTitle}"`
+    : (totalChunks > 1
+      ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ${currentChunkIndex} томах ZIP`
+      : `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ZIP`);
   showDownloadToast(finishToast, 'success');
 
   window.__ym_batch_queue.active = false;
@@ -14009,11 +14270,23 @@ function injectPlaylistHeaderDownloadButton() {
     const defaultLabel = isAlbumContext ? 'Альбом' : 'Плейлист';
     const titleText = (titleLink ? titleLink.textContent : titleEl?.textContent || defaultLabel).trim();
 
+    const isDesktop = typeof window !== 'undefined' && 
+      (window.navigator.userAgent.includes('Electron') || 
+       (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+    const buttonLabel = isDesktop 
+      ? (isAlbumContext ? 'Скачать альбом' : 'Скачать плейлист')
+      : 'Скачать в ZIP';
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ym-playlist-download-btn';
-    btn.setAttribute('aria-label', isAlbumContext ? `Скачать альбом "${titleText}" в ZIP-архиве` : `Скачать плейлист "${titleText}" в ZIP-архиве`);
-    btn.setAttribute('title', isAlbumContext ? `Скачать все треки альбома "${titleText}" в ZIP` : `Скачать все треки плейлиста "${titleText}" в ZIP`);
+    btn.setAttribute('aria-label', isDesktop
+      ? (isAlbumContext ? `Скачать альбом "${titleText}"` : `Скачать плейлист "${titleText}"`)
+      : (isAlbumContext ? `Скачать альбом "${titleText}" в ZIP-архиве` : `Скачать плейлист "${titleText}" в ZIP-архиве`));
+    btn.setAttribute('title', isDesktop
+      ? (isAlbumContext ? `Скачать все треки альбома "${titleText}" в отдельную папку` : `Скачать все треки плейлиста "${titleText}" в отдельную папку`)
+      : (isAlbumContext ? `Скачать все треки альбома "${titleText}" в ZIP` : `Скачать все треки плейлиста "${titleText}" в ZIP`));
     btn.style.whiteSpace = 'nowrap';
     btn.style.flexShrink = '0';
     btn.style.width = 'auto';
@@ -14024,7 +14297,7 @@ function injectPlaylistHeaderDownloadButton() {
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>
       </svg>
-      <span>Скачать в ZIP</span>
+      <span>${buttonLabel}</span>
     `;
 
     btn.addEventListener('click', async (e) => {
@@ -15217,6 +15490,7 @@ function renderGeniusPanelStructure(panel) {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 12px;
+    padding-right: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   `;
 
@@ -15242,9 +15516,13 @@ function renderGeniusPanelStructure(panel) {
   body.className = 'ym-genius-panel-body';
   body.style.cssText = `
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    padding-right: 10px;
+    overscroll-behavior: contain;
   `;
   panel.appendChild(body);
 

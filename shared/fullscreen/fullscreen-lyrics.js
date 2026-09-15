@@ -336,6 +336,7 @@ function renderGeniusPanelStructure(panel) {
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 12px;
+    padding-right: 10px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   `;
 
@@ -361,9 +362,13 @@ function renderGeniusPanelStructure(panel) {
   body.className = 'ym-genius-panel-body';
   body.style.cssText = `
     flex: 1;
+    min-height: 0;
     overflow-y: auto;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
+    padding-right: 10px;
+    overscroll-behavior: contain;
   `;
   panel.appendChild(body);
 

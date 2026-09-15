@@ -111,6 +111,9 @@ function checkAndInjectSettings() {
   const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
   // Читаем настройку качества скачивания треков
   const downloadQuality = localStorage.getItem('ymDownloadPreferredQuality') || localStorage.getItem('ymDownloadQuality') || 'lossless';
+  // Читаем настройки папки сохранения и автооткрытия
+  const downloadDir = localStorage.getItem('ymDownloadDirectory') || '';
+  const downloadAutoOpen = localStorage.getItem('ymDownloadAutoOpenFolder') === 'true';
   // Читаем настройку масштаба
   let savedScale = 1.0;
   try {
@@ -180,12 +183,46 @@ function checkAndInjectSettings() {
       <div style="flex: 1; padding-right: 16px;">
         <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Качество скачиваемых треков</div>
         <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
-          Формат и битрейт для загрузки одиночных треков и ZIP-архивов
+          Формат и битрейт для загрузки одиночных треков и скачивания альбомов
         </div>
         <div style="max-width: 420px; margin-top: 8px;">
           <select id="ym-download-quality-select" class="ym-select">
             <option value="lossless" ${downloadQuality === 'lossless' ? 'selected' : ''}>FLAC Lossless (Максимальное качество звука)</option>
             <option value="nq" ${downloadQuality === 'nq' ? 'selected' : ''}>MP3 320 kbps (Высокое качество, экономия места)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Папка для сохранения (только для Electron Desktop) -->
+    <div id="ym-download-dir-section" class="ym-settings-item" style="display: none; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Папка для сохранения музыки</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Куда сохранять скачанные треки (для альбомов внутри автоматически создаётся своя подпапка)
+        </div>
+        <div style="max-width: 540px; margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+          <input type="text" id="ym-download-dir-input" class="ym-input" value="${downloadDir}" placeholder="По умолчанию (Загрузки/BetterYandexMusic)" style="flex: 1; min-width: 0; padding: 7px 12px; font-size: 13px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff;" readonly>
+          <button type="button" id="ym-download-dir-browse-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 14px; border-radius: 8px; font-size: 13px; cursor: pointer;">Обзор...</button>
+          <button type="button" id="ym-download-dir-open-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 10px; border-radius: 8px; font-size: 13px; cursor: pointer;" title="Открыть папку в Проводнике">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+          <button type="button" id="ym-download-dir-reset-btn" class="ym-btn-secondary" style="white-space: nowrap; padding: 7px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;" title="Сбросить на значение по умолчанию">Сброс</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Автоматическое открытие папки после скачивания (только для Electron Desktop) -->
+    <div id="ym-download-autoopen-section" class="ym-settings-item" style="display: none; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Открывать папку после скачивания</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Автоматически показывать файл в Проводнике Windows сразу после сохранения
+        </div>
+        <div style="max-width: 420px; margin-top: 8px;">
+          <select id="ym-download-autoopen-select" class="ym-select">
+            <option value="false" ${!downloadAutoOpen ? 'selected' : ''}>Не открывать автоматически (Рекомендуется)</option>
+            <option value="true" ${downloadAutoOpen ? 'selected' : ''}>Открывать папку в Проводнике</option>
           </select>
         </div>
       </div>
@@ -610,6 +647,99 @@ function checkAndInjectSettings() {
       localStorage.setItem('ymDownloadPreferredQuality', e.target.value);
       localStorage.setItem('ymDownloadQuality', e.target.value);
     });
+  }
+
+  // === Обработчики папки сохранения и автооткрытия для Electron Desktop ===
+  const isDesktopEnv = typeof window !== 'undefined' && 
+    (window.navigator.userAgent.includes('Electron') || 
+     (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+  const dirSection = document.getElementById('ym-download-dir-section');
+  const autoOpenSection = document.getElementById('ym-download-autoopen-section');
+
+  if (isDesktopEnv) {
+    if (dirSection) dirSection.style.display = 'flex';
+    if (autoOpenSection) autoOpenSection.style.display = 'flex';
+
+    const dirInput = document.getElementById('ym-download-dir-input');
+    const browseBtn = document.getElementById('ym-download-dir-browse-btn');
+    const openBtn = document.getElementById('ym-download-dir-open-btn');
+    const resetBtn = document.getElementById('ym-download-dir-reset-btn');
+    const autoOpenSelect = document.getElementById('ym-download-autoopen-select');
+
+    function sendBridgeMsg(type, payload = {}) {
+      return new Promise((resolve) => {
+        const reqId = 'set_' + Math.random().toString(36).substring(2, 9);
+        const timeout = setTimeout(() => {
+          window.removeEventListener('message', handler);
+          resolve({ ok: false, error: 'Timeout' });
+        }, 5000);
+
+        const handler = (event) => {
+          if (!event.data || !event.data.__ym_sc_bridge_response || event.data.requestId !== reqId) return;
+          clearTimeout(timeout);
+          window.removeEventListener('message', handler);
+          resolve(event.data.response || { ok: false });
+        };
+
+        window.addEventListener('message', handler);
+        window.postMessage({
+          __ym_sc_bridge: true,
+          type,
+          requestId: reqId,
+          payload
+        }, '*');
+      });
+    }
+
+    // Если кастомный путь не задан, получаем путь по умолчанию из preload
+    if (dirInput && !dirInput.value) {
+      sendBridgeMsg('GET_DEFAULT_DOWNLOAD_DIR').then(res => {
+        if (res && res.defaultDir && !localStorage.getItem('ymDownloadDirectory')) {
+          dirInput.placeholder = res.defaultDir;
+        }
+      });
+    }
+
+    // Выбор папки через нативный системный диалог проводника
+    if (browseBtn) {
+      browseBtn.addEventListener('click', async () => {
+        const current = localStorage.getItem('ymDownloadDirectory') || '';
+        const res = await sendBridgeMsg('SELECT_DOWNLOAD_DIR', { defaultPath: current });
+        if (res && res.ok && !res.canceled && res.folderPath) {
+          localStorage.setItem('ymDownloadDirectory', res.folderPath);
+          if (dirInput) dirInput.value = res.folderPath;
+        }
+      });
+    }
+
+    // Открыть текущую папку в Проводнике Windows
+    if (openBtn) {
+      openBtn.addEventListener('click', () => {
+        const current = localStorage.getItem('ymDownloadDirectory') || '';
+        sendBridgeMsg('OPEN_DOWNLOAD_DIR', { folderPath: current });
+      });
+    }
+
+    // Сбросить путь к папке на значение по умолчанию
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        localStorage.removeItem('ymDownloadDirectory');
+        if (dirInput) {
+          dirInput.value = '';
+          sendBridgeMsg('GET_DEFAULT_DOWNLOAD_DIR').then(res => {
+            if (res && res.defaultDir) dirInput.placeholder = res.defaultDir;
+          });
+        }
+      });
+    }
+
+    // Настройка автоматического открытия папки
+    if (autoOpenSelect) {
+      autoOpenSelect.addEventListener('change', (e) => {
+        localStorage.setItem('ymDownloadAutoOpenFolder', e.target.value === 'true' ? 'true' : 'false');
+      });
+    }
   }
 
   const whatsNewBtn = document.getElementById('ym-settings-whats-new-btn');

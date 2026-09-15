@@ -794,6 +794,14 @@ async function downloadInBrowser(downloadInfo, metadata) {
 // 7. Вызов Electron Preload Bridge
 function callElectronDownloadBridge(downloadInfo, metadata) {
   return new Promise((resolve, reject) => {
+    const customDir = (typeof localStorage !== 'undefined' && localStorage.getItem('ymDownloadDirectory')) || '';
+    const autoOpen = typeof localStorage !== 'undefined' && localStorage.getItem('ymDownloadAutoOpenFolder') === 'true';
+    const finalMeta = {
+      ...metadata,
+      customDownloadDir: metadata?.customDownloadDir || customDir,
+      autoOpenFolder: typeof metadata?.autoOpenFolder === 'boolean' ? metadata.autoOpenFolder : autoOpen
+    };
+
     const requestId = 'dl_' + Math.random().toString(36).substring(2, 9);
     const timeout = setTimeout(() => {
       window.removeEventListener('message', handler);
@@ -816,7 +824,7 @@ function callElectronDownloadBridge(downloadInfo, metadata) {
       __ym_sc_bridge: true,
       type: 'YM_DOWNLOAD_TRACK',
       requestId,
-      payload: { downloadInfo, metadata }
+      payload: { downloadInfo, metadata: finalMeta }
     }, '*');
   });
 }
@@ -1855,9 +1863,11 @@ async function startBatchDownload(title, trackList) {
   const currentNameEl = document.getElementById('ym-batch-current-name');
   const progressBar = document.getElementById('ym-batch-progress-bar');
 
-  const startMsg = totalChunks > 1
-    ? `Старт скачивания: "${title}" (${totalTracks} треков, ${totalChunks} томов ZIP по ${BATCH_ZIP_CHUNK_SIZE} шт.)`
-    : `Старт скачивания: "${title}" (${totalTracks} треков в ZIP)`;
+  const startMsg = isDesktop
+    ? `Старт скачивания: "${title}" (${totalTracks} треков в папку)`
+    : (totalChunks > 1
+      ? `Старт скачивания: "${title}" (${totalTracks} треков, ${totalChunks} томов ZIP по ${BATCH_ZIP_CHUNK_SIZE} шт.)`
+      : `Старт скачивания: "${title}" (${totalTracks} треков в ZIP)`);
   showDownloadToast(startMsg, 'info');
 
   let currentChunkIndex = 0;
@@ -1887,8 +1897,14 @@ async function startBatchDownload(title, trackList) {
 
     try {
       if (isDesktop) {
-        // В десктопном приложении сохраняем напрямую через нативный мост без окон
-        await downloadTrack({ ...trk, isBatch: true });
+        // В десктопном приложении сохраняем в отдельную подпапку альбома/плейлиста
+        await downloadTrack({
+          ...trk,
+          isBatch: true,
+          subFolder: safeTitle,
+          trackIndex: i + 1,
+          totalTracks: totalTracks
+        });
       } else {
         // В браузере загружаем трек в буфер памяти
         const downloadInfo = await resolveTrackDownloadInfo(trk);
@@ -1966,9 +1982,11 @@ async function startBatchDownload(title, trackList) {
       ? '<span style="color:#ff4d4d;font-size:12px;">✕</span>' 
       : '<span style="color:#4dff88;font-size:12px;">✓</span>';
   }
-  const finishToast = totalChunks > 1
-    ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ${currentChunkIndex} томах ZIP`
-    : `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ZIP`;
+  const finishToast = isDesktop
+    ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в папку "${safeTitle}"`
+    : (totalChunks > 1
+      ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ${currentChunkIndex} томах ZIP`
+      : `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ZIP`);
   showDownloadToast(finishToast, 'success');
 
   window.__ym_batch_queue.active = false;
@@ -2535,11 +2553,23 @@ function injectPlaylistHeaderDownloadButton() {
     const defaultLabel = isAlbumContext ? 'Альбом' : 'Плейлист';
     const titleText = (titleLink ? titleLink.textContent : titleEl?.textContent || defaultLabel).trim();
 
+    const isDesktop = typeof window !== 'undefined' && 
+      (window.navigator.userAgent.includes('Electron') || 
+       (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendState === 'function'));
+
+    const buttonLabel = isDesktop 
+      ? (isAlbumContext ? 'Скачать альбом' : 'Скачать плейлист')
+      : 'Скачать в ZIP';
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ym-playlist-download-btn';
-    btn.setAttribute('aria-label', isAlbumContext ? `Скачать альбом "${titleText}" в ZIP-архиве` : `Скачать плейлист "${titleText}" в ZIP-архиве`);
-    btn.setAttribute('title', isAlbumContext ? `Скачать все треки альбома "${titleText}" в ZIP` : `Скачать все треки плейлиста "${titleText}" в ZIP`);
+    btn.setAttribute('aria-label', isDesktop
+      ? (isAlbumContext ? `Скачать альбом "${titleText}"` : `Скачать плейлист "${titleText}"`)
+      : (isAlbumContext ? `Скачать альбом "${titleText}" в ZIP-архиве` : `Скачать плейлист "${titleText}" в ZIP-архиве`));
+    btn.setAttribute('title', isDesktop
+      ? (isAlbumContext ? `Скачать все треки альбома "${titleText}" в отдельную папку` : `Скачать все треки плейлиста "${titleText}" в отдельную папку`)
+      : (isAlbumContext ? `Скачать все треки альбома "${titleText}" в ZIP` : `Скачать все треки плейлиста "${titleText}" в ZIP`));
     btn.style.whiteSpace = 'nowrap';
     btn.style.flexShrink = '0';
     btn.style.width = 'auto';
@@ -2550,7 +2580,7 @@ function injectPlaylistHeaderDownloadButton() {
         <polyline points="7 10 12 15 17 10"></polyline>
         <line x1="12" y1="15" x2="12" y2="3"></line>
       </svg>
-      <span>Скачать в ZIP</span>
+      <span>${buttonLabel}</span>
     `;
 
     btn.addEventListener('click', async (e) => {

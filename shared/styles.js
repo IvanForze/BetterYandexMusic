@@ -1287,20 +1287,66 @@ function injectStyles() {
       -webkit-backdrop-filter: blur(25px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 20px;
-      padding: 28px;
+      padding: 24px 16px 24px 28px;
       box-sizing: border-box;
-      overflow-y: auto;
+      overflow: hidden;
       color: #ffffff;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
       text-align: left;
     }
-    .ym-genius-annotation-panel::-webkit-scrollbar {
+
+    /* Genius Annotation Body & Scrollbars */
+    .ym-genius-panel-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      padding-right: 10px;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar,
+    .ym-genius-annotation-panel::-webkit-scrollbar,
+    .ym-genius-annotation-body::-webkit-scrollbar {
       width: 6px;
     }
-    .ym-genius-annotation-panel::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 3px;
+
+    .ym-genius-panel-body::-webkit-scrollbar-track,
+    .ym-genius-annotation-panel::-webkit-scrollbar-track,
+    .ym-genius-annotation-body::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 9999px;
+      margin: 4px 0;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb:hover,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb:hover,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 219, 77, 0.65);
+      border-color: rgba(255, 219, 77, 0.4);
+      box-shadow: 0 0 8px rgba(255, 219, 77, 0.35);
+    }
+
+    .ym-genius-panel-body::-webkit-scrollbar-thumb:active,
+    .ym-genius-annotation-panel::-webkit-scrollbar-thumb:active,
+    .ym-genius-annotation-body::-webkit-scrollbar-thumb:active {
+      background: #ffdb4d;
+      border-color: #ffdb4d;
+      box-shadow: 0 0 12px rgba(255, 219, 77, 0.6);
     }
 
     .ym-genius-annotation-welcome {

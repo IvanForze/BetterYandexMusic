@@ -253,6 +253,23 @@ try {
   });
 
   try {
+    ipcMain.removeHandler('ym-sync-select-folder');
+  } catch(e) {}
+  ipcMain.handle('ym-sync-select-folder', async (event, options) => {
+    const parentWindow = event.sender ? require('electron').BrowserWindow.fromWebContents(event.sender) : null;
+    const dialogOptions = {
+      title: options?.title || 'Выберите папку для сохранения музыки',
+      defaultPath: options?.defaultPath,
+      properties: ['openDirectory', 'createDirectory']
+    };
+    if (parentWindow) {
+      return await dialog.showOpenDialog(parentWindow, dialogOptions);
+    } else {
+      return await dialog.showOpenDialog(dialogOptions);
+    }
+  });
+
+  try {
     ipcMain.removeHandler('ym-sync-net-fetch');
   } catch(e) {}
   ipcMain.handle('ym-sync-net-fetch', async (event, { url, options }) => {
