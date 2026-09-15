@@ -436,6 +436,58 @@ window.setYmOAuthToken = function(tokenStr) {
   }
 })();
 
+function isYmMainPage() {
+  const path = (window.location.pathname || '').replace(/\/+$/, '');
+  return path === '' || path === '/home';
+}
+
+function updateFloatingPositions() {
+  const isMain = isYmMainPage();
+  const hasBottomPlayer = !!document.querySelector('[class*="PlayerBarDesktop_root"], [class*="PlayerBar_root"], [class*="PlayerBarDesktopWithBackgroundProgressBar_player"]');
+  const shouldBeLow = isMain || !hasBottomPlayer;
+
+  const widget = document.getElementById('ym-batch-download-widget');
+  if (widget) {
+    widget.style.removeProperty('bottom');
+    if (shouldBeLow) {
+      widget.classList.add('ym-bottom-low');
+    } else {
+      widget.classList.remove('ym-bottom-low');
+    }
+  }
+
+  const toast = document.getElementById('ym-download-toast');
+  if (toast) {
+    toast.style.bottom = shouldBeLow ? '24px' : '124px';
+  }
+}
+
+if (!window.__ym_history_patched_downloader) {
+  window.__ym_history_patched_downloader = true;
+  const origPushState = history.pushState;
+  history.pushState = function(...args) {
+    const res = origPushState.apply(this, args);
+    window.dispatchEvent(new Event('ym-navigation-changed'));
+    return res;
+  };
+  const origReplaceState = history.replaceState;
+  history.replaceState = function(...args) {
+    const res = origReplaceState.apply(this, args);
+    window.dispatchEvent(new Event('ym-navigation-changed'));
+    return res;
+  };
+  window.addEventListener('ym-navigation-changed', () => {
+    updateFloatingPositions();
+    setTimeout(updateFloatingPositions, 100);
+    setTimeout(updateFloatingPositions, 300);
+  });
+  window.addEventListener('popstate', () => {
+    updateFloatingPositions();
+    setTimeout(updateFloatingPositions, 100);
+    setTimeout(updateFloatingPositions, 300);
+  });
+}
+
 // 2. Всплывающее уведомление (Toast)
 function showDownloadToast(text, type = 'info') {
   let toast = document.getElementById('ym-download-toast');
@@ -462,16 +514,13 @@ function showDownloadToast(text, type = 'info') {
       gap: 10px;
       opacity: 0;
       transform: translateY(12px);
-      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), bottom 0.35s cubic-bezier(0.25, 1, 0.5, 1);
       pointer-events: none;
     `;
     document.body.appendChild(toast);
   }
 
-  // На главной странице (где нет нижней фиксированной панели плеера) опускаем уведомление ниже
-  const isMainPage = window.location.pathname === '/' || window.location.pathname === '';
-  const hasBottomPlayer = !!document.querySelector('[class*="PlayerBarDesktop_root"], [class*="PlayerBar_root"], [class*="PlayerBarDesktopWithBackgroundProgressBar_player"]');
-  toast.style.bottom = (isMainPage || !hasBottomPlayer) ? '24px' : '124px';
+  updateFloatingPositions();
 
   const iconSvg = type === 'success'
     ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffdb4d" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`
@@ -748,8 +797,8 @@ function callElectronDownloadBridge(downloadInfo, metadata) {
     const requestId = 'dl_' + Math.random().toString(36).substring(2, 9);
     const timeout = setTimeout(() => {
       window.removeEventListener('message', handler);
-      reject(new Error('Превышено время ожидания загрузки трека (таймаут 15 сек)'));
-    }, 15000);
+      reject(new Error('Превышено время ожидания загрузки трека (таймаут 60 сек)'));
+    }, 60000);
 
     const handler = (event) => {
       if (!event.data || !event.data.__ym_sc_bridge_response || event.data.requestId !== requestId) return;
@@ -764,6 +813,7 @@ function callElectronDownloadBridge(downloadInfo, metadata) {
 
     window.addEventListener('message', handler);
     window.postMessage({
+      __ym_sc_bridge: true,
       type: 'YM_DOWNLOAD_TRACK',
       requestId,
       payload: { downloadInfo, metadata }
@@ -773,8 +823,21 @@ function callElectronDownloadBridge(downloadInfo, metadata) {
 
 // 8. Получение информации об аудиопотоке трека (с кэшем и авторизацией)
 async function resolveTrackDownloadInfo(trackInfo, customDownloadInfo = null) {
-  if (!trackInfo || !trackInfo.trackId) {
-    throw new Error('Отсутствует ID трека');
+  if (!trackInfo) {
+    throw new Error('Отсутствуют данные трека');
+  }
+
+  // Если trackId отсутствует, но известно название трека — ищем через API Яндекс Музыки
+  if ((!trackInfo.trackId || trackInfo.trackId === '') && trackInfo.title) {
+    console.log('[DOWNLOADER] ID трека не определен из DOM, ищем через API поиска:', trackInfo.artist, trackInfo.title);
+    const resolvedId = await searchTrackIdByTitleAndArtist(trackInfo.title, trackInfo.artist);
+    if (resolvedId) {
+      trackInfo.trackId = resolvedId;
+    }
+  }
+
+  if (!trackInfo.trackId) {
+    throw new Error('Не удалось определить ID трека в списке треков');
   }
   const trackId = String(trackInfo.trackId);
   const preferredQuality = (typeof localStorage !== 'undefined' && localStorage.getItem('ymDownloadPreferredQuality')) || 'lossless';
@@ -1012,24 +1075,121 @@ function injectPlayerDownloadButton() {
   updateDownloaderButtonTooltip();
 }
 
+// Извлечение track ID напрямую из React Fiber дерева компонентов
+function getTrackIdFromFiber(element) {
+  if (!element) return null;
+  let curr = element;
+  while (curr && curr !== document.body && curr !== document.documentElement) {
+    for (const key in curr) {
+      if (key.startsWith('__reactFiber$') || key.startsWith('__reactInternalInstance$')) {
+        let fiber = curr[key];
+        let depth = 0;
+        while (fiber && depth < 25) {
+          const props = fiber.memoizedProps || fiber.pendingProps;
+          if (props) {
+            const trk = props.track || props.entity || props.item;
+            if (trk && (trk.id || trk.trackId || trk.entityId)) {
+              const rawId = String(trk.id || trk.trackId || trk.entityId);
+              const pureId = rawId.includes(':') ? rawId.split(':')[1] : rawId;
+              if (pureId && /^\d+$/.test(pureId)) return pureId;
+              if (rawId) return rawId;
+            }
+            if (props.trackId) return String(props.trackId);
+            if (props.entityId) {
+              const rawId = String(props.entityId);
+              const pureId = rawId.includes(':') ? rawId.split(':')[1] : rawId;
+              if (pureId && /^\d+$/.test(pureId)) return pureId;
+            }
+          }
+          fiber = fiber.return;
+          depth++;
+        }
+      }
+      if (key.startsWith('__reactProps$')) {
+        const props = curr[key];
+        if (props) {
+          const trk = props.track || props.entity || props.item;
+          if (trk && (trk.id || trk.trackId || trk.entityId)) {
+            const rawId = String(trk.id || trk.trackId || trk.entityId);
+            const pureId = rawId.includes(':') ? rawId.split(':')[1] : rawId;
+            if (pureId && /^\d+$/.test(pureId)) return pureId;
+            if (rawId) return rawId;
+          }
+          if (props.trackId) return String(props.trackId);
+        }
+      }
+    }
+    curr = curr.parentElement;
+  }
+  return null;
+}
+
+// Автопоиск ID трека через API Яндекс Музыки по названию и артисту
+async function searchTrackIdByTitleAndArtist(title, artist) {
+  try {
+    const headers = getApiHeaders();
+    const query = [artist, title].filter(Boolean).join(' ').trim();
+    if (!query) return null;
+    const res = await fetch(`https://api.music.yandex.net/search?text=${encodeURIComponent(query)}&type=track&page=0&pageSize=5`, {
+      headers,
+      credentials: 'include'
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const tracks = json.result?.tracks?.results || json.tracks?.items || json.tracks?.results;
+      if (Array.isArray(tracks) && tracks.length > 0) {
+        const cleanT = (title || '').toLowerCase().replace(/[\(\[\{].*?[\)\]\}]/g, '').trim();
+        const best = tracks.find(t => t.title && t.title.toLowerCase().includes(cleanT)) || tracks[0];
+        if (best && (best.id || best.trackId)) {
+          const id = String(best.id || best.trackId);
+          console.log('[DOWNLOADER] Успешно найден trackId через API поиска:', id, best.title);
+          return id;
+        }
+      }
+    }
+  } catch(e) {
+    console.warn('[DOWNLOADER] Ошибка автопоиска ID трека:', e.message);
+  }
+  return null;
+}
+
 // 10. Извлечение метаданных трека из строки DOM
 function extractTrackMetadataFromRow(row) {
   if (!row) return null;
 
-  // Track ID
-  let trackId = row.getAttribute('data-entity-id') || row.getAttribute('data-track-id') || '';
+  // 1. Попытка получить Track ID из React Fiber
+  let trackId = getTrackIdFromFiber(row) || '';
+
+  // 2. Data-атрибуты
   if (!trackId) {
-    const trackLink = row.querySelector('a[href*="/track/"]');
-    if (trackLink) {
-      const match = trackLink.href.match(/\/track\/(\d+)/);
-      if (match) trackId = match[1];
+    trackId = row.getAttribute('data-entity-id') || row.getAttribute('data-track-id') || row.getAttribute('data-id') || '';
+    if (trackId && trackId.includes(':')) trackId = trackId.split(':')[1];
+  }
+
+  // 3. Поиск по всем ссылкам внутри строки
+  if (!trackId) {
+    const allLinks = row.querySelectorAll('a[href]');
+    for (let i = 0; i < allLinks.length; i++) {
+      const href = allLinks[i].getAttribute('href') || allLinks[i].href || '';
+      const m1 = href.match(/\/track\/(\d+)/);
+      if (m1) { trackId = m1[1]; break; }
+      const m2 = href.match(/[?&]track=(\d+)/);
+      if (m2) { trackId = m2[1]; break; }
+      const m3 = href.match(/\/album\/\d+\/(\d+)/);
+      if (m3) { trackId = m3[1]; break; }
     }
   }
+
+  // 4. Поиск по кнопкам или дочерним элементам с атрибутами
   if (!trackId) {
-    const albumLink = row.querySelector('a[href*="/album/"]');
-    if (albumLink) {
-      const match = albumLink.href.match(/\/track\/(\d+)/);
-      if (match) trackId = match[1];
+    const attrEls = row.querySelectorAll('[data-entity-id], [data-track-id], [data-id]');
+    for (let i = 0; i < attrEls.length; i++) {
+      const val = attrEls[i].getAttribute('data-entity-id') || attrEls[i].getAttribute('data-track-id') || attrEls[i].getAttribute('data-id') || '';
+      const pure = val.includes(':') ? val.split(':')[1] : val;
+      if (pure && /^\d+$/.test(pure)) {
+        trackId = pure;
+        break;
+      }
     }
   }
 
@@ -1065,7 +1225,7 @@ function extractTrackMetadataFromRow(row) {
   }
 
   return {
-    trackId: String(trackId),
+    trackId: String(trackId || ''),
     title,
     artist,
     album: '',
@@ -1120,8 +1280,19 @@ function captureActiveContextTrack(e) {
     [class*="ContextMenuWrapper"] button
   `);
   const row = findTrackRowFromElement(contextBtn || target);
-  if (row) {
-    window.__ym_active_context_track = extractTrackMetadataFromRow(row);
+  let meta = row ? extractTrackMetadataFromRow(row) : null;
+  if (!meta && (contextBtn || target)) {
+    const fiberId = getTrackIdFromFiber(contextBtn || target);
+    if (fiberId) {
+      meta = { trackId: fiberId, title: 'Трек', artist: '', album: '', year: '', coverUri: '' };
+    }
+  } else if (meta && !meta.trackId) {
+    const fiberId = getTrackIdFromFiber(contextBtn || target);
+    if (fiberId) meta.trackId = fiberId;
+  }
+
+  if (meta) {
+    window.__ym_active_context_track = meta;
     console.log('[DOWNLOADER] Активный трек для контекстного меню захвачен:', window.__ym_active_context_track);
   }
 }
@@ -1130,8 +1301,13 @@ document.addEventListener('mousedown', captureActiveContextTrack, true);
 document.addEventListener('click', captureActiveContextTrack, true);
 document.addEventListener('contextmenu', (e) => {
   const row = findTrackRowFromElement(e.target);
-  if (row) {
-    window.__ym_active_context_track = extractTrackMetadataFromRow(row);
+  let meta = row ? extractTrackMetadataFromRow(row) : null;
+  if (meta && !meta.trackId) {
+    const fiberId = getTrackIdFromFiber(e.target);
+    if (fiberId) meta.trackId = fiberId;
+  }
+  if (meta) {
+    window.__ym_active_context_track = meta;
   }
 }, true);
 
@@ -1549,34 +1725,77 @@ function renderBatchWidget(title, total) {
     widget = document.createElement('div');
     widget.id = 'ym-batch-download-widget';
     document.body.appendChild(widget);
+
+    // Клик по свернутому кружку раскрывает полную плашку
+    widget.addEventListener('click', (e) => {
+      if (widget.classList.contains('ym-batch-minimized')) {
+        e.stopPropagation();
+        widget.classList.remove('ym-batch-minimized');
+      }
+    });
   }
 
-  // На главной странице (где нет нижней панели плеера) опускаем виджет ближе к нижнему краю
-  const isMainPage = window.location.pathname === '/' || window.location.pathname === '';
-  const hasBottomPlayer = !!document.querySelector('[class*="PlayerBarDesktop_root"], [class*="PlayerBar_root"], [class*="PlayerBarDesktopWithBackgroundProgressBar_player"]');
-  if (isMainPage || !hasBottomPlayer) {
-    widget.classList.add('ym-bottom-low');
-    widget.style.bottom = '24px';
-  } else {
-    widget.classList.remove('ym-bottom-low');
-    widget.style.bottom = '';
-  }
+  // При старте новой очереди открываем плашку в развернутом виде
+  widget.classList.remove('ym-batch-minimized');
+  updateFloatingPositions();
+
+  const safeTitle = (title || 'Загрузка').replace(/"/g, '&quot;');
+  const circ = 2 * Math.PI * 13; // ~81.7
 
   widget.innerHTML = `
-    <div class="ym-batch-header">
-      <div class="ym-batch-title" title="${title}">${title}</div>
-      <div class="ym-batch-count"><span id="ym-batch-current-num">0</span> / ${total}</div>
+    <div class="ym-batch-full-content">
+      <div class="ym-batch-header">
+        <div class="ym-batch-title" title="${safeTitle}">${safeTitle}</div>
+        <div class="ym-batch-header-right">
+          <span class="ym-batch-count"><span id="ym-batch-current-num">0</span> / ${total}</span>
+          <button type="button" class="ym-batch-minimize-btn" id="ym-batch-minimize-btn" title="Спрятать в бок">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="ym-batch-current" id="ym-batch-current-name">Подготовка к скачиванию...</div>
+      <div class="ym-batch-bar-bg">
+        <div class="ym-batch-bar-fill" id="ym-batch-progress-bar" style="width: 0%;"></div>
+      </div>
+      <div class="ym-batch-actions">
+        <button type="button" class="ym-batch-cancel-btn" id="ym-batch-cancel-btn">Отмена</button>
+      </div>
     </div>
-    <div class="ym-batch-current" id="ym-batch-current-name">Подготовка к скачиванию...</div>
-    <div class="ym-batch-bar-bg">
-      <div class="ym-batch-bar-fill" id="ym-batch-progress-bar" style="width: 0%;"></div>
-    </div>
-    <div class="ym-batch-actions">
-      <button type="button" class="ym-batch-cancel-btn" id="ym-batch-cancel-btn">Отмена</button>
+    <div class="ym-batch-mini-content" title="Скачивание: 0% • Нажмите, чтобы открыть">
+      <div class="ym-batch-edge-progress-bar">
+        <div class="ym-batch-edge-progress-fill" id="ym-batch-edge-progress-fill" style="height: 0%;"></div>
+      </div>
+      <div class="ym-batch-edge-arrow" id="ym-batch-edge-arrow">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+      </div>
     </div>
   `;
 
-  document.getElementById('ym-batch-cancel-btn')?.addEventListener('click', () => {
+  // Клик по кнопке сворачивания
+  const minBtn = document.getElementById('ym-batch-minimize-btn');
+  if (minBtn) {
+    minBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      widget.classList.add('ym-batch-minimized');
+    });
+  }
+
+  // Клик по свернутому кружку — плавное разворачивание
+  const miniContent = widget.querySelector('.ym-batch-mini-content');
+  if (miniContent) {
+    miniContent.addEventListener('click', (e) => {
+      e.stopPropagation();
+      widget.classList.remove('ym-batch-minimized');
+    });
+  }
+
+  // Кнопка отмены
+  document.getElementById('ym-batch-cancel-btn')?.addEventListener('click', (e) => {
+    e.stopPropagation();
     if (window.__ym_batch_queue) {
       window.__ym_batch_queue.cancelled = true;
       const statusEl = document.getElementById('ym-batch-current-name');
@@ -1669,7 +1888,7 @@ async function startBatchDownload(title, trackList) {
     try {
       if (isDesktop) {
         // В десктопном приложении сохраняем напрямую через нативный мост без окон
-        await downloadTrack(trk);
+        await downloadTrack({ ...trk, isBatch: true });
       } else {
         // В браузере загружаем трек в буфер памяти
         const downloadInfo = await resolveTrackDownloadInfo(trk);
@@ -1695,6 +1914,15 @@ async function startBatchDownload(title, trackList) {
     const percent = Math.round((processed / totalTracks) * 100);
     if (currentNumEl) currentNumEl.textContent = String(processed);
     if (progressBar) progressBar.style.width = `${percent}%`;
+
+    const edgeFill = document.getElementById('ym-batch-edge-progress-fill');
+    const miniContent = widget?.querySelector('.ym-batch-mini-content');
+    if (edgeFill) {
+      edgeFill.style.height = `${percent}%`;
+    }
+    if (miniContent) {
+      miniContent.setAttribute('title', `Скачивание "${title}": [${processed}/${totalTracks}] ${percent}% • Нажмите, чтобы открыть`);
+    }
 
     // Если набрался том BATCH_ZIP_CHUNK_SIZE или это последний трек списка
     const isChunkFull = zipFiles.length >= BATCH_ZIP_CHUNK_SIZE;
@@ -1732,6 +1960,12 @@ async function startBatchDownload(title, trackList) {
   if (currentNameEl) {
     currentNameEl.textContent = `${finishedState}: Скачано ${window.__ym_batch_queue.completed}, ошибок: ${window.__ym_batch_queue.failed}`;
   }
+  const arrowEl = document.getElementById('ym-batch-edge-arrow');
+  if (arrowEl) {
+    arrowEl.innerHTML = window.__ym_batch_queue.cancelled 
+      ? '<span style="color:#ff4d4d;font-size:12px;">✕</span>' 
+      : '<span style="color:#4dff88;font-size:12px;">✓</span>';
+  }
   const finishToast = totalChunks > 1
     ? `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ${currentChunkIndex} томах ZIP`
     : `Скачивание "${title}" завершено! Сохранено: ${window.__ym_batch_queue.completed} треков в ZIP`;
@@ -1746,107 +1980,227 @@ async function startBatchDownload(title, trackList) {
 }
 window.startBatchDownload = startBatchDownload;
 
+// Извлечение информации об альбоме или плейлисте из React Fiber
+function getEntityContextFromFiber(element) {
+  if (!element) return null;
+  let curr = element;
+  while (curr && curr !== document.body && curr !== document.documentElement) {
+    for (const key in curr) {
+      if (key.startsWith('__reactFiber$') || key.startsWith('__reactInternalInstance$')) {
+        let fiber = curr[key];
+        let depth = 0;
+        while (fiber && depth < 35) {
+          const props = fiber.memoizedProps || fiber.pendingProps;
+          if (props) {
+            // Проверяем UUID плейлиста (например, lk.61802d7d-047a-40be-85aa-40da7be0d286 или обычный UUID)
+            const playlistUuid = props.playlistUuid ||
+                                 props.playlist?.playlistUuid ||
+                                 props.playlist?.uuid ||
+                                 props.entity?.playlistUuid ||
+                                 props.entity?.uuid ||
+                                 props.uuid ||
+                                 (typeof props.playlistId === 'string' && (props.playlistId.includes('-') || props.playlistId.startsWith('lk.') || props.playlistId.startsWith('p.')) ? props.playlistId : null) ||
+                                 (typeof props.playlist?.id === 'string' && (props.playlist.id.includes('-') || props.playlist.id.startsWith('lk.') || props.playlist.id.startsWith('p.')) ? props.playlist.id : null);
+
+            const uid = props.playlist?.owner?.uid || props.playlist?.uid || props.uid || (props.playlist?.owner && /^\d+$/.test(String(props.playlist.owner)) ? props.playlist.owner : null);
+            const kind = props.playlist?.kind || props.kind || props.playlistId;
+
+            if (playlistUuid) {
+              return {
+                type: 'playlist',
+                uuid: String(playlistUuid),
+                kind: kind ? String(kind) : null,
+                uid: uid ? String(uid) : null
+              };
+            }
+
+            // Проверяем объект плейлиста
+            const playlist = props.playlist || (props.entity?.type === 'playlist' ? props.entity : null);
+            if (playlist) {
+              const pKind = playlist.kind || playlist.playlistId || playlist.id;
+              const pUid = playlist.owner?.uid || playlist.uid;
+              const pLogin = playlist.owner?.login;
+              const pUuid = playlist.playlistUuid || playlist.uuid;
+              return {
+                type: 'playlist',
+                uuid: pUuid ? String(pUuid) : null,
+                kind: pKind ? String(pKind) : null,
+                uid: pUid ? String(pUid) : null,
+                login: pLogin ? String(pLogin) : null
+              };
+            }
+
+            // Проверяем свойства альбома
+            const albumId = props.albumId || props.album?.id || props.album?.albumId || (props.entity?.type === 'album' ? props.entity?.id : null);
+            if (albumId) return { type: 'album', id: String(albumId) };
+          }
+          fiber = fiber.return;
+          depth++;
+        }
+      }
+      if (key.startsWith('__reactProps$')) {
+        const props = curr[key];
+        if (props) {
+          const playlistUuid = props.playlistUuid || props.playlist?.playlistUuid || props.playlist?.uuid || props.uuid;
+          if (playlistUuid) return { type: 'playlist', uuid: String(playlistUuid) };
+          if (props.playlist) {
+            return {
+              type: 'playlist',
+              uuid: props.playlist.playlistUuid ? String(props.playlist.playlistUuid) : null,
+              kind: props.playlist.kind ? String(props.playlist.kind) : null,
+              uid: props.playlist.owner?.uid ? String(props.playlist.owner.uid) : null
+            };
+          }
+          const albumId = props.albumId || props.album?.id || props.album?.albumId;
+          if (albumId) return { type: 'album', id: String(albumId) };
+        }
+      }
+    }
+    curr = curr.parentElement;
+  }
+  return null;
+}
+
+// Получение числового UID текущего пользователя для API запросов
+async function getUserNumericUid(container, headers) {
+  // 1. Из ссылки на обложку плейлиста: https://avatars.yandex.net/get-music-user-playlist/11418140/...
+  const coverImg = container?.querySelector('img[src*="/get-music-user-playlist/"], img[srcset*="/get-music-user-playlist/"]') ||
+                   document.querySelector('img[src*="/get-music-user-playlist/"], img[srcset*="/get-music-user-playlist/"]');
+  if (coverImg) {
+    const src = coverImg.src || coverImg.srcset || '';
+    const m = src.match(/\/get-music-user-playlist\/(\d+)\//);
+    if (m && m[1]) return m[1];
+  }
+
+  // 2. Из React Fiber контейнера
+  const fiberInfo = getEntityContextFromFiber(container);
+  if (fiberInfo?.uid && /^\d+$/.test(String(fiberInfo.uid))) {
+    return String(fiberInfo.uid);
+  }
+
+  // 3. Из глобальных объектов (window.Mu, activePlayer, cookies)
+  if (typeof window !== 'undefined') {
+    if (window.Mu?.adapter?.uid && /^\d+$/.test(String(window.Mu.adapter.uid))) {
+      return String(window.Mu.adapter.uid);
+    }
+    const activePlayer = window.getActivePlayer && window.getActivePlayer();
+    const pUid = activePlayer?.uid || activePlayer?.user?.uid;
+    if (pUid && /^\d+$/.test(String(pUid))) return String(pUid);
+
+    if (window.__INITIAL_STATE__?.passport?.user?.uid && /^\d+$/.test(String(window.__INITIAL_STATE__.passport.user.uid))) {
+      return String(window.__INITIAL_STATE__.passport.user.uid);
+    }
+    if (window.__INITIAL_STATE__?.user?.uid && /^\d+$/.test(String(window.__INITIAL_STATE__.user.uid))) {
+      return String(window.__INITIAL_STATE__.user.uid);
+    }
+    if (window.passport?.user?.uid && /^\d+$/.test(String(window.passport.user.uid))) {
+      return String(window.passport.user.uid);
+    }
+
+    if (document.cookie) {
+      const match = document.cookie.match(/Session_id=[\w\.\:\-\|]+?(\d+)\./) || document.cookie.match(/L=[\w\.\:\-\|]+?\.(\d+)\./);
+      if (match && match[1]) return match[1];
+    }
+  }
+
+  // 4. Запрос к API /account/status
+  try {
+    const statusRes = await fetch('https://api.music.yandex.net/account/status', { headers, credentials: 'include' });
+    if (statusRes.ok) {
+      const statusJson = await statusRes.json();
+      const apiUid = statusJson.result?.account?.uid || statusJson.result?.uid;
+      if (apiUid && /^\d+$/.test(String(apiUid))) return String(apiUid);
+    }
+  } catch(e) {}
+
+  return null;
+}
+
+// Формирование полного названия трека с учетом версии (как в yandex-music-downloader)
+function formatFullTrackTitle(item) {
+  if (!item) return 'Трек';
+  const title = item.title || item.name || 'Трек';
+  const version = item.version ? item.version.trim() : '';
+  if (version) {
+    return `${title} (${version})`;
+  }
+  return title;
+}
+
 // Получение списка треков плейлиста или альбома через API с фоллбэком на DOM
 async function fetchTracksForHeaderContext(contextHref, container) {
   let tracks = [];
+  const fullUrl = `${contextHref || ''} ${window.location.pathname || ''} ${window.location.href || ''} ${window.location.hash || ''}`;
 
   // 1. Попытка получить через API Яндекс Музыки
   try {
     const headers = getApiHeaders();
 
-    // Проверяем /playlists/{uuid}
-    const playlistMatch = (contextHref || window.location.pathname).match(/\/playlists\/([a-zA-Z0-9_\-\.]+)/);
+    // 1.1. Проверяем /playlists/{uuid} (например, lk.61802d7d-047a-40be-85aa-40da7be0d286 или обычный UUID)
+    let playlistUuid = null;
+    const playlistMatch = fullUrl.match(/\/playlists\/([a-zA-Z0-9_\-\.]+)/);
     if (playlistMatch) {
-      const playlistId = playlistMatch[1];
-      const res = await fetch(`https://api.music.yandex.net/playlist/${playlistId}?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
+      playlistUuid = playlistMatch[1];
+    } else {
+      const playlistLink = container?.querySelector('a[href*="/playlists/"]');
+      if (playlistLink) {
+        const m = (playlistLink.getAttribute('href') || '').match(/\/playlists\/([a-zA-Z0-9_\-\.]+)/);
+        if (m) playlistUuid = m[1];
+      }
+      if (!playlistUuid) {
+        const fiberCtx = getEntityContextFromFiber(container);
+        if (fiberCtx?.uuid) {
+          playlistUuid = fiberCtx.uuid;
+        }
+      }
+    }
+
+    if (playlistUuid) {
+      console.log('[DOWNLOADER] Запрос треков плейлиста по UUID:', playlistUuid);
+      const res = await fetch(`https://api.music.yandex.net/playlist/${playlistUuid}?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
       if (res.ok) {
         const json = await res.json();
-        const rawTracks = json.tracks || json.result?.tracks;
+        const rawTracks = json.result?.tracks || json.result?.playlist?.tracks || json.tracks || json.playlist?.tracks;
         if (Array.isArray(rawTracks)) {
-          tracks = rawTracks.map(t => ({
-            trackId: String(t.id || t.trackId || ''),
-            title: t.title || 'Трек',
-            artist: Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artist || ''),
-            album: t.albums?.[0]?.title || '',
-            coverUri: t.ogImage || t.coverUri || ''
-          })).filter(t => !!t.trackId);
+          tracks = rawTracks.map(t => {
+            const item = t.track || t;
+            return {
+              trackId: String(item.id || item.trackId || ''),
+              title: formatFullTrackTitle(item),
+              artist: Array.isArray(item.artists) ? item.artists.map(a => a.name).join(', ') : (item.artist || ''),
+              album: item.albums?.[0]?.title || '',
+              coverUri: item.ogImage || item.coverUri || ''
+            };
+          }).filter(t => !!t.trackId);
         }
       }
     }
 
-    // Проверяем /users/{user}/playlists/{kind}
+    // 1.2. Проверяем "Мне нравится" (Likes / Favorites): /collection, /likes, или заголовок "Мне нравится"
     if (tracks.length === 0) {
-      const currentPath = (contextHref || window.location.pathname || '');
-      const userPlaylistMatch = currentPath.match(/\/users\/([^/]+)\/playlists\/(\d+)/);
-      if (userPlaylistMatch) {
-        const user = userPlaylistMatch[1];
-        const kind = userPlaylistMatch[2];
-        const res = await fetch(`https://api.music.yandex.net/users/${user}/playlists/${kind}?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
-        if (res.ok) {
-          const json = await res.json();
-          const rawTracks = json.result?.tracks || json.tracks;
-          if (Array.isArray(rawTracks)) {
-            tracks = rawTracks.map(t => {
-              const item = t.track || t;
-              return {
-                trackId: String(item.id || item.trackId || ''),
-                title: item.title || 'Трек',
-                artist: Array.isArray(item.artists) ? item.artists.map(a => a.name).join(', ') : (item.artist || ''),
-                album: item.albums?.[0]?.title || '',
-                coverUri: item.ogImage || item.coverUri || ''
-              };
-            }).filter(t => !!t.trackId);
-          }
-        }
-      }
-    }
-
-    // Проверяем "Мне нравится" (Likes / Favorites): /collection, /likes, или заголовок "Мне нравится"
-    if (tracks.length === 0) {
-      const currentPath = (contextHref || window.location.pathname || '');
+      const titleEl = container?.querySelector('[data-test-id="ENTITY_TITLE"], h1, h2, [class*="PageHeaderTitle_title"], [class*="heading"], [class*="title"]');
       const titleText = ((container ? container.textContent : '') + ' ' + (titleEl ? titleEl.textContent : '')).toLowerCase();
-      const isLikes = currentPath.includes('/collection') || 
-                      currentPath.includes('/likes') || 
+      const isLikes = fullUrl.includes('/collection') || 
+                      fullUrl.includes('/likes') || 
                       titleText.includes('мне нравится') ||
                       titleText.includes('любимые треки');
       
       if (isLikes) {
-        let username = '';
-        const userMeta = container?.querySelector('[class*="PlaylistMeta_updatedText"], [class*="meta"] [title]');
-        if (userMeta && userMeta.getAttribute('title')) {
-          username = userMeta.getAttribute('title').trim();
-        }
-        if (!username) {
-          const m = currentPath.match(/\/users\/([^/]+)/);
-          if (m) username = m[1];
-        }
-        if (!username && typeof window !== 'undefined') {
-          username = window.__INITIAL_STATE__?.passport?.user?.login ||
-                     window.__INITIAL_STATE__?.user?.login ||
-                     window.passport?.user?.login;
-        }
-        if (!username) {
-          try {
-            const statusRes = await fetch('https://api.music.yandex.net/account/status', { headers, credentials: 'include' });
-            if (statusRes.ok) {
-              const statusJson = await statusRes.json();
-              username = statusJson.result?.account?.login || statusJson.result?.account?.uid;
-            }
-          } catch(e) {}
-        }
+        const uid = await getUserNumericUid(container, headers);
+        console.log('[DOWNLOADER] Определен числовой UID для «Мне нравится»:', uid);
 
-        if (username) {
+        if (uid) {
           // В API Яндекс Музыки плейлист "Мне нравится" имеет kind = 3
-          const likesRes = await fetch(`https://api.music.yandex.net/users/${username}/playlists/3?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
+          const likesRes = await fetch(`https://api.music.yandex.net/users/${uid}/playlists/3?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
           if (likesRes.ok) {
             const json = await likesRes.json();
-            const rawTracks = json.result?.tracks || json.tracks;
+            const rawTracks = json.result?.tracks || json.result?.playlist?.tracks || json.tracks;
             if (Array.isArray(rawTracks)) {
               tracks = rawTracks.map(t => {
                 const item = t.track || t;
                 return {
                   trackId: String(item.id || item.trackId || ''),
-                  title: item.title || 'Трек',
+                  title: formatFullTrackTitle(item),
                   artist: Array.isArray(item.artists) ? item.artists.map(a => a.name).join(', ') : (item.artist || ''),
                   album: item.albums?.[0]?.title || '',
                   coverUri: item.ogImage || item.coverUri || ''
@@ -1858,12 +2212,72 @@ async function fetchTracksForHeaderContext(contextHref, container) {
       }
     }
 
-    // Проверяем /album/{albumId}
+    // 1.3. Проверяем /users/{user}/playlists/{kind}
     if (tracks.length === 0) {
-      const currentPath = (contextHref || window.location.pathname || '');
-      const albumMatch = currentPath.match(/\/album\/(\d+)/);
+      let user = null;
+      let kind = null;
+      const userPlaylistMatch = fullUrl.match(/\/users\/([^/]+)\/playlists\/(\d+)/);
+      if (userPlaylistMatch) {
+        user = userPlaylistMatch[1];
+        kind = userPlaylistMatch[2];
+      } else {
+        const fiberCtx = getEntityContextFromFiber(container);
+        if (fiberCtx?.type === 'playlist' && fiberCtx.kind) {
+          kind = fiberCtx.kind;
+          user = fiberCtx.uid;
+        }
+      }
+
+      // Если user - это текстовый логин, а не числовой UID, пытаемся получить числовой UID
+      if (user && !/^\d+$/.test(user)) {
+        const numericUid = await getUserNumericUid(container, headers);
+        if (numericUid) user = numericUid;
+      }
+
+      if (user && kind && /^\d+$/.test(user)) {
+        console.log(`[DOWNLOADER] Запрос плейлиста пользователя UID=${user}, kind=${kind}`);
+        const res = await fetch(`https://api.music.yandex.net/users/${user}/playlists/${kind}?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
+        if (res.ok) {
+          const json = await res.json();
+          const rawTracks = json.result?.tracks || json.result?.playlist?.tracks || json.tracks;
+          if (Array.isArray(rawTracks)) {
+            tracks = rawTracks.map(t => {
+              const item = t.track || t;
+              return {
+                trackId: String(item.id || item.trackId || ''),
+                title: formatFullTrackTitle(item),
+                artist: Array.isArray(item.artists) ? item.artists.map(a => a.name).join(', ') : (item.artist || ''),
+                album: item.albums?.[0]?.title || '',
+                coverUri: item.ogImage || item.coverUri || ''
+              };
+            }).filter(t => !!t.trackId);
+          }
+        }
+      }
+    }
+
+    // 1.4. Проверяем /album/{albumId}
+    if (tracks.length === 0) {
+      let albumId = null;
+      const albumMatch = fullUrl.match(/\/album\/(\d+)/);
       if (albumMatch) {
-        const albumId = albumMatch[1];
+        albumId = albumMatch[1];
+      } else {
+        const albumLink = container?.querySelector('a[href*="/album/"]') || document.querySelector('[data-test-id="ENTITY_HEADER"] a[href*="/album/"]');
+        if (albumLink) {
+          const m = (albumLink.getAttribute('href') || '').match(/\/album\/(\d+)/);
+          if (m) albumId = m[1];
+        }
+        if (!albumId) {
+          const fiberCtx = getEntityContextFromFiber(container);
+          if (fiberCtx?.type === 'album') {
+            albumId = fiberCtx.id;
+          }
+        }
+      }
+
+      if (albumId) {
+        console.log('[DOWNLOADER] Запрос треков альбома ID:', albumId);
         const res = await fetch(`https://api.music.yandex.net/albums/${albumId}/with-tracks?resumeStream=false&richTracks=true`, { headers, credentials: 'include' });
         if (res.ok) {
           const json = await res.json();
@@ -1872,10 +2286,10 @@ async function fetchTracksForHeaderContext(contextHref, container) {
             const rawTracks = volumes.flat();
             tracks = rawTracks.map(t => ({
               trackId: String(t.id || ''),
-              title: t.title || 'Трек',
+              title: formatFullTrackTitle(t),
               artist: Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : (t.artist || ''),
-              album: t.albums?.[0]?.title || '',
-              coverUri: t.ogImage || t.coverUri || ''
+              album: t.albums?.[0]?.title || json.result?.title || json.title || '',
+              coverUri: t.ogImage || t.coverUri || json.result?.ogImage || json.result?.coverUri || ''
             })).filter(t => !!t.trackId);
           }
         }
@@ -1887,8 +2301,8 @@ async function fetchTracksForHeaderContext(contextHref, container) {
 
   // 2. Фоллбэк: сбор всех отрендеренных строк треков из текущего блока или страницы
   if (tracks.length === 0) {
-    const searchRoot = container ? (container.closest('section') || container.closest('[class*="PlaylistPage"]') || container.closest('[class*="collection"]') || container.parentNode || document) : document;
-    const rows = searchRoot.querySelectorAll('[class*="CommonTrack_root"], [data-entity-id], [class*="Track_root"]');
+    const searchRoot = container ? (container.closest('section') || container.closest('[class*="PlaylistPage"]') || container.closest('[class*="AlbumPage"]') || container.closest('[class*="collection"]') || container.parentNode || document) : document;
+    const rows = searchRoot.querySelectorAll('[class*="CommonTrack_root"], [data-entity-id], [class*="Track_root"], [data-test-id="TRACK_ROW"]');
     const seen = new Set();
     for (let i = 0; i < rows.length; i++) {
       const meta = extractTrackMetadataFromRow(rows[i]);
@@ -1904,35 +2318,69 @@ async function fetchTracksForHeaderContext(contextHref, container) {
 
 // Проверка, подходит ли данный заголовок для кнопки "Скачать в ZIP"
 function isEligiblePlaylistHeader(header) {
-  const path = window.location.pathname;
+  if (!header) return false;
+
+  const path = window.location.pathname || '';
+  const href = window.location.href || '';
+  const hash = window.location.hash || '';
+  const fullUrl = `${path} ${href} ${hash}`;
+
+  const headerText = (header.textContent || '').toLowerCase();
+
+  // Исключаем карусели рекомендаций и вторичные блоки ("Похожие альбомы", "Другие версии" и т.д.)
+  if (headerText.includes('похожие') || headerText.includes('другие версии') || headerText.includes('рекомендации')) {
+    return false;
+  }
+  if (header.matches('[class*="BlockHeader_root"]') && !header.closest('[data-test-id="ENTITY_HEADER"], [class*="PageHeaderBase_root"], [class*="AlbumPageHeader"], [class*="PlaylistPageHeader"]')) {
+    return false;
+  }
+
+  const entityNameEl = header.querySelector('[data-test-id="ENTITY_NAME"], [class*="PageHeaderBase_entityName"], [class*="entityName"]');
+  const entityName = (entityNameEl ? entityNameEl.textContent : '').trim().toLowerCase();
 
   // 1. На странице /collection (Коллекция):
   // Кнопка ДОЛЖНА быть ТОЛЬКО у блока "Мне нравится" (Любимые треки),
   // и НЕ должна быть у списков "Любимые альбомы", "Подкасты и книги", "Детям", "Любимые исполнители" и т.д.
-  if (path === '/collection' || path.startsWith('/collection/')) {
-    const text = (header.textContent || '').toLowerCase();
-    return text.includes('мне нравится') || text.includes('любимые треки') || text.includes('понравилось');
+  const isCollection = path === '/collection' || path.startsWith('/collection/') || fullUrl.includes('/collection');
+  if (isCollection) {
+    return headerText.includes('мне нравится') || headerText.includes('любимые треки') || headerText.includes('понравилось');
   }
 
-  // 2. На странице конкретного альбома (/album/123)
-  if (/\/album\/\d+/.test(path)) {
-    const text = (header.textContent || '').toLowerCase();
-    if (text.includes('похожие') || text.includes('другие') || text.includes('рекомендации')) {
-      return false;
-    }
-    if (header.matches('[class*="BlockHeader_root"]') && !header.closest('[class*="AlbumPageHeader"]')) {
+  // 2. На странице альбома (по классу CommonAlbumPage, URL или ENTITY_NAME)
+  const isAlbum = /\/album\/\d+/.test(fullUrl) ||
+                  entityName.includes('альбом') ||
+                  entityName.includes('album') ||
+                  entityName.includes('сингл') ||
+                  entityName.includes('single') ||
+                  entityName.includes('ep') ||
+                  entityName.includes('сборник') ||
+                  header.matches('[class*="CommonAlbumPage"], [class*="AlbumPageHeader"], [class*="PageHeaderAlbum"]') ||
+                  !!header.closest('[class*="CommonAlbumPage"], [class*="AlbumPage"]') ||
+                  !!header.querySelector('[class*="PageHeaderAlbum_"], [class*="AlbumPageHeader_"]');
+
+  if (isAlbum) {
+    if (header.matches('[class*="BlockHeader_root"]') &&
+        !header.closest('[data-test-id="ENTITY_HEADER"], [class*="CommonAlbumPage"], [class*="AlbumPage"], [class*="PageHeaderBase_root"]')) {
       return false;
     }
     return true;
   }
 
   // 3. На странице конкретного плейлиста (/playlists/... или /users/.../playlists/...)
-  if (/\/playlists\/|\/users\/[^/]+\/playlists\//.test(path)) {
-    const text = (header.textContent || '').toLowerCase();
-    if (text.includes('похожие') || text.includes('рекомендации')) {
-      return false;
-    }
-    if (header.matches('[class*="BlockHeader_root"]') && !header.closest('[class*="PlaylistPageHeader"]')) {
+  const isPlaylist = /\/playlists\/|\/users\/[^/]+\/playlists\//.test(fullUrl) ||
+                     entityName.includes('плейлист') ||
+                     entityName.includes('playlist') ||
+                     header.matches('[class*="PlaylistPageHeader"], [class*="PageHeaderPlaylist"]') ||
+                     !!header.closest('[class*="CommonPlaylistPage"], [class*="PlaylistPage"]') ||
+                     !!header.querySelector('[class*="PageHeaderPlaylist_"], [class*="PlaylistPageHeader_"]');
+
+  if (isPlaylist) {
+    return true;
+  }
+
+  // 4. Универсальный ENTITY_HEADER (если data-test-id="ENTITY_HEADER" или PageHeaderBase_root)
+  if (header.matches('[data-test-id="ENTITY_HEADER"], [class*="PageHeaderBase_root"]')) {
+    if (entityName.includes('исполнитель') || entityName.includes('artist')) {
       return false;
     }
     return true;
@@ -1955,7 +2403,7 @@ function syncPlaylistButtonHeight(btn, header) {
     // Настоящая кнопка управления имеет высоту от 32px до 60px (отсекает обложки 180px+)
     if (r.height >= 32 && r.height <= 60) {
       const label = (b.getAttribute('aria-label') || b.textContent || '').toLowerCase();
-      if (label.includes('слушать') || label.includes('play')) {
+      if (label.includes('слушать') || label.includes('play') || b.getAttribute('data-test-id') === 'PLAY_BUTTON') {
         siblingBtn = b;
         break; // Приоритет главной кнопке "Слушать"
       }
@@ -2001,60 +2449,61 @@ function syncPlaylistButtonHeight(btn, header) {
 
 // 13. Инжекция кнопки "Скачать в ZIP" в заголовки плейлистов и альбомов
 function injectPlaylistHeaderDownloadButton() {
-  if (!window.__ym_header_dl_resize_bound) {
-    window.__ym_header_dl_resize_bound = true;
-    window.addEventListener('resize', () => {
-      const btns = document.querySelectorAll('.ym-playlist-download-btn');
-      for (let i = 0; i < btns.length; i++) {
-        const b = btns[i];
-        const h = b.closest(`
-          [class*="PageHeaderBase_root"],
-          [class*="PlaylistPageHeader_header"],
-          [class*="AlbumPageHeader_header"],
-          [class*="BlockHeader_root"],
-          [class*="PlaylistPage_header"],
-          [class*="AlbumPage_header"],
-          [class*="PageHeader_root"],
-          [class*="CommonHeader_root"],
-          [class*="CommonPageHeader_root"]
-        `) || b.parentElement;
-        if (h) syncPlaylistButtonHeight(b, h);
-      }
-    });
-  }
-
-  // Удаляем кнопку "Скачать в ZIP" из неподходящих блоков/каруселей (например, "Любимые альбомы", "Подкасты", "Детям" на /collection)
-  const allExistingBtns = document.querySelectorAll('.ym-playlist-download-btn');
-  for (let i = 0; i < allExistingBtns.length; i++) {
-    const b = allExistingBtns[i];
-    const h = b.closest(`
-      [class*="PageHeaderBase_root"],
-      [class*="PlaylistPageHeader_header"],
-      [class*="AlbumPageHeader_header"],
-      [class*="BlockHeader_root"],
-      [class*="PlaylistPage_header"],
-      [class*="AlbumPage_header"],
-      [class*="PageHeader_root"],
-      [class*="CommonHeader_root"],
-      [class*="CommonPageHeader_root"]
-    `) || b.parentElement;
-    if (!h || !isEligiblePlaylistHeader(h)) {
-      b.remove();
-    }
-  }
-
-  const headers = document.querySelectorAll(`
+  const headerSelectors = `
+    [data-test-id="ENTITY_HEADER"],
+    [class*="CommonAlbumPage"] [class*="PageHeaderBase_root"],
+    [class*="CommonPlaylistPage"] [class*="PageHeaderBase_root"],
     [class*="PageHeaderBase_root"],
     [class*="PlaylistPageHeader_header"],
     [class*="AlbumPageHeader_header"],
+    [class*="PageHeaderAlbum_header"],
+    [class*="PageHeaderPlaylist_header"],
     [class*="BlockHeader_root"],
     [class*="PlaylistPage_header"],
     [class*="AlbumPage_header"],
     [class*="PageHeader_root"],
     [class*="CommonHeader_root"],
     [class*="CommonPageHeader_root"]
-  `);
-  if (!headers || headers.length === 0) return;
+  `;
+
+  if (!window.__ym_header_dl_resize_bound) {
+    window.__ym_header_dl_resize_bound = true;
+    window.addEventListener('resize', () => {
+      const btns = document.querySelectorAll('.ym-playlist-download-btn');
+      for (let i = 0; i < btns.length; i++) {
+        const b = btns[i];
+        const h = b.closest(headerSelectors) || b.parentElement;
+        if (h) syncPlaylistButtonHeight(b, h);
+      }
+    });
+  }
+
+  // Удаляем кнопку "Скачать в ZIP" из неподходящих блоков/каруселей
+  const allExistingBtns = document.querySelectorAll('.ym-playlist-download-btn');
+  for (let i = 0; i < allExistingBtns.length; i++) {
+    const b = allExistingBtns[i];
+    const h = b.closest(headerSelectors) || b.parentElement;
+    if (!h || !isEligiblePlaylistHeader(h)) {
+      b.remove();
+    }
+  }
+
+  const rawHeaders = document.querySelectorAll(headerSelectors);
+  if (!rawHeaders || rawHeaders.length === 0) return;
+
+  // Фильтруем вложенные заголовки, если уже найден родительский ENTITY_HEADER
+  const headers = [];
+  for (let i = 0; i < rawHeaders.length; i++) {
+    const el = rawHeaders[i];
+    let isNested = false;
+    for (let j = 0; j < rawHeaders.length; j++) {
+      if (i !== j && rawHeaders[j].contains(el)) {
+        isNested = true;
+        break;
+      }
+    }
+    if (!isNested) headers.push(el);
+  }
 
   for (let i = 0; i < headers.length; i++) {
     const header = headers[i];
@@ -2070,14 +2519,27 @@ function injectPlaylistHeaderDownloadButton() {
     }
 
     const titleLink = header.querySelector('a[href*="/playlists/"], a[href*="/album/"], a[href*="/users/"], [class*="BlockHeader_title"] a, [class*="titleContainer"] a');
-    const titleEl = header.querySelector('h1, h2, [class*="PageHeaderTitle_title"], [class*="heading"], [class*="title"]');
-    const titleText = (titleLink ? titleLink.textContent : titleEl?.textContent || 'Плейлист').trim();
+    const titleEl = header.querySelector('[data-test-id="ENTITY_TITLE"], [class*="PageHeaderTitle_title"], [class*="PageHeaderTitle_heading"], h1, h2, [class*="heading"], [class*="title"]');
+    const entityNameEl = header.querySelector('[data-test-id="ENTITY_NAME"], [class*="PageHeaderBase_entityName"], [class*="entityName"]');
+    const fullUrl = `${window.location.pathname || ''} ${window.location.href || ''} ${window.location.hash || ''}`;
+    const entityNameText = (entityNameEl?.textContent || '').toLowerCase();
+    const isAlbumContext = /\/album\/\d+/.test(fullUrl) ||
+                           entityNameText.includes('альбом') ||
+                           entityNameText.includes('album') ||
+                           entityNameText.includes('сингл') ||
+                           entityNameText.includes('single') ||
+                           entityNameText.includes('ep') ||
+                           entityNameText.includes('сборник') ||
+                           header.matches('[class*="AlbumPageHeader"], [class*="PageHeaderAlbum"]') ||
+                           header.closest('[class*="CommonAlbumPage"], [class*="AlbumPage"]') !== null;
+    const defaultLabel = isAlbumContext ? 'Альбом' : 'Плейлист';
+    const titleText = (titleLink ? titleLink.textContent : titleEl?.textContent || defaultLabel).trim();
 
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'ym-playlist-download-btn';
-    btn.setAttribute('aria-label', `Скачать плейлист "${titleText}" в ZIP-архиве`);
-    btn.setAttribute('title', `Скачать все треки в одном ZIP-архиве ("${titleText}")`);
+    btn.setAttribute('aria-label', isAlbumContext ? `Скачать альбом "${titleText}" в ZIP-архиве` : `Скачать плейлист "${titleText}" в ZIP-архиве`);
+    btn.setAttribute('title', isAlbumContext ? `Скачать все треки альбома "${titleText}" в ZIP` : `Скачать все треки плейлиста "${titleText}" в ZIP`);
     btn.style.whiteSpace = 'nowrap';
     btn.style.flexShrink = '0';
     btn.style.width = 'auto';
@@ -2095,7 +2557,7 @@ function injectPlaylistHeaderDownloadButton() {
       e.stopPropagation();
       e.preventDefault();
 
-      const contextHref = titleLink ? titleLink.getAttribute('href') : window.location.pathname;
+      const contextHref = titleLink ? titleLink.getAttribute('href') : (window.location.pathname || window.location.href);
       btn.style.opacity = '0.7';
       btn.style.pointerEvents = 'none';
 
@@ -2103,7 +2565,7 @@ function injectPlaylistHeaderDownloadButton() {
       try {
         const tracks = await fetchTracksForHeaderContext(contextHref, header);
         if (tracks.length === 0) {
-          showDownloadToast('Не удалось загрузить список треков этого альбома или плейлиста', 'error');
+          showDownloadToast(`Не удалось загрузить список треков этого ${isAlbumContext ? 'альбома' : 'плейлиста'}`, 'error');
           return;
         }
         startBatchDownload(titleText, tracks);
@@ -2115,34 +2577,61 @@ function injectPlaylistHeaderDownloadButton() {
       }
     });
 
-    // Синхронизируем высоту с соседней кнопкой Яндекса (например, "Слушать" 48px/40px)
-    syncPlaylistButtonHeight(btn, header);
-
-    const controlsContainer = header.querySelector(`
-      [class*="PageHeaderPlaylist_mainControls"],
-      [class*="CommonPageHeader_controls__"],
-      [class*="PageHeaderPlaylist_controls__"],
-      [class*="controlsContainer"] > [class*="controls__"],
-      [class*="controlsContainer"],
-      [class*="ControlsBar"],
-      [class*="Header_controls"],
-      [class*="PageHeader_controls"],
-      [class*="PageHeaderBase_controls"]
+    // Ищем кнопку "Слушать" и целевой контейнер кнопок
+    const playBtn = header.querySelector(`
+      [data-test-id="PLAY_BUTTON"],
+      button[class*="playControl"],
+      button[aria-label*="Воспроизведение"],
+      button[aria-label*="Слушать"],
+      button[aria-label*="Play"]
     `);
+
+    let controlsContainer = playBtn ? playBtn.parentElement : null;
+
+    if (!controlsContainer) {
+      controlsContainer = header.querySelector(`
+        [data-test-id="BASE_PAGE_HEADER_CONTROLS"] [class*="mainControls"],
+        [class*="PageHeaderPlaylist_mainControls"],
+        [class*="PageHeaderAlbum_mainControls"],
+        [class*="AlbumPageHeader_mainControls"],
+        [class*="PlaylistPageHeader_mainControls"],
+        [class*="mainControls"],
+        [class*="PageHeaderPlaylist_controls__"],
+        [class*="PageHeaderAlbum_controls__"],
+        [class*="CommonPageHeader_controls__"],
+        [data-test-id="BASE_PAGE_HEADER_CONTROLS"],
+        [class*="controlsContainer"] > [class*="controls__"],
+        [class*="controlsContainer"],
+        [class*="ControlsBar"],
+        [class*="Header_controls"],
+        [class*="PageHeader_controls"],
+        [class*="PageHeaderBase_controls"]
+      `);
+    }
+
     const titleContainer = header.querySelector('[class*="BlockHeader_start"], [class*="titleContainer"], [class*="BlockHeader_titleContainer"]');
 
     if (controlsContainer) {
-      controlsContainer.insertBefore(btn, controlsContainer.firstChild);
+      if (playBtn && playBtn.parentElement === controlsContainer) {
+        // Вставляем аккуратно сразу рядом с кнопкой "Слушать"
+        controlsContainer.insertBefore(btn, playBtn.nextSibling);
+      } else {
+        controlsContainer.insertBefore(btn, controlsContainer.firstChild);
+      }
     } else if (titleContainer) {
       titleContainer.appendChild(btn);
     } else {
       header.appendChild(btn);
     }
+
+    // Синхронизируем высоту с соседней кнопкой Яндекса (например, "Слушать" 44px/48px)
+    syncPlaylistButtonHeight(btn, header);
   }
 }
 
 // 14. Цикл инжекции элементов интерфейса
 function runDownloaderInjectors() {
+  updateFloatingPositions();
   injectPlayerDownloadButton();
   injectTrackRowDownloadButtons();
   injectPlaylistHeaderDownloadButton();

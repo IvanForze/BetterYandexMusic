@@ -57,6 +57,7 @@ function buildElectron() {
     'shared/custom-audio.js',
     'shared/player-faker.js',
     'shared/soundcloud-search.js',
+    'shared/release-notes.js',
     'page/index.js'
   ];
 
@@ -163,6 +164,7 @@ function buildExtension() {
     'shared/player-faker.js',
     'shared/soundcloud-search.js',
     'shared/track-downloader.js',
+    'shared/release-notes.js',
     'main/index.js'
   ];
 

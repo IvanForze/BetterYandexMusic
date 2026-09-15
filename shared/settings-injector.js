@@ -126,7 +126,13 @@ function checkAndInjectSettings() {
 
   block.innerHTML = `
     <!-- Заголовок секции BetterYandexMusic -->
-    <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; padding: 24px 0 8px 0; letter-spacing: -0.2px;">BetterYandexMusic</div>
+    <div style="display: flex; align-items: center; justify-content: space-between; padding: 24px 0 8px 0;">
+      <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; letter-spacing: -0.2px;">BetterYandexMusic</div>
+      <button type="button" id="ym-settings-whats-new-btn" class="ym-btn" style="padding: 5px 12px; border-radius: 9999px; border: none; background: rgba(255,255,255,0.08); color: #ffdb4d; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: none; transform: none; transition: background 0.15s ease;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        Что нового (v1.3.1)
+      </button>
+    </div>
     
     <!-- Секция Масштаб интерфейса -->
     <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box; border-bottom: 1px solid rgba(255,255,255,0.06);">
@@ -603,6 +609,16 @@ function checkAndInjectSettings() {
     downloadQualitySelect.addEventListener('change', (e) => {
       localStorage.setItem('ymDownloadPreferredQuality', e.target.value);
       localStorage.setItem('ymDownloadQuality', e.target.value);
+    });
+  }
+
+  const whatsNewBtn = document.getElementById('ym-settings-whats-new-btn');
+  if (whatsNewBtn) {
+    whatsNewBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (typeof window.openBymReleaseNotes === 'function') {
+        window.openBymReleaseNotes();
+      }
     });
   }
 

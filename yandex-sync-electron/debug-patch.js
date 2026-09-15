@@ -122,6 +122,12 @@ const indexJSPath = path.join(unpackedDir, 'index.js');
 if (fs.existsSync(indexJSPath)) {
   let content = fs.readFileSync(indexJSPath, 'utf8');
   
+  // Отключаем sandbox в webPreferences для доступа Node.js в preload-скрипте
+  if (content.includes('sandbox: true') || content.includes('sandbox:true')) {
+    console.log("Отключаем sandbox в webPreferences для работы preload-скрипта...");
+    content = content.replace(/\bsandbox\s*:\s*true\b/g, 'sandbox: false');
+  }
+
   // Ищем создание BrowserWindow и добавляем принудительное открытие DevTools
   const searchStr = 'webPreferences\n  });';
   if (content.includes(searchStr)) {

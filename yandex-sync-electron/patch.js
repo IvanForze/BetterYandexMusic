@@ -222,6 +222,12 @@ if (fs.existsSync(indexJSPath)) {
     indexContent = indexContent.replace(/\r?\n\s*window\.webContents\.openDevTools\(\);/g, '');
   }
 
+  // Отключаем sandbox в webPreferences для доступа Node.js (fs, path, child_process) в preload-скрипте
+  if (indexContent.includes('sandbox: true') || indexContent.includes('sandbox:true')) {
+    console.log("Отключаем sandbox в webPreferences для работы preload-скрипта...");
+    indexContent = indexContent.replace(/\bsandbox\s*:\s*true\b/g, 'sandbox: false');
+  }
+
   // Внедряем IPC-обработчики в главный процесс index.js
   if (indexContent.includes('// --- YM SYNC EXPORT PATCH ---')) {
     indexContent = indexContent.replace(/\/\/ --- YM SYNC EXPORT PATCH ---[\s\S]*?\/\/ --- END YM SYNC EXPORT PATCH ---/g, '');

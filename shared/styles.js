@@ -1705,8 +1705,24 @@ function injectStyles() {
     /* Floating Batch Download Progress Widget */
     #ym-batch-download-widget {
       position: fixed;
-      bottom: 110px;
-      right: 28px;
+      bottom: 125px;
+      right: 0;
+      z-index: 9999999;
+      pointer-events: none;
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      transition: bottom 0.35s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Расположение виджета ближе к нижнему краю на главной странице */
+    #ym-batch-download-widget.ym-bottom-low {
+      bottom: 24px !important;
+    }
+
+    /* Развернутая карточка скачивания */
+    #ym-batch-download-widget .ym-batch-full-content {
+      position: absolute;
+      bottom: 0;
+      right: 20px;
       width: 320px;
       background: rgba(24, 24, 28, 0.94);
       border: 1px solid rgba(255, 255, 255, 0.14);
@@ -1715,17 +1731,107 @@ function injectStyles() {
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      z-index: 9999999;
       color: #ffffff;
-      font-family: Yandex Sans Text, system-ui, sans-serif;
       box-sizing: border-box;
-      transition: opacity 0.3s ease, transform 0.3s ease;
-      animation: ym-batch-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+      user-select: none;
+      transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.24s ease;
+      animation: ym-batch-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
     }
     @keyframes ym-batch-in {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateX(30px); }
+      to { opacity: 1; transform: translateX(0); }
     }
+
+    /* При сворачивании карточка плавно уезжает за правый край экрана */
+    #ym-batch-download-widget.ym-batch-minimized .ym-batch-full-content {
+      transform: translateX(calc(100% + 30px));
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* Минималистичный боковой ярлычок (Edge Tab) без лишнего свечения */
+    #ym-batch-download-widget .ym-batch-mini-content {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 20px;
+      height: 44px;
+      padding: 0;
+      border-radius: 10px 0 0 10px;
+      background: rgba(26, 26, 30, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-right: none;
+      box-shadow: -2px 4px 12px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transform: translateX(100%);
+      opacity: 0;
+      pointer-events: none;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                  opacity 0.2s ease,
+                  background 0.2s ease,
+                  border-color 0.2s ease,
+                  box-shadow 0.2s ease;
+    }
+
+    /* При сворачивании ярлычок мягко выдвигается из правого края экрана */
+    #ym-batch-download-widget.ym-batch-minimized .ym-batch-mini-content {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    #ym-batch-download-widget.ym-batch-minimized .ym-batch-mini-content:hover {
+      background: rgba(34, 34, 40, 0.96);
+      border-color: rgba(255, 255, 255, 0.24);
+      box-shadow: -3px 6px 16px rgba(0, 0, 0, 0.45);
+    }
+    #ym-batch-download-widget.ym-batch-minimized .ym-batch-mini-content:hover .ym-batch-edge-arrow {
+      transform: translateX(-1px);
+      color: #ffffff;
+    }
+
+    #ym-batch-download-widget .ym-batch-edge-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      transition: transform 0.18s ease, color 0.18s ease;
+      z-index: 2;
+    }
+
+    /* Вертикальная микро-полоска прогресса на левом торце ярлычка */
+    #ym-batch-download-widget .ym-batch-edge-progress-bar {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 2px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      z-index: 1;
+    }
+    #ym-batch-download-widget .ym-batch-edge-progress-fill {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 0%;
+      background: #ffdb4d;
+      transition: height 0.25s ease;
+    }
+
     #ym-batch-download-widget .ym-batch-header {
       display: flex;
       align-items: center;
@@ -1739,12 +1845,36 @@ function injectStyles() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 220px;
+      max-width: 195px;
+    }
+    #ym-batch-download-widget .ym-batch-header-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
     }
     #ym-batch-download-widget .ym-batch-count {
       font-size: 11px;
       font-weight: 600;
       color: #ffdb4d;
+    }
+    #ym-batch-download-widget .ym-batch-minimize-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      padding: 3px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      line-height: 1;
+    }
+    #ym-batch-download-widget .ym-batch-minimize-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(1px);
     }
     #ym-batch-download-widget .ym-batch-current {
       font-size: 11px;
@@ -1789,11 +1919,6 @@ function injectStyles() {
       color: #ff4d4d;
     }
 
-    /* Расположение виджета ближе к нижнему краю на главной странице */
-    #ym-batch-download-widget.ym-bottom-low {
-      bottom: 24px !important;
-    }
-
     /* Запрет отображения кнопок нижней панели внутри полноэкранного режима или на обложке */
     [class*="FullscreenPlayer"] #ym-player-quality-indicator,
     [class*="FullscreenPlayer"] #ym-player-download-btn,
@@ -1806,6 +1931,263 @@ function injectStyles() {
     [class*="VibeCover"] #ym-player-quality-indicator,
     [class*="VibeCover"] #ym-player-download-btn {
       display: none !important;
+    }
+
+    /* Version Button (Desktop & Web) */
+    .ym-version-btn {
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      border-radius: 9999px !important;
+      border: none !important;
+      outline: none !important;
+      transform: none !important;
+      box-shadow: none !important;
+      transition: color 0.15s ease, background 0.15s ease, opacity 0.15s ease, bottom 0.35s cubic-bezier(0.25, 1, 0.5, 1) !important;
+    }
+
+    [class*="MainPage_betaSlot"],
+    [class*="betaSlot"],
+    .ym-version-container-flex {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      flex-wrap: nowrap !important;
+      gap: 8px !important;
+    }
+
+    [class*="MainPage_betaSlot"] > button,
+    [class*="betaSlot"] > button,
+    .ym-version-container-flex > button {
+      margin-top: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
+      vertical-align: middle !important;
+    }
+
+    .ym-version-btn-desktop {
+      margin: 0 !important;
+      margin-block-end: var(--ym-spacer-size-m, 12px) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 9999px !important;
+      border: none !important;
+      transform: none !important;
+      flex-shrink: 0 !important;
+      white-space: nowrap !important;
+      vertical-align: middle !important;
+    }
+    .ym-version-btn-desktop:hover,
+    .ym-version-btn-desktop:active {
+      opacity: 0.9;
+      transform: none !important;
+      border: none !important;
+    }
+    .ym-version-btn-web {
+      position: fixed;
+      bottom: 20px;
+      right: 28px;
+      z-index: 99998;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: none !important;
+      border-radius: 9999px !important;
+      padding: 5px 12px;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.2px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: none !important;
+      transform: none !important;
+    }
+    .ym-version-btn-web:hover,
+    .ym-version-btn-web:active {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      border: none !important;
+      transform: none !important;
+    }
+
+    /* Release Notes Modal */
+    .ym-rn-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 10000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 16px;
+      box-sizing: border-box;
+    }
+    .ym-rn-overlay.ym-rn-active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .ym-rn-modal {
+      background: #18181c;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      width: 480px;
+      max-width: 100%;
+      max-height: 84vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      transform: scale(0.94);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      color: #ffffff;
+      box-sizing: border-box;
+    }
+    .ym-rn-overlay.ym-rn-active .ym-rn-modal {
+      transform: scale(1);
+    }
+    .ym-rn-header {
+      padding: 22px 24px 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+    .ym-rn-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ym-rn-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: -0.2px;
+    }
+    .ym-rn-badge {
+      background: rgba(255, 219, 77, 0.15);
+      color: #ffdb4d;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 219, 77, 0.25);
+    }
+    .ym-rn-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+      padding: 0;
+    }
+    .ym-rn-close-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      color: #ffffff;
+    }
+    .ym-rn-body {
+      padding: 20px 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .ym-rn-body::-webkit-scrollbar {
+      width: 6px;
+    }
+    .ym-rn-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .ym-rn-body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+      border-radius: 3px;
+    }
+    .ym-rn-body::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+    .ym-rn-entry {
+      margin-bottom: 24px;
+    }
+    .ym-rn-entry:last-child {
+      margin-bottom: 0;
+    }
+    .ym-rn-version-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 2px;
+    }
+    .ym-rn-version {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .ym-rn-curr-tag {
+      font-size: 10px;
+      font-weight: 700;
+      color: #ffdb4d;
+      background: rgba(255, 219, 77, 0.15);
+      border: 1px solid rgba(255, 219, 77, 0.3);
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+    .ym-rn-date {
+      font-size: 12.5px;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 12px;
+    }
+    .ym-rn-list {
+      margin: 0;
+      padding-left: 18px;
+      color: rgba(255, 255, 255, 0.82);
+      font-size: 13.5px;
+      line-height: 1.6;
+    }
+    .ym-rn-list li {
+      margin-bottom: 6px;
+    }
+    .ym-rn-list li:last-child {
+      margin-bottom: 0;
+    }
+    .ym-rn-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 22px 0;
+    }
+    .ym-rn-footer {
+      padding: 12px 24px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.2);
+    }
+    .ym-rn-github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 12px;
+      text-decoration: none;
+      transition: color 0.15s ease;
+    }
+    .ym-rn-github-link:hover {
+      color: #ffdb4d;
     }
   `;
   document.head.appendChild(style);

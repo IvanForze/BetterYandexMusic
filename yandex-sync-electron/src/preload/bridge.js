@@ -4,47 +4,62 @@
 
 function nodeHttpsRequest(url, options = {}) {
   return new Promise((resolve, reject) => {
+    const http = require('http');
     const https = require('https');
     const { URL } = require('url');
     
     function makeRequest(targetUrl) {
-      const parsedUrl = new URL(targetUrl);
-      const reqOptions = {
-        hostname: parsedUrl.hostname,
-        path: parsedUrl.pathname + parsedUrl.search,
-        method: options.method || 'GET',
-        headers: options.headers || {}
-      };
-      
-      https.get(reqOptions, (res) => {
-        // Follow redirects (needed for SoundCloud stream URLs)
-        if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-          let redirectUrl = res.headers.location;
-          if (!redirectUrl.startsWith('http')) {
-            redirectUrl = new URL(redirectUrl, targetUrl).href;
-          }
-          makeRequest(redirectUrl);
-          return;
-        }
+      try {
+        const parsedUrl = new URL(targetUrl);
+        const client = parsedUrl.protocol === 'http:' ? http : https;
+        const reqOptions = {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port || (parsedUrl.protocol === 'http:' ? 80 : 443),
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: options.method || 'GET',
+          headers: options.headers || {},
+          timeout: options.timeout || 60000
+        };
         
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          reject(new Error(`HTTP status ${res.statusCode} for ${targetUrl}`));
-          return;
-        }
-        
-        const chunks = [];
-        res.on('data', (chunk) => chunks.push(chunk));
-        res.on('end', () => {
-          const buffer = Buffer.concat(chunks);
-          if (options.binary) {
-            resolve(buffer);
-          } else {
-            resolve(buffer.toString('utf8'));
+        const req = client.get(reqOptions, (res) => {
+          // Follow redirects (needed for stream URLs)
+          if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+            let redirectUrl = res.headers.location;
+            if (!redirectUrl.startsWith('http')) {
+              redirectUrl = new URL(redirectUrl, targetUrl).href;
+            }
+            makeRequest(redirectUrl);
+            return;
           }
+          
+          if (res.statusCode < 200 || res.statusCode >= 300) {
+            reject(new Error(`HTTP status ${res.statusCode} for ${targetUrl}`));
+            return;
+          }
+          
+          const chunks = [];
+          res.on('data', (chunk) => chunks.push(chunk));
+          res.on('end', () => {
+            const buffer = Buffer.concat(chunks);
+            if (options.binary) {
+              resolve(buffer);
+            } else {
+              resolve(buffer.toString('utf8'));
+            }
+          });
         });
-      }).on('error', (err) => {
-        reject(err);
-      });
+
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error(`Превышено время ожидания загрузки (${targetUrl})`));
+        });
+
+        req.on('error', (err) => {
+          reject(err);
+        });
+      } catch(e) {
+        reject(e);
+      }
     }
     
     makeRequest(url);
@@ -162,7 +177,7 @@ if (typeof window !== 'undefined') {
       }
     }
 
-    if (event.data && event.data.__ym_sc_bridge === true) {
+    if (event.data && (event.data.__ym_sc_bridge === true || event.data.type === 'YM_DOWNLOAD_TRACK')) {
       const { requestId, type, payload } = event.data;
       
       if (type === 'SC_SEARCH') {
@@ -509,9 +524,11 @@ if (typeof window !== 'undefined') {
             fs.writeFileSync(targetFilePath, finalBuffer);
             console.log('[PRELOAD-DOWNLOAD] Файл успешно сохранен на диск:', targetFilePath);
 
-            try {
-              electron.shell.showItemInFolder(targetFilePath);
-            } catch(e) {}
+            if (!metadata?.isBatch) {
+              try {
+                electron.shell.showItemInFolder(targetFilePath);
+              } catch(e) {}
+            }
 
             window.postMessage({
               __ym_sc_bridge_response: true,

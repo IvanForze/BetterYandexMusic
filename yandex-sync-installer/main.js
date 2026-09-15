@@ -290,6 +290,12 @@ ipcMain.handle('install-mod', async (event) => {
     if (fs.existsSync(indexJSPath)) {
       let indexContent = fs.readFileSync(indexJSPath, 'utf8');
       indexContent = indexContent.replace(/\r?\n\s*window\.webContents\.openDevTools\(\);/g, '');
+
+      // Отключаем sandbox в webPreferences для доступа Node.js в preload-скрипте
+      if (indexContent.includes('sandbox: true') || indexContent.includes('sandbox:true')) {
+        log("Отключаем sandbox в webPreferences для работы preload-скрипта...");
+        indexContent = indexContent.replace(/\bsandbox\s*:\s*true\b/g, 'sandbox: false');
+      }
       
       if (indexContent.includes('// --- YM SYNC EXPORT PATCH ---')) {
         indexContent = indexContent.replace(/\/\/ --- YM SYNC EXPORT PATCH ---[\s\S]*?\/\/ --- END YM SYNC EXPORT PATCH ---/g, '');
