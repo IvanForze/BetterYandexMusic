@@ -117,6 +117,26 @@
         display: none !important;
         background: transparent !important;
       }
+
+      /* Full-screen wave visualizer behind transparent navbar without breaking content grid */
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibeCanvas_root"] {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 0 !important;
+      }
+
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside {
+        position: relative !important;
+        z-index: 10 !important;
+      }
+
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"] {
+        position: relative !important;
+        z-index: 1 !important;
+      }
     `;
   }
 

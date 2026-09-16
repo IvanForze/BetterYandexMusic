@@ -2368,16 +2368,16 @@ function injectStyles() {
       cursor: pointer;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      box-shadow: none !important;
       transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
       user-select: none;
       z-index: 10;
     }
     .ym-vibe-settings-trigger-btn:hover {
-      background: rgba(255, 255, 255, 0.16);
+      background: rgba(255, 255, 255, 0.14);
       border: none !important;
-      color: #ffdb4d;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 219, 77, 0.2);
+      color: #ffffff !important;
+      box-shadow: none !important;
       transform: translateY(-1px);
     }
     .ym-vibe-settings-trigger-btn:active {
