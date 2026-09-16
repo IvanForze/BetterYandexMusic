@@ -461,6 +461,24 @@ function applyThemeCSS(themeName, customColors) {
       box-shadow: revert !important;
     }
 
+    /* Vibe No Wheel: ensure navbar stays transparent regardless of active theme */
+    body.ym-vibe-no-wheel aside,
+    body.ym-vibe-no-wheel [class*="Navbar_root"],
+    body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-no-wheel [class*="SidebarDesktop"] {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      border-right: none !important;
+      box-shadow: none !important;
+    }
+
     /* Fix: нативный градиент-фейд SyncLyrics использует цвет фона из темы.
        Переопределяем ::before/::after чтобы он всегда совпадал с нашей темой. */
     [class*="SyncLyrics_content"] {

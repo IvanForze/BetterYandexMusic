@@ -58,6 +58,7 @@ function buildElectron() {
     'shared/player-faker.js',
     'shared/soundcloud-search.js',
     'shared/release-notes.js',
+    'shared/vibe-enhancer.js',
     'page/index.js'
   ];
 
@@ -165,6 +166,7 @@ function buildExtension() {
     'shared/soundcloud-search.js',
     'shared/track-downloader.js',
     'shared/release-notes.js',
+    'shared/vibe-enhancer.js',
     'main/index.js'
   ];
 

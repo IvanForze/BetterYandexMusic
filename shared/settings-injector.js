@@ -107,6 +107,8 @@ function checkAndInjectSettings() {
   const listenbrainzToken = localStorage.getItem('ymScrobblerListenbrainzToken') || '';
   const listenbrainzUsername = localStorage.getItem('ymScrobblerListenbrainzUsername') || '';
 
+  // Читаем настройку дизайна Моей волны
+  const vibeDesignMode = localStorage.getItem('ymVibeDesignMode') || 'default';
   // Читаем настройку кастомных текстов
   const customLyricsMode = localStorage.getItem('ymCustomLyricsMode') || 'fallback';
   // Читаем настройку качества скачивания треков
@@ -157,6 +159,23 @@ function checkAndInjectSettings() {
           <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.0" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">100%</button>
           <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.1" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">110%</button>
           <button type="button" class="ym-scale-preset-btn ym-btn" data-scale="1.25" style="padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.04); color: #bbb; cursor: pointer; font-size: 11px;">125%</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Секция Дизайн Моей волны -->
+    <div class="ym-settings-item" style="display: flex; justify-content: space-between; align-items: flex-start; padding: 14px 0; min-height: 52px; box-sizing: border-box;">
+      <div style="flex: 1; padding-right: 16px;">
+        <div class="ym-settings-item-title" style="font-size: 15px; font-weight: 600; margin-bottom: 3px;">Интерфейс Главной («Моя волна»)</div>
+        <div class="ym-settings-item-status" style="font-size: 13px; line-height: 17px; margin-bottom: 8px;">
+          Внешний вид страницы Моей волны: скрыть вертикальное колесо жанров или оставить по умолчанию
+        </div>
+        <div style="max-width: 420px; margin-top: 8px;">
+          <select id="ym-vibe-design-mode" class="ym-select">
+            <option value="default" ${vibeDesignMode === 'default' ? 'selected' : ''}>По умолчанию (с колесом волны)</option>
+            <option value="no_wheel" ${vibeDesignMode === 'no_wheel' ? 'selected' : ''}>Без карусели (компактный вид)</option>
+            <option value="classic" ${vibeDesignMode === 'classic' ? 'selected' : ''}>Старый дизайн (в разработке)</option>
+          </select>
         </div>
       </div>
     </div>
@@ -633,6 +652,20 @@ function checkAndInjectSettings() {
   };
   window.addEventListener('ym-scale-changed', onScaleChanged);
   document.addEventListener('ym-scale-changed', onScaleChanged);
+
+  const vibeDesignSelect = document.getElementById('ym-vibe-design-mode');
+  if (vibeDesignSelect) {
+    vibeDesignSelect.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      localStorage.setItem('ymVibeDesignMode', mode);
+      if (mode === 'no_wheel') {
+        document.body.classList.add('ym-vibe-no-wheel');
+      } else {
+        document.body.classList.remove('ym-vibe-no-wheel');
+      }
+      window.dispatchEvent(new CustomEvent('ym-vibe-mode-changed', { detail: { mode } }));
+    });
+  }
 
   const lyricsModeSelect = document.getElementById('ym-custom-lyrics-mode');
   if (lyricsModeSelect) {

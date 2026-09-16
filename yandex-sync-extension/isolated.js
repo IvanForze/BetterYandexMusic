@@ -2236,6 +2236,401 @@ function injectStyles() {
     .ym-rn-github-link:hover {
       color: #ffdb4d;
     }
+
+    /* =========================================================================
+       My Vibe Carousel Redesign & Vibe Popover
+       ========================================================================= */
+
+    /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */
+    body.ym-vibe-no-wheel [class*="WheelDesktop_root"],
+    body.ym-vibe-no-wheel [class*="VibePage_wheel"] {
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      width: 320px !important;
+      height: 600px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      overflow: hidden !important;
+      z-index: -999 !important;
+    }
+
+    /* Bulletproof Transparent sidebar in No Wheel mode */
+    html.ym-vibe-no-wheel aside,
+    body.ym-vibe-no-wheel aside,
+    html.ym-vibe-no-wheel aside[class*="Navbar"],
+    body.ym-vibe-no-wheel aside[class*="Navbar"],
+    html.ym-vibe-no-wheel [class*="Navbar_root"],
+    body.ym-vibe-no-wheel [class*="Navbar_root"],
+    html.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    html.ym-vibe-no-wheel [class*="SidebarDesktop"],
+    body.ym-vibe-no-wheel [class*="SidebarDesktop"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+    html.ym-vibe-no-wheel [class*="PinsList_root"],
+    body.ym-vibe-no-wheel [class*="PinsList_root"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+    html.ym-vibe-no-wheel [class*="UserProfile_root"],
+    body.ym-vibe-no-wheel [class*="UserProfile_root"],
+    html.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+    body.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+    html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+    body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+    html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+    body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+    html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+    body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+    html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+    body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+    html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+    body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+    html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
+    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      border-right: none !important;
+      box-shadow: none !important;
+    }
+    html.ym-vibe-no-wheel aside::before,
+    body.ym-vibe-no-wheel aside::before,
+    html.ym-vibe-no-wheel aside::after,
+    body.ym-vibe-no-wheel aside::after,
+    html.ym-vibe-no-wheel [class*="Navbar"]::before,
+    body.ym-vibe-no-wheel [class*="Navbar"]::before,
+    html.ym-vibe-no-wheel [class*="Navbar"]::after,
+    body.ym-vibe-no-wheel [class*="Navbar"]::after {
+      display: none !important;
+      background: transparent !important;
+    }
+
+    /* Only show trigger button in no_wheel mode */
+    body:not(.ym-vibe-no-wheel) #ym-vibe-settings-btn {
+      display: none !important;
+    }
+
+    /* Context container (Мне нравится ✕) */
+    [class*="VibePage_context"] {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-bottom: 6px !important;
+    }
+
+    /* Ensure Vibe Meta stacks vertically centered */
+    body.ym-vibe-no-wheel [class*="VibePage_meta"] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+    }
+
+    /* Trigger Button (Clean, no border, placed vertically UNDER the context button) */
+    .ym-vibe-settings-trigger-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      align-self: center !important;
+      margin: 4px auto 12px auto !important;
+      padding: 7px 18px;
+      border-radius: 9999px;
+      border: none !important;
+      outline: none !important;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      user-select: none;
+      z-index: 10;
+    }
+    .ym-vibe-settings-trigger-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border: none !important;
+      color: #ffdb4d;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25), 0 0 12px rgba(255, 219, 77, 0.2);
+      transform: translateY(-1px);
+    }
+    .ym-vibe-settings-trigger-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* Popover Container */
+    .ym-vibe-popover {
+      position: fixed;
+      z-index: 999999;
+      width: 380px;
+      max-height: 500px;
+      display: flex;
+      flex-direction: column;
+      background: rgba(20, 20, 24, 0.92);
+      backdrop-filter: blur(28px) saturate(190%);
+      -webkit-backdrop-filter: blur(28px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      color: #ffffff;
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      box-sizing: border-box;
+      overflow: hidden;
+      animation: ymVibePopoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transform-origin: top center;
+    }
+    .ym-vibe-popover.closing {
+      animation: ymVibePopoverOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards;
+    }
+    @keyframes ymVibePopoverIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(-6px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    @keyframes ymVibePopoverOut {
+      from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.95) translateY(-6px);
+      }
+    }
+
+    /* Popover Header */
+    .ym-vibe-popover-header {
+      padding: 16px 18px 10px 18px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .ym-vibe-popover-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ym-vibe-popover-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+      font-family: "YSMusic Headline", sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .ym-vibe-popover-close-btn {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.4);
+      font-size: 15px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.15s, background 0.15s;
+      line-height: 1;
+    }
+    .ym-vibe-popover-close-btn:hover {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Categories Bar */
+    .ym-vibe-categories-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 2px 6px 2px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      cursor: grab;
+      user-select: none;
+    }
+    .ym-vibe-categories-bar::-webkit-scrollbar {
+      display: none;
+    }
+    .ym-vibe-cat-chip {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      padding: 4px 11px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.7);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    .ym-vibe-cat-chip:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+    }
+    .ym-vibe-cat-chip.active {
+      background: #ffdb4d;
+      border-color: #ffdb4d;
+      color: #000000;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(255, 219, 77, 0.3);
+    }
+
+    /* List Container */
+    .ym-vibe-popover-list {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 330px;
+      padding: 8px 10px 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+    }
+    .ym-vibe-popover-list::-webkit-scrollbar {
+      width: 5px;
+    }
+    .ym-vibe-popover-list::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .ym-vibe-popover-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 9999px;
+    }
+    .ym-vibe-popover-list::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 219, 77, 0.6);
+    }
+
+    /* Item Card */
+    .ym-vibe-item-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+      background: transparent;
+      border: 1px solid transparent;
+      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
+      position: relative;
+    }
+    .ym-vibe-item-card:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateX(2px);
+    }
+    .ym-vibe-item-card:hover .ym-vibe-item-play-btn {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .ym-vibe-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      flex: 1;
+    }
+    .ym-vibe-item-cover {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .ym-vibe-item-cover-placeholder {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .ym-vibe-item-info {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      gap: 2px;
+    }
+    .ym-vibe-item-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ym-vibe-item-desc {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .ym-vibe-item-play-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ffdb4d;
+      color: #000000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transform: scale(0.85);
+      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
+      flex-shrink: 0;
+      margin-left: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    .ym-vibe-item-play-btn svg {
+      margin-left: 2px;
+    }
+
+    .ym-vibe-empty {
+      padding: 30px 16px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
   `;
   document.head.appendChild(style);
 }
@@ -3990,6 +4385,24 @@ function applyThemeCSS(themeName, customColors) {
       background: revert !important;
       border-color: revert !important;
       box-shadow: revert !important;
+    }
+
+    /* Vibe No Wheel: ensure navbar stays transparent regardless of active theme */
+    body.ym-vibe-no-wheel aside,
+    body.ym-vibe-no-wheel [class*="Navbar_root"],
+    body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-no-wheel [class*="SidebarDesktop"] {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      border-right: none !important;
+      box-shadow: none !important;
     }
 
     /* Fix: нативный градиент-фейд SyncLyrics использует цвет фона из темы.

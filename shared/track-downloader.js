@@ -2010,7 +2010,6 @@ function getEntityContextFromFiber(element) {
         while (fiber && depth < 35) {
           const props = fiber.memoizedProps || fiber.pendingProps;
           if (props) {
-            // Проверяем UUID плейлиста (например, lk.61802d7d-047a-40be-85aa-40da7be0d286 или обычный UUID)
             const playlistUuid = props.playlistUuid ||
                                  props.playlist?.playlistUuid ||
                                  props.playlist?.uuid ||
@@ -2153,8 +2152,6 @@ async function fetchTracksForHeaderContext(contextHref, container) {
   // 1. Попытка получить через API Яндекс Музыки
   try {
     const headers = getApiHeaders();
-
-    // 1.1. Проверяем /playlists/{uuid} (например, lk.61802d7d-047a-40be-85aa-40da7be0d286 или обычный UUID)
     let playlistUuid = null;
     const playlistMatch = fullUrl.match(/\/playlists\/([a-zA-Z0-9_\-\.]+)/);
     if (playlistMatch) {
