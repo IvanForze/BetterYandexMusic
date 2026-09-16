@@ -263,14 +263,6 @@
           document.body.appendChild(ourBtn);
         }
       }
-
-      // Если в правом нижнем углу активен виджет пакетного скачивания, сдвигаем кнопку вверх
-      const batchWidget = document.getElementById('ym-batch-download-widget');
-      if (batchWidget && batchWidget.classList.contains('ym-bottom-low')) {
-        ourBtn.style.bottom = '114px';
-      } else {
-        ourBtn.style.bottom = '20px';
-      }
     }
   }
 

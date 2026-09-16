@@ -118,24 +118,49 @@
         background: transparent !important;
       }
 
-      /* Full-screen wave visualizer behind transparent navbar without breaking content grid */
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibeCanvas_root"] {
-        position: fixed !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100vw !important;
-        height: 100vh !important;
-        z-index: 0 !important;
+      /* Full-screen wave visualizer spanning column 1 and 2 under transparent navbar */
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] {
+        grid-column: 1 / -1 !important;
+        grid-row: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        height: 100% !important;
+        z-index: 1 !important;
+        pointer-events: none !important;
       }
 
       html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
         position: relative !important;
         z-index: 10 !important;
+        pointer-events: auto !important;
       }
 
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"] {
-        position: relative !important;
-        z-index: 1 !important;
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] button,
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] a,
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] input,
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibeControls"],
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="PlayButton"] {
+        pointer-events: auto !important;
+      }
+
+      /* Dynamically offset content by actual navbar width (200px expanded, 64px collapsed, etc.) */
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_root"] > div:not([class*="VibeCanvas"]) {
+        padding-left: var(--ym-aside-width, 200px) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      /* Pure CSS fallback for collapsed sidebar if CSS variable not yet populated */
+      html.ym-vibe-no-wheel.ym-navbar-collapsed [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside [class*="title_collapsed"]) [class*="VibePage_content"],
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside.ym-collapsed) [class*="VibePage_content"] {
+        padding-left: 64px !important;
       }
     `;
   }
@@ -162,10 +187,93 @@
     } catch (e) { }
   }
 
+  let asideResizeObserver = null;
+  let lastObservedAside = null;
+  let lastObservedChild = null;
+
+  function updateAsideWidth() {
+    if (typeof document === 'undefined') return;
+    const aside = document.querySelector('aside');
+    if (!aside) return;
+
+    const child = aside.querySelector('[class*="NavbarDesktop_root"]') || aside.firstElementChild;
+    const asideRect = aside.getBoundingClientRect();
+    const childRect = child ? child.getBoundingClientRect() : asideRect;
+
+    let width = asideRect.width;
+    if (childRect && childRect.width > 0 && childRect.width < asideRect.width) {
+      width = childRect.width;
+    }
+
+    if (width > 0) {
+      const rounded = Math.round(width);
+      document.documentElement.style.setProperty('--ym-aside-width', rounded + 'px');
+      if (rounded < 100) {
+        document.documentElement.classList.add('ym-navbar-collapsed');
+      } else {
+        document.documentElement.classList.remove('ym-navbar-collapsed');
+      }
+    }
+  }
+
+  function trackAsideWidth() {
+    if (typeof document === 'undefined') return;
+    const aside = document.querySelector('aside');
+    if (!aside) return;
+
+    updateAsideWidth();
+
+    if (typeof ResizeObserver !== 'undefined') {
+      if (!asideResizeObserver) {
+        asideResizeObserver = new ResizeObserver(() => {
+          updateAsideWidth();
+        });
+      }
+      const child = aside.querySelector('[class*="NavbarDesktop_root"]') || aside.firstElementChild;
+      if (lastObservedAside !== aside) {
+        if (lastObservedAside) {
+          try { asideResizeObserver.unobserve(lastObservedAside); } catch (e) {}
+        }
+        asideResizeObserver.observe(aside);
+        lastObservedAside = aside;
+      }
+      if (child && lastObservedChild !== child) {
+        if (lastObservedChild) {
+          try { asideResizeObserver.unobserve(lastObservedChild); } catch (e) {}
+        }
+        asideResizeObserver.observe(child);
+        lastObservedChild = child;
+      }
+    }
+  }
+
+  // Instant tracking on collapse button clicks & transitions (capturing phase)
+  if (typeof document !== 'undefined') {
+    document.addEventListener('click', (e) => {
+      if (e.target && e.target.closest && e.target.closest('aside, [class*="Navbar"]')) {
+        const start = performance.now();
+        const tick = () => {
+          updateAsideWidth();
+          if (performance.now() - start < 450) {
+            requestAnimationFrame(tick);
+          }
+        };
+        requestAnimationFrame(tick);
+      }
+    }, true);
+
+    document.addEventListener('transitionend', (e) => {
+      if (e.target && e.target.closest && e.target.closest('aside, [class*="Navbar"]')) {
+        updateAsideWidth();
+      }
+    }, true);
+  }
+
   // Apply immediately and on DOM ready
   function initVibeMode() {
     applyVibeMode(getVibeDesignMode());
     checkAndInjectVibeButton();
+    trackAsideWidth();
   }
 
   if (typeof document !== 'undefined') {
@@ -749,6 +857,7 @@
   // 7. Observer to maintain button injection on SPA route changes and navbar transparency
   const observer = new MutationObserver(() => {
     checkAndInjectVibeButton();
+    trackAsideWidth();
     if (getVibeDesignMode() === 'no_wheel') {
       updateNavbarTransparency(true);
     }
