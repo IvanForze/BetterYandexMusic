@@ -117,6 +117,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // async response
   }
 
+  if (request.type === 'BYM_CHECK_UPDATE') {
+    fetch('https://api.github.com/repos/IvanForze/BetterYandexMusic/releases/latest', {
+      headers: { 'Accept': 'application/vnd.github.v3+json' }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => sendResponse({ ok: true, data }))
+      .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true; // async response
+  }
+
   if (request.type === 'RZT_GET_RATINGS') {
     const rawTitle = request.title || '';
     const cleanTitle = rawTitle.replace(/[\(\[\{].*?[\)\]\}]/g, '').trim();

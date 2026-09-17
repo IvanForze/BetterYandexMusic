@@ -18,7 +18,8 @@
     "https://api.listenbrainz.org/*",
     "https://risazatvorchestvo.com/*",
     "https://genius.com/*",
-    "https://*.genius.com/*"
+    "https://*.genius.com/*",
+    "https://api.github.com/*"
   ],
   "background": {
     "service_worker": "background.js"

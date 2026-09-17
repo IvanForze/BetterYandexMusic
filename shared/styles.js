@@ -2630,6 +2630,197 @@ function injectStyles() {
       line-height: 1.5;
     }
 
+    /* Version Button Update Dot (Minimalist) */
+    .ym-version-update-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #ffdb4d;
+      border-radius: 50%;
+      margin-left: 6px;
+      vertical-align: middle;
+      opacity: 0.9;
+      flex-shrink: 0;
+    }
+
+    /* Modal Update Banner (Minimalist, without colored borders/glow) */
+    .ym-rn-update-banner {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 13px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: none;
+    }
+    .ym-rn-update-banner-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .ym-rn-update-badge-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ym-rn-update-banner-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .ym-rn-update-banner-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 2px;
+      line-height: 1.3;
+    }
+    .ym-rn-update-banner-title strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
+    .ym-rn-update-banner-desc {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      line-height: 1.3;
+    }
+    .ym-rn-update-banner-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff !important;
+      text-decoration: none !important;
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+      box-shadow: none !important;
+    }
+    .ym-rn-update-banner-link:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+    .ym-rn-check-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.7);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .ym-rn-check-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+    }
+
+    /* Update Notification Toast (Minimalist, dark native, no glow) */
+    .ym-update-toast {
+      position: fixed;
+      bottom: 24px;
+      right: 28px;
+      background: rgba(26, 26, 30, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 11px 14px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      z-index: 10000002;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      font-family: Yandex Sans Text, system-ui, sans-serif;
+      color: #ffffff;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+      max-width: 380px;
+      box-sizing: border-box;
+    }
+    .ym-update-toast.ym-update-toast-active {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .ym-update-toast-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .ym-update-toast-content {
+      flex: 1;
+      min-width: 0;
+    }
+    .ym-update-toast-title {
+      font-size: 12.5px;
+      font-weight: 500;
+      color: #ffffff;
+      margin-bottom: 2px;
+      line-height: 1.3;
+    }
+    .ym-update-toast-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      line-height: 1.2;
+    }
+    .ym-update-toast-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 11px;
+      font-size: 11.5px;
+      font-weight: 500;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s ease;
+    }
+    .ym-update-toast-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+    }
+    .ym-update-toast-btn:active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+    .ym-update-toast-close {
+      background: transparent;
+      border: none;
+      color: rgba(255, 255, 255, 0.35);
+      font-size: 13px;
+      padding: 3px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s ease;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .ym-update-toast-close:hover {
+      color: #ffffff;
+    }
+
   `;
   document.head.appendChild(style);
 }

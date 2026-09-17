@@ -228,6 +228,25 @@ if (typeof window !== 'undefined') {
               response: { ok: false, error: err.message }
             }, '*');
           });
+      } else if (type === 'BYM_CHECK_UPDATE') {
+        nodeHttpsRequest('https://api.github.com/repos/IvanForze/BetterYandexMusic/releases/latest', {
+          headers: { 'User-Agent': 'BetterYandexMusic-App', 'Accept': 'application/vnd.github.v3+json' }
+        })
+          .then(jsonStr => {
+            const data = JSON.parse(jsonStr);
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: true, data }
+            }, '*');
+          })
+          .catch(err => {
+            window.postMessage({
+              __ym_sc_bridge_response: true,
+              requestId,
+              response: { ok: false, error: err.message }
+            }, '*');
+          });
       } else if (type === 'SC_GET_TRACK') {
         soundCloudGetTrack(payload.trackId)
           .then(track => {
