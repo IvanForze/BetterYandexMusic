@@ -2242,7 +2242,9 @@ function injectStyles() {
 
     /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */
     body.ym-vibe-no-wheel [class*="WheelDesktop_root"],
-    body.ym-vibe-no-wheel [class*="VibePage_wheel"] {
+    body.ym-vibe-no-wheel [class*="VibePage_wheel"],
+    body.ym-vibe-with-landing [class*="WheelDesktop_root"],
+    body.ym-vibe-with-landing [class*="VibePage_wheel"] {
       position: absolute !important;
       left: -9999px !important;
       top: -9999px !important;
@@ -2329,8 +2331,8 @@ function injectStyles() {
       background: transparent !important;
     }
 
-    /* Only show trigger button in no_wheel mode */
-    body:not(.ym-vibe-no-wheel) #ym-vibe-settings-btn {
+    /* Only show trigger button in no_wheel and vibe_with_landing modes */
+    body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {
       display: none !important;
     }
 
@@ -2343,7 +2345,8 @@ function injectStyles() {
     }
 
     /* Ensure Vibe Meta stacks vertically centered */
-    body.ym-vibe-no-wheel [class*="VibePage_meta"] {
+    body.ym-vibe-no-wheel [class*="VibePage_meta"],
+    body.ym-vibe-with-landing [class*="VibePage_meta"] {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
@@ -2819,6 +2822,929 @@ function injectStyles() {
     }
     .ym-update-toast-close:hover {
       color: #ffffff;
+    }
+
+    /* =========================================================================
+       Mode 3: Vibe with Live Landing Feed (Hybrid Mode)
+       ========================================================================= */
+
+    /* Solid black left navbar in Mode 3 (vibe_with_landing) - strictly scoped to Vibe page */
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"] {
+      background: #000000 !important;
+      background-color: #000000 !important;
+      z-index: 100 !important;
+    }
+
+    /* Scrollable main card container */
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      box-sizing: border-box !important;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      border-radius: 20px !important;
+      background: #0f0f12 !important;
+      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar {
+      width: 6px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Vibe Widget container and hero section - Constrain width to prevent 10688px blowout (ONLY on Vibe page) */
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"] {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
+    body.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_vibeWidgetContainer"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      overflow-y: visible !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_root"] {
+      height: auto !important;
+      min-height: calc(100vh - 120px) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding: 48px 20px 20px 20px !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_meta"] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: auto !important;
+      width: 100% !important;
+      max-width: 900px !important;
+      margin: 0 auto !important;
+      position: relative !important;
+      z-index: 5 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_context"] {
+      order: 1 !important;
+      margin-bottom: 6px !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMeta"] {
+      order: 2 !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-bottom: 110px !important;
+      position: relative !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMetaBody"] {
+      height: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: relative !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_textContainer"] {
+      height: auto !important;
+      padding-bottom: 0 !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_playerBlock"] {
+      order: 3 !important;
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 auto 12px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-settings-btn {
+      order: 4 !important;
+      margin: 6px auto 16px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-quick-block {
+      display: none !important;
+    }
+
+    /* Center the animated fluid canvas behind vibe player */
+    html.ym-vibe-with-landing [class*="VibePage_root"] [class*="VibeWidgetAnimation_root"] {
+      position: absolute !important;
+      left: 50% !important;
+      top: 38% !important;
+      transform: translate(-50%, -50%) !important;
+      pointer-events: none !important;
+    }
+
+    /* ========================================================
+       NATIVE 1-TO-1 LANDING FEED (STRICTLY SCOPED TO MODE 3 ONLY)
+       Never leaks to https://music.yandex.ru/landing/main
+       ======================================================== */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      margin: 16px 0 0 0 !important;
+      padding: 0 0 80px 0 !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
+      flex-shrink: 0 !important;
+      gap: 24px !important;
+      z-index: 2 !important;
+      overflow-x: hidden !important;
+    }
+
+    /* --- Tabs Row (Для вас / Тренды) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {
+      padding: 0 0 0 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      list-style: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
+      display: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY {
+      height: 54px !important;
+      min-height: 54px !important;
+      padding: 8px 16px !important;
+      border-radius: 50px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      cursor: pointer !important;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.18s ease !important;
+      box-sizing: border-box !important;
+      user-select: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY.active {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {
+      display: flex !important;
+      align-items: center !important;
+      position: relative !important;
+      width: 44px !important;
+      height: 38px !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      border: 2px solid #141416 !important;
+      position: absolute !important;
+      top: 1px !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_:first-child {
+      left: 0 !important;
+      z-index: 1 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_:last-child {
+      left: 12px !important;
+      z-index: 2 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_description__p1fTO {
+      display: flex !important;
+      flex-direction: column !important;
+      text-align: left !important;
+      gap: 2px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_title__hAYZk {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      line-height: 18px !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_subtitle__fLp9S {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      line-height: 16px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      white-space: nowrap !important;
+      max-width: 140px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* --- Likes & History Section (Exact 1-to-1) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
+      padding: 0 0 0 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD {
+      display: flex !important;
+      gap: 16px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      list-style: none !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD::-webkit-scrollbar {
+      display: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carouselItem__Yq5Xw {
+      width: 392px !important;
+      max-width: calc(50vw - 32px) !important;
+      min-width: 280px !important;
+      height: 82px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      list-style: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk {
+      height: 100% !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), transform 0.15s ease !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      transform: translateY(-1px) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_link__snTl_ {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      height: 100% !important;
+      padding: 12px !important;
+      box-sizing: border-box !important;
+      text-decoration: none !important;
+      color: inherit !important;
+      gap: 12px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_start__wdtiV {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      min-width: 0 !important;
+      flex: 1 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_favoritesCoverContainer__UUIDf {
+      width: 58px !important;
+      height: 58px !important;
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      flex-shrink: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_favoritesCover__Nt7Gm {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_historyIconContainer__KPPbS {
+      width: 58px !important;
+      height: 58px !important;
+      border-radius: 8px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_historyIcon__2FAMu {
+      width: 24px !important;
+      height: 24px !important;
+      fill: currentColor !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_textContainer__yGdOu {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      min-width: 0 !important;
+      flex: 1 !important;
+      gap: 2px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_title__hdi2H {
+      font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      line-height: 26px !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      letter-spacing: normal !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_titleIcon__2D_yS {
+      width: 24px !important;
+      height: 24px !important;
+      margin-left: 4px !important;
+      fill: currentColor !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      opacity: 0.7 !important;
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk:hover .LikesAndHistoryItem_titleIcon__2D_yS {
+      transform: translateX(3px) !important;
+      opacity: 1 !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_subtitle__ghuKi {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_covers__9k_yw {
+      position: relative !important;
+      width: 58px !important;
+      height: 58px !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ {
+      position: absolute !important;
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 4px !important;
+      overflow: hidden !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ:nth-child(1) {
+      left: 0px !important;
+      top: 10px !important;
+      z-index: 1 !important;
+      transform: rotate(-4deg) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ:nth-child(2) {
+      left: 10px !important;
+      top: 0px !important;
+      z-index: 2 !important;
+      transform: rotate(4deg) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_cover__QlRhz {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+
+    /* --- Common Section Styles & Headers --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      width: 100% !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 12px 24px 8px 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
+      font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      line-height: 26px !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      letter-spacing: normal !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link svg {
+      width: 14px !important;
+      height: 14px !important;
+      opacity: 0.5 !important;
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {
+      transform: translateX(3px) !important;
+      opacity: 1 !important;
+    }
+
+    /* Native Carousel Controls (Arrow Buttons) */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      border: 2px solid rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      padding: 4px !important;
+      transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
+      outline: none !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:hover:not(:disabled):not([data-disabled="true"]) {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.24) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:disabled,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i[data-disabled="true"] {
+      opacity: 0.3 !important;
+      cursor: default !important;
+      pointer-events: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i svg {
+      width: 12px !important;
+      height: 12px !important;
+      fill: currentColor !important;
+      display: block !important;
+    }
+
+    /* Native 1-to-1 Category Chips (топ, по жанру, под настроение, под занятие) */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chips::-webkit-scrollbar {
+      display: none;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip {
+      height: 36px;
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.18s cubic-bezier(0.2, 0, 0, 1);
+      white-space: nowrap;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip.active {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    /* --- Native 1-to-1 AI Set Cards Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 4px 0 12px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card {
+      width: 340px;
+      height: 64px;
+      flex-shrink: 0;
+      scroll-snap-align: start !important;
+      border-radius: 16px;
+      padding: 4px 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+      border: none;
+      outline: none;
+      user-select: none;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.88;
+      border-radius: 16px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-header {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 18px;
+      color: var(--vibe-button-text-color, #c8c1ff);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-title svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* --- Native 1-to-1 New Releases Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel {
+      display: flex !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card {
+      width: 340px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      box-sizing: border-box;
+      transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover {
+      transform: translateY(-3px);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover {
+      width: 282px;
+      height: 282px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto -64px auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      background: #1e1e24;
+      flex-shrink: 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-cover img {
+      transform: scale(1.04);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180.14deg, rgba(32, 28, 29, 0) 30.88%, rgba(32, 28, 29, 0.45) 70.8%, rgba(32, 28, 29, 0.92) 80.88%);
+      z-index: 1;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-artist-caption {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 26px;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+      z-index: 2;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-paper {
+      width: 340px;
+      height: 80px;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 3;
+      background: #201c1d;
+      background-image: radial-gradient(circle at 50% -200%, rgb(50, 52, 50) 0%, rgb(32, 28, 29) 90%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-paper {
+      background: #282425;
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-details {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 18px;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-desc {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 18px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-play-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.15s ease, color 0.15s ease;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-play-btn {
+      background: #ffffff;
+      color: #000000;
+      transform: scale(1.08);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-play-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* --- Native 1-to-1 Concerts Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel {
+      display: flex !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card {
+      width: 200px !important;
+      height: 280px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      display: flex;
+      flex-direction: column;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-image-wrap {
+      width: 100%;
+      height: 190px;
+      position: relative;
+      overflow: hidden;
+      background: #1e1e24;
+      flex-shrink: 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card:hover .ym-vibe-feed-concert-image {
+      transform: scale(1.05);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-badge {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #ffdb4d;
+      color: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-month {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-day {
+      font-size: 16px;
+      margin: 2px 0 1px 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-dow {
+      font-size: 8px;
+      opacity: 0.75;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-info {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
+      flex: 1;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-venue {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
   `;

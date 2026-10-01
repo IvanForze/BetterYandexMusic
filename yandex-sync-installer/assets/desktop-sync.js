@@ -5001,7 +5001,9 @@ function injectStyles() {
 
     /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */
     body.ym-vibe-no-wheel [class*="WheelDesktop_root"],
-    body.ym-vibe-no-wheel [class*="VibePage_wheel"] {
+    body.ym-vibe-no-wheel [class*="VibePage_wheel"],
+    body.ym-vibe-with-landing [class*="WheelDesktop_root"],
+    body.ym-vibe-with-landing [class*="VibePage_wheel"] {
       position: absolute !important;
       left: -9999px !important;
       top: -9999px !important;
@@ -5088,8 +5090,8 @@ function injectStyles() {
       background: transparent !important;
     }
 
-    /* Only show trigger button in no_wheel mode */
-    body:not(.ym-vibe-no-wheel) #ym-vibe-settings-btn {
+    /* Only show trigger button in no_wheel and vibe_with_landing modes */
+    body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {
       display: none !important;
     }
 
@@ -5102,7 +5104,8 @@ function injectStyles() {
     }
 
     /* Ensure Vibe Meta stacks vertically centered */
-    body.ym-vibe-no-wheel [class*="VibePage_meta"] {
+    body.ym-vibe-no-wheel [class*="VibePage_meta"],
+    body.ym-vibe-with-landing [class*="VibePage_meta"] {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
@@ -5578,6 +5581,929 @@ function injectStyles() {
     }
     .ym-update-toast-close:hover {
       color: #ffffff;
+    }
+
+    /* =========================================================================
+       Mode 3: Vibe with Live Landing Feed (Hybrid Mode)
+       ========================================================================= */
+
+    /* Solid black left navbar in Mode 3 (vibe_with_landing) - strictly scoped to Vibe page */
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"] {
+      background: #000000 !important;
+      background-color: #000000 !important;
+      z-index: 100 !important;
+    }
+
+    /* Scrollable main card container */
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      box-sizing: border-box !important;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      border-radius: 20px !important;
+      background: #0f0f12 !important;
+      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar {
+      width: 6px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Vibe Widget container and hero section - Constrain width to prevent 10688px blowout (ONLY on Vibe page) */
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"] {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
+    body.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_vibeWidgetContainer"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      overflow-y: visible !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_root"] {
+      height: auto !important;
+      min-height: calc(100vh - 120px) !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: flex-start !important;
+      padding: 48px 20px 20px 20px !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_meta"] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: auto !important;
+      width: 100% !important;
+      max-width: 900px !important;
+      margin: 0 auto !important;
+      position: relative !important;
+      z-index: 5 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_context"] {
+      order: 1 !important;
+      margin-bottom: 6px !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMeta"] {
+      order: 2 !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-bottom: 110px !important;
+      position: relative !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMetaBody"] {
+      height: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: relative !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_textContainer"] {
+      height: auto !important;
+      padding-bottom: 0 !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_playerBlock"] {
+      order: 3 !important;
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 auto 12px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-settings-btn {
+      order: 4 !important;
+      margin: 6px auto 16px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-quick-block {
+      display: none !important;
+    }
+
+    /* Center the animated fluid canvas behind vibe player */
+    html.ym-vibe-with-landing [class*="VibePage_root"] [class*="VibeWidgetAnimation_root"] {
+      position: absolute !important;
+      left: 50% !important;
+      top: 38% !important;
+      transform: translate(-50%, -50%) !important;
+      pointer-events: none !important;
+    }
+
+    /* ========================================================
+       NATIVE 1-TO-1 LANDING FEED (STRICTLY SCOPED TO MODE 3 ONLY)
+       Never leaks to https://music.yandex.ru/landing/main
+       ======================================================== */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      margin: 16px 0 0 0 !important;
+      padding: 0 0 80px 0 !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
+      flex-shrink: 0 !important;
+      gap: 24px !important;
+      z-index: 2 !important;
+      overflow-x: hidden !important;
+    }
+
+    /* --- Tabs Row (Для вас / Тренды) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {
+      padding: 0 0 0 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      list-style: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
+      display: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY {
+      height: 54px !important;
+      min-height: 54px !important;
+      padding: 8px 16px !important;
+      border-radius: 50px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      cursor: pointer !important;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.18s ease !important;
+      box-sizing: border-box !important;
+      user-select: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY:hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_root__LUukY.active {
+      background: rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {
+      display: flex !important;
+      align-items: center !important;
+      position: relative !important;
+      width: 44px !important;
+      height: 38px !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {
+      width: 36px !important;
+      height: 36px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      border: 2px solid #141416 !important;
+      position: absolute !important;
+      top: 1px !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_:first-child {
+      left: 0 !important;
+      z-index: 1 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_:last-child {
+      left: 12px !important;
+      z-index: 2 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_description__p1fTO {
+      display: flex !important;
+      flex-direction: column !important;
+      text-align: left !important;
+      gap: 2px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_title__hAYZk {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 700 !important;
+      line-height: 18px !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_subtitle__fLp9S {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 500 !important;
+      line-height: 16px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      white-space: nowrap !important;
+      max-width: 140px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+
+    /* --- Likes & History Section (Exact 1-to-1) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
+      padding: 0 0 0 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD {
+      display: flex !important;
+      gap: 16px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      list-style: none !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD::-webkit-scrollbar {
+      display: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carouselItem__Yq5Xw {
+      width: 392px !important;
+      max-width: calc(50vw - 32px) !important;
+      min-width: 280px !important;
+      height: 82px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      list-style: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk {
+      height: 100% !important;
+      border-radius: 12px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), transform 0.15s ease !important;
+      overflow: hidden !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk:hover {
+      background: rgba(255, 255, 255, 0.12) !important;
+      transform: translateY(-1px) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_link__snTl_ {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      height: 100% !important;
+      padding: 12px !important;
+      box-sizing: border-box !important;
+      text-decoration: none !important;
+      color: inherit !important;
+      gap: 12px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_start__wdtiV {
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      min-width: 0 !important;
+      flex: 1 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_favoritesCoverContainer__UUIDf {
+      width: 58px !important;
+      height: 58px !important;
+      border-radius: 8px !important;
+      overflow: hidden !important;
+      flex-shrink: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_favoritesCover__Nt7Gm {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_historyIconContainer__KPPbS {
+      width: 58px !important;
+      height: 58px !important;
+      border-radius: 8px !important;
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: #ffffff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_historyIcon__2FAMu {
+      width: 24px !important;
+      height: 24px !important;
+      fill: currentColor !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_textContainer__yGdOu {
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: center !important;
+      min-width: 0 !important;
+      flex: 1 !important;
+      gap: 2px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_title__hdi2H {
+      font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      line-height: 26px !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+      letter-spacing: normal !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_titleIcon__2D_yS {
+      width: 24px !important;
+      height: 24px !important;
+      margin-left: 4px !important;
+      fill: currentColor !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      opacity: 0.7 !important;
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_root__oI1gk:hover .LikesAndHistoryItem_titleIcon__2D_yS {
+      transform: translateX(3px) !important;
+      opacity: 1 !important;
+      color: #ffffff !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_subtitle__ghuKi {
+      font-family: "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      color: rgba(255, 255, 255, 0.5) !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_covers__9k_yw {
+      position: relative !important;
+      width: 58px !important;
+      height: 58px !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ {
+      position: absolute !important;
+      width: 48px !important;
+      height: 48px !important;
+      border-radius: 4px !important;
+      overflow: hidden !important;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ:nth-child(1) {
+      left: 0px !important;
+      top: 10px !important;
+      z-index: 1 !important;
+      transform: rotate(-4deg) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_coverContainer__fwXXJ:nth-child(2) {
+      left: 10px !important;
+      top: 0px !important;
+      z-index: 2 !important;
+      transform: rotate(4deg) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistoryItem_cover__QlRhz {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }
+
+    /* --- Common Section Styles & Headers --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      width: 100% !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 12px 24px 8px 24px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
+      font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      line-height: 26px !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      letter-spacing: normal !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link svg {
+      width: 14px !important;
+      height: 14px !important;
+      opacity: 0.5 !important;
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {
+      transform: translateX(3px) !important;
+      opacity: 1 !important;
+    }
+
+    /* Native Carousel Controls (Arrow Buttons) */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc {
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i {
+      width: 32px !important;
+      height: 32px !important;
+      border-radius: 50% !important;
+      background: transparent !important;
+      border: 2px solid rgba(255, 255, 255, 0.12) !important;
+      color: #ffffff !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      cursor: pointer !important;
+      padding: 4px !important;
+      transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
+      outline: none !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:hover:not(:disabled):not([data-disabled="true"]) {
+      background: rgba(255, 255, 255, 0.08) !important;
+      border-color: rgba(255, 255, 255, 0.24) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:disabled,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i[data-disabled="true"] {
+      opacity: 0.3 !important;
+      cursor: default !important;
+      pointer-events: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i svg {
+      width: 12px !important;
+      height: 12px !important;
+      fill: currentColor !important;
+      display: block !important;
+    }
+
+    /* Native 1-to-1 Category Chips (топ, по жанру, под настроение, под занятие) */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chips {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding-bottom: 2px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chips::-webkit-scrollbar {
+      display: none;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip {
+      height: 36px;
+      padding: 8px 16px;
+      border-radius: 50px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 20px;
+      border: none;
+      outline: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.85);
+      cursor: pointer;
+      transition: background 0.18s cubic-bezier(0.2, 0, 0, 1), color 0.18s cubic-bezier(0.2, 0, 0, 1);
+      white-space: nowrap;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip:hover {
+      background: rgba(255, 255, 255, 0.14);
+      color: #ffffff;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chip.active {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    /* --- Native 1-to-1 AI Set Cards Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 4px 0 12px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card {
+      width: 340px;
+      height: 64px;
+      flex-shrink: 0;
+      scroll-snap-align: start !important;
+      border-radius: 16px;
+      padding: 4px 8px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease;
+      border: none;
+      outline: none;
+      user-select: none;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.88;
+      border-radius: 16px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-card-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      width: 100%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-header {
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 18px;
+      color: var(--vibe-button-text-color, #c8c1ff);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-title {
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 20px;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 90%;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-title svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    /* --- Native 1-to-1 New Releases Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel {
+      display: flex !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card {
+      width: 340px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      box-sizing: border-box;
+      transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover {
+      transform: translateY(-3px);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover {
+      width: 282px;
+      height: 282px;
+      border-radius: 50%;
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto -64px auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+      background: #1e1e24;
+      flex-shrink: 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-cover img {
+      transform: scale(1.04);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-fade {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180.14deg, rgba(32, 28, 29, 0) 30.88%, rgba(32, 28, 29, 0.45) 70.8%, rgba(32, 28, 29, 0.92) 80.88%);
+      z-index: 1;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-artist-caption {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 26px;
+      color: #ffffff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+      z-index: 2;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-paper {
+      width: 340px;
+      height: 80px;
+      border-radius: 12px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+      z-index: 3;
+      background: #201c1d;
+      background-image: radial-gradient(circle at 50% -200%, rgb(50, 52, 50) 0%, rgb(32, 28, 29) 90%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-paper {
+      background: #282425;
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-details {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-title {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 18px;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-desc {
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 18px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-play-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.15s ease, color 0.15s ease;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-play-btn {
+      background: #ffffff;
+      color: #000000;
+      transform: scale(1.08);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-play-btn svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* --- Native 1-to-1 Concerts Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel {
+      display: flex !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 24px !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card {
+      width: 200px !important;
+      height: 280px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      display: flex;
+      flex-direction: column;
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      cursor: pointer;
+      transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-image-wrap {
+      width: 100%;
+      height: 190px;
+      position: relative;
+      overflow: hidden;
+      background: #1e1e24;
+      flex-shrink: 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+      display: block;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-card:hover .ym-vibe-feed-concert-image {
+      transform: scale(1.05);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-badge {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      padding: 6px 10px;
+      border-radius: 10px;
+      background: #ffdb4d;
+      color: #000000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+      font-weight: 800;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-month {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-day {
+      font-size: 16px;
+      margin: 2px 0 1px 0;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-date-dow {
+      font-size: 8px;
+      opacity: 0.75;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-info {
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      justify-content: center;
+      flex: 1;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concert-venue {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
   `;
@@ -8063,6 +8989,7 @@ function checkAndInjectSettings() {
           <select id="ym-vibe-design-mode" class="ym-select">
             <option value="default" ${vibeDesignMode === 'default' ? 'selected' : ''}>По умолчанию (с колесом волны)</option>
             <option value="no_wheel" ${vibeDesignMode === 'no_wheel' ? 'selected' : ''}>Без карусели (компактный вид)</option>
+            <option value="vibe_with_landing" ${vibeDesignMode === 'vibe_with_landing' ? 'selected' : ''}>Моя волна с лентой рекомендаций</option>
             <option value="classic" ${vibeDesignMode === 'classic' ? 'selected' : ''}>Старый дизайн (в разработке)</option>
           </select>
         </div>
@@ -8549,8 +9476,17 @@ function checkAndInjectSettings() {
       localStorage.setItem('ymVibeDesignMode', mode);
       if (mode === 'no_wheel') {
         document.body.classList.add('ym-vibe-no-wheel');
+        document.documentElement.classList.add('ym-vibe-no-wheel');
       } else {
         document.body.classList.remove('ym-vibe-no-wheel');
+        document.documentElement.classList.remove('ym-vibe-no-wheel');
+      }
+      if (mode === 'vibe_with_landing') {
+        document.body.classList.add('ym-vibe-with-landing');
+        document.documentElement.classList.add('ym-vibe-with-landing');
+      } else {
+        document.body.classList.remove('ym-vibe-with-landing');
+        document.documentElement.classList.remove('ym-vibe-with-landing');
       }
       window.dispatchEvent(new CustomEvent('ym-vibe-mode-changed', { detail: { mode } }));
     });
@@ -20104,7 +21040,7 @@ setTimeout(() => {
 // ==========================================
 
 (function() {
-  const BYM_VERSION = '1.3.0';
+  const BYM_VERSION = '1.3.1';
   const GITHUB_REPO = 'IvanForze/BetterYandexMusic';
   const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 часов между фоновыми запросами
 
@@ -20661,19 +21597,41 @@ setTimeout(() => {
     }
   }
 
+  function isTargetVibePage() {
+    if (typeof window === 'undefined') return false;
+    const p = window.location.pathname;
+    // Explicitly reject non-vibe routes immediately
+    if (p.startsWith('/landing') || p.startsWith('/album') || p.startsWith('/artist') ||
+        p.startsWith('/users') || p.startsWith('/playlist') || p.startsWith('/genre') ||
+        p.startsWith('/chart') || p.startsWith('/radio') || p.startsWith('/search') ||
+        p.startsWith('/settings')) {
+      return false;
+    }
+    return p === '/' || p === '' || p.startsWith('/vibe');
+  }
+
   function applyVibeMode(mode) {
     if (typeof document === 'undefined') return;
-    const isNoWheel = mode === 'no_wheel';
+    const isTarget = isTargetVibePage();
+    const isNoWheel = isTarget && mode === 'no_wheel';
+    const isWithLanding = isTarget && mode === 'vibe_with_landing';
     if (document.documentElement) {
-      if (isNoWheel) document.documentElement.classList.add('ym-vibe-no-wheel');
-      else document.documentElement.classList.remove('ym-vibe-no-wheel');
+      document.documentElement.classList.toggle('ym-vibe-no-wheel', isNoWheel);
+      document.documentElement.classList.toggle('ym-vibe-with-landing', isWithLanding);
     }
     if (document.body) {
-      if (isNoWheel) document.body.classList.add('ym-vibe-no-wheel');
-      else document.body.classList.remove('ym-vibe-no-wheel');
+      document.body.classList.toggle('ym-vibe-no-wheel', isNoWheel);
+      document.body.classList.toggle('ym-vibe-with-landing', isWithLanding);
     }
     ensureVibeTransparencyStyles();
+    // Only no_wheel on target vibe page gets transparent navbar; otherwise reset
     updateNavbarTransparency(isNoWheel);
+
+    if (isWithLanding) {
+      initVibeLandingFeed();
+    } else {
+      removeVibeLandingFeed();
+    }
   }
 
   function ensureVibeTransparencyStyles() {
@@ -21247,8 +22205,9 @@ setTimeout(() => {
 
   // 5. Inject Settings / Vibe Button into the Context Area
   function checkAndInjectVibeButton() {
-    // Only show button in "no_wheel" mode!
-    if (getVibeDesignMode() !== 'no_wheel') {
+    const mode = getVibeDesignMode();
+    // Show button in "no_wheel" and "vibe_with_landing" modes!
+    if (mode !== 'no_wheel' && mode !== 'vibe_with_landing') {
       const existingBtn = document.getElementById('ym-vibe-settings-btn');
       if (existingBtn) existingBtn.remove();
       return;
@@ -21495,31 +22454,722 @@ setTimeout(() => {
       .replace(/"/g, '&quot;');
   }
 
-  // 7. Observer to maintain button injection on SPA route changes and navbar transparency
+  // =========================================================================
+  // 8. Mode 3: Live Landing Feed Under Vibe (Native REST API Integration)
+  // =========================================================================
+
+  let landingFeedCache = {
+    likesHistory: null,
+    mixesWaves: null,
+    newReleases: null,
+    concerts: null,
+    timestamp: 0
+  };
+  let activeAiCategory = 'mix';
+  let isFetchingFeed = false;
+
+  function formatYandexImg(uri, size = '400x400') {
+    if (!uri) return '';
+    let url = String(uri);
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = 'https://' + url;
+    }
+    if (url.includes('get-music-misc')) {
+      const miscSize = size.startsWith('m') ? size : 'm400x400';
+      return url.replace('%%', miscSize);
+    }
+    return url.replace('%%', size);
+  }
+
+  function spaNavigate(url, e) {
+    if (e) {
+      if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+      e.preventDefault();
+    }
+    if (window.next && window.next.router && typeof window.next.router.push === 'function') {
+      try {
+        window.next.router.push(url);
+        return;
+      } catch (err) { }
+    }
+    window.history.pushState({}, '', url);
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  }
+
+  async function fetchFeedData() {
+    const now = Date.now();
+    if (landingFeedCache.timestamp && (now - landingFeedCache.timestamp < 180000)) {
+      return landingFeedCache;
+    }
+
+    if (isFetchingFeed) return landingFeedCache;
+    isFetchingFeed = true;
+
+    try {
+      const [lhRes, mwRes, nrRes, cRes] = await Promise.allSettled([
+        fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing-blocks/new-releases', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
+      ]);
+
+      if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
+      if (mwRes.status === 'fulfilled' && mwRes.value) landingFeedCache.mixesWaves = mwRes.value;
+      if (nrRes.status === 'fulfilled' && nrRes.value) landingFeedCache.newReleases = nrRes.value;
+      if (cRes.status === 'fulfilled' && cRes.value) landingFeedCache.concerts = cRes.value;
+
+      landingFeedCache.timestamp = now;
+    } catch (e) {
+      console.warn('[BYM] Error fetching live landing feed data:', e);
+    } finally {
+      isFetchingFeed = false;
+    }
+
+    return landingFeedCache;
+  }
+
+  async function initVibeLandingFeed() {
+    if (getVibeDesignMode() !== 'vibe_with_landing') {
+      removeVibeLandingFeed();
+      return;
+    }
+
+    if (!isTargetVibePage()) {
+      removeVibeLandingFeed();
+      return;
+    }
+
+    // Clean up any obsolete quick block from previous layouts
+    const oldQuick = document.getElementById('ym-vibe-quick-block');
+    if (oldQuick) oldQuick.remove();
+
+    // Target 2: Scrollable Feed under Vibe inside MainPage_vibeWidgetContainer
+    const widgetContainer = document.querySelector('[class*="MainPage_vibeWidgetContainer"]');
+    const vibeRoot = document.querySelector('[class*="VibePage_root"]');
+    if (widgetContainer) {
+      let feedContainer = document.getElementById('ym-vibe-live-landing-feed');
+      if (!feedContainer) {
+        feedContainer = document.createElement('div');
+        feedContainer.id = 'ym-vibe-live-landing-feed';
+        if (vibeRoot && vibeRoot.nextElementSibling) {
+          widgetContainer.insertBefore(feedContainer, vibeRoot.nextElementSibling);
+        } else {
+          widgetContainer.appendChild(feedContainer);
+        }
+      }
+    }
+
+    // Fetch and render data
+    const data = await fetchFeedData();
+    renderLandingFeedUI(data);
+  }
+
+  function removeVibeLandingFeed() {
+    const quickBlock = document.getElementById('ym-vibe-quick-block');
+    if (quickBlock) quickBlock.remove();
+
+    const feed = document.getElementById('ym-vibe-live-landing-feed');
+    if (feed) feed.remove();
+  }
+
+  function renderLandingFeedUI(data) {
+    if (getVibeDesignMode() !== 'vibe_with_landing') return;
+
+    const oldQuick = document.getElementById('ym-vibe-quick-block');
+    if (oldQuick) oldQuick.remove();
+
+    const feed = document.getElementById('ym-vibe-live-landing-feed');
+    if (!feed || !data) return;
+    feed.replaceChildren();
+
+    // 1. Exact 1-to-1 Native Tabs (Для вас / Тренды)
+    renderLandingTabs(feed, data.likesHistory, data.newReleases);
+
+    // 2. Exact 1-to-1 Native Likes and History cards (Мне нравится / История)
+    renderLikesAndHistorySection(feed, data.likesHistory);
+
+    // 3. Exact 1-to-1 Section: Свели в AI-сет
+    renderAiSetsSection(feed, data.mixesWaves);
+
+    // 4. Exact 1-to-1 Section: Новые релизы
+    renderNewReleasesSection(feed, data.newReleases);
+
+    // 5. Exact 1-to-1 Section: Концерты для вас
+    renderConcertsSection(feed, data.concerts);
+  }
+
+  function renderLandingTabs(feedContainer, lhData, newReleasesData) {
+    const lh = lhData?.result || lhData || {};
+    const favTracks = lh.favorites?.trackCovers || [];
+    const histArtists = lh.history?.subtitleElements || [];
+    const artist1 = histArtists[0] || 'Для вас';
+    const artist2 = histArtists[1] || 'подборка';
+    const forYouSub = `${artist1}, ${artist2}`;
+
+    const forYouImg1 = favTracks[0]?.uri ? formatYandexImg(favTracks[0].uri, '50x50') : '';
+    const forYouImg2 = favTracks[1]?.uri ? formatYandexImg(favTracks[1].uri, '50x50') : '';
+
+    const releases = newReleasesData?.result?.newReleases || newReleasesData?.newReleases || [];
+    const trendsImg1 = releases[0]?.cover?.uri ? formatYandexImg(releases[0].cover.uri, '50x50') : '';
+    const trendsImg2 = releases[1]?.cover?.uri ? formatYandexImg(releases[1].cover.uri, '50x50') : '';
+
+    const header = document.createElement('header');
+    header.className = 'Skeleton_header__Ir5f4 ym-landing-tabs-header';
+    header.innerHTML = `
+      <ol class="TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy Skeleton_tabCarousel__E2kLf" role="tablist">
+        <li class="d50IqTKJZhJIMd5aTqAn">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t cBxrIXbcPeS3kSzdJdhS Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By active" type="button" role="tab" aria-selected="true" id="ym-tab-foryou">
+            <span class="Tab_covers__cvYeI">
+              ${forYouImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(forYouImg1)}">` : ''}
+              ${forYouImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(forYouImg2)}">` : ''}
+            </span>
+            <span class="Tab_description__p1fTO">
+              <div title="Для вас" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">Для вас</div>
+              <div title="${escapeHtml(forYouSub)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI _oBLf5gprWsKjCw4Ce58 _3_Mxw7Si7j2g4kWjlpR Tab_subtitle__fLp9S" style="-webkit-line-clamp: 1;">${escapeHtml(forYouSub)}</div>
+            </span>
+          </button>
+        </li>
+        <li class="d50IqTKJZhJIMd5aTqAn">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" aria-selected="false" id="ym-tab-trends">
+            <span class="Tab_covers__cvYeI">
+              ${trendsImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(trendsImg1)}">` : ''}
+              ${trendsImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(trendsImg2)}">` : ''}
+            </span>
+            <span class="Tab_description__p1fTO">
+              <div title="Тренды" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">Тренды</div>
+              <div title="Чарт и Открытия" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI _oBLf5gprWsKjCw4Ce58 _3_Mxw7Si7j2g4kWjlpR Tab_subtitle__fLp9S" style="-webkit-line-clamp: 1;">Чарт и Открытия</div>
+            </span>
+          </button>
+        </li>
+      </ol>
+    `;
+
+    const tabForYou = header.querySelector('#ym-tab-foryou');
+    const tabTrends = header.querySelector('#ym-tab-trends');
+    if (tabForYou && tabTrends) {
+      tabForYou.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabForYou.classList.add('active');
+        tabForYou.setAttribute('aria-selected', 'true');
+        tabTrends.classList.remove('active');
+        tabTrends.setAttribute('aria-selected', 'false');
+      });
+      tabTrends.addEventListener('click', (e) => {
+        e.preventDefault();
+        tabTrends.classList.add('active');
+        tabTrends.setAttribute('aria-selected', 'true');
+        tabForYou.classList.remove('active');
+        tabForYou.setAttribute('aria-selected', 'false');
+        spaNavigate('/chart');
+      });
+    }
+
+    feedContainer.appendChild(header);
+  }
+
+  function renderLikesAndHistorySection(feedContainer, lhData) {
+    const lh = lhData?.result || lhData || {};
+    const fav = lh.favorites || {};
+    const hist = lh.history || {};
+
+    const favLink = fav.playlistUuid ? `/playlists/${fav.playlistUuid}` : '/collection';
+    const histLink = '/music-history';
+
+    const favCountText = fav.count ? `${fav.count} треков` : 'Мне нравится';
+    const histSubElements = Array.isArray(hist.subtitleElements) && hist.subtitleElements.length > 0
+      ? hist.subtitleElements.slice(0, 3).join(', ')
+      : 'Недавно прослушано';
+
+    const favCoverUrl = fav.cover?.uri
+      ? formatYandexImg(fav.cover.uri, '80x80')
+      : 'https://avatars.yandex.net/get-music-user-playlist/11418140/favorit-playlist-cover.bb48fdb9b9f4/80x80';
+
+    const favCovers = Array.isArray(fav.trackCovers) ? fav.trackCovers.slice(0, 2) : [];
+    let favCoversHtml = '';
+    if (favCovers.length > 0) {
+      favCoversHtml = `
+        <div class="LikesAndHistoryItem_covers__9k_yw">
+          ${favCovers.map((c) => {
+            const uri = c.uri || c;
+            return `
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    const histCovers = Array.isArray(hist.trackCovers) ? hist.trackCovers.slice(0, 2) : [];
+    let histCoversHtml = '';
+    if (histCovers.length > 0) {
+      histCoversHtml = `
+        <div class="LikesAndHistoryItem_covers__9k_yw">
+          ${histCovers.map((c) => {
+            const uri = c.uri || c;
+            return `
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    const section = document.createElement('section');
+    section.className = 'LikesAndHistory_root__KCuz_';
+    section.innerHTML = `
+      <ol class="IZnFMW4gXBshJODnvB1P LikesAndHistory_carousel__579RD" role="list">
+        <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
+          <div class="LikesAndHistoryItem_root__oI1gk">
+            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(favLink)}" id="ym-card-fav">
+              <div class="LikesAndHistoryItem_start__wdtiV">
+                <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_favoritesCoverContainer__UUIDf">
+                  <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistory_favoritesCover__Nt7Gm" alt="Мне нравится" loading="eager" src="${escapeHtml(favCoverUrl)}">
+                </div>
+                <div class="LikesAndHistoryItem_textContainer__yGdOu">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                    Мне нравится
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                      <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
+                      <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </h2>
+                  <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                    ${escapeHtml(favCountText)}
+                  </div>
+                </div>
+              </div>
+              ${favCoversHtml}
+            </a>
+          </div>
+        </li>
+
+        <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
+          <div class="LikesAndHistoryItem_root__oI1gk">
+            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(histLink)}" id="ym-card-hist">
+              <div class="LikesAndHistoryItem_start__wdtiV">
+                <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_historyIconContainer__KPPbS">
+                  <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
+                    <use xlink:href="/icons/sprite.svg#history_m"></use>
+                    <path d="M12 4a8 8 0 1 0 8 8h-2a6 6 0 1 1-6-6V2l4 3.5L12 9V4zm1 4v4.5l3 1.8-.75 1.2-3.75-2.25V8h1.5z" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="LikesAndHistoryItem_textContainer__yGdOu">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                    История
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                      <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
+                      <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </h2>
+                  <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                    ${escapeHtml(histSubElements)}
+                  </div>
+                </div>
+              </div>
+              ${histCoversHtml}
+            </a>
+          </div>
+        </li>
+      </ol>
+    `;
+
+    const favBtn = section.querySelector('#ym-card-fav');
+    if (favBtn) favBtn.addEventListener('click', (e) => spaNavigate(favLink, e));
+    const histBtn = section.querySelector('#ym-card-hist');
+    if (histBtn) histBtn.addEventListener('click', (e) => spaNavigate(histLink, e));
+
+    feedContainer.appendChild(section);
+  }
+
+  function setupCarouselControls(container, prevBtn, nextBtn) {
+    if (!container) return;
+    const update = () => {
+      const atStart = container.scrollLeft <= 5;
+      const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
+      if (prevBtn) {
+        prevBtn.disabled = atStart;
+        prevBtn.setAttribute('data-disabled', atStart ? 'true' : 'false');
+      }
+      if (nextBtn) {
+        nextBtn.disabled = atEnd;
+        nextBtn.setAttribute('data-disabled', atEnd ? 'true' : 'false');
+      }
+    };
+    if (prevBtn) {
+      prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dist = Math.max(340, container.clientWidth * 0.75);
+        container.scrollBy({ left: -dist, behavior: 'smooth' });
+      });
+    }
+    if (nextBtn) {
+      nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dist = Math.max(340, container.clientWidth * 0.75);
+        container.scrollBy({ left: dist, behavior: 'smooth' });
+      });
+    }
+    container.addEventListener('scroll', update, { passive: true });
+    // Native smooth momentum and snapping - NO wheel deltaY hijacking!
+    setTimeout(update, 100);
+  }
+
+  function createSectionHeader(title, linkHref) {
+    const header = document.createElement('div');
+    header.className = 'Vibes_header__L5F6H ym-vibe-feed-header';
+    header.innerHTML = `
+      ${linkHref
+        ? `<a href="${escapeHtml(linkHref)}" class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww Vibes_heading__4i5bM ym-vibe-feed-title-link">
+            <span>${escapeHtml(title)}</span>
+            <svg class="LikesAndHistoryItem_titleIcon__2D_yS" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
+              <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+           </a>`
+        : `<h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww Vibes_heading__4i5bM">${escapeHtml(title)}</h2>`
+      }
+      <div class="CarouselControls_root__E_hwc Vibes_controls__bUp2H">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO CarouselControls_control__L8t4i prev" type="button" tabindex="-1" aria-hidden="true" disabled data-disabled="true" aria-label="Назад">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
+              <path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO CarouselControls_control__L8t4i next" type="button" tabindex="-1" aria-hidden="true" aria-label="Вперед">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+              <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+        </button>
+      </div>
+    `;
+    if (linkHref) {
+      const link = header.querySelector('a');
+      if (link) link.addEventListener('click', (e) => spaNavigate(linkHref, e));
+    }
+    return header;
+  }
+
+  function renderAiSetsSection(feedContainer, mixesWavesData) {
+    if (!mixesWavesData) return;
+    const waves = mixesWavesData.result?.waves || mixesWavesData.waves || [];
+    if (!Array.isArray(waves) || waves.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'Vibes_root__Bk6PF ym-vibe-feed-section';
+
+    // Header with Title & Carousel Arrows
+    const header = createSectionHeader('Свели в AI-сет');
+    section.appendChild(header);
+
+    const chipsRow = document.createElement('ol');
+    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 ym-vibe-feed-chips';
+    chipsRow.setAttribute('role', 'tablist');
+
+    if (!activeAiCategory) activeAiCategory = waves[0].id;
+    const currentCatWave = waves.find(w => w.id === activeAiCategory) || waves[0];
+
+    waves.forEach(w => {
+      const li = document.createElement('li');
+      li.className = 'd50IqTKJZhJIMd5aTqAn';
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = `ym-vibe-feed-chip ${w.id === activeAiCategory ? 'active' : ''}`;
+      chip.textContent = w.title || w.id;
+      chip.addEventListener('click', () => {
+        activeAiCategory = w.id;
+        section.querySelectorAll('.ym-vibe-feed-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        renderAiCards(carouselContainer, w.items || []);
+      });
+      li.appendChild(chip);
+      chipsRow.appendChild(li);
+    });
+    section.appendChild(chipsRow);
+
+    // Horizontal Scrollable Cards Carousel
+    const carouselContainer = document.createElement('div');
+    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi ym-vibe-feed-ai-carousel';
+    section.appendChild(carouselContainer);
+
+    renderAiCards(carouselContainer, currentCatWave.items || []);
+
+    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
+    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    setupCarouselControls(carouselContainer, prevBtn, nextBtn);
+
+    feedContainer.appendChild(section);
+  }
+
+  function renderAiCards(container, items) {
+    container.replaceChildren();
+    if (!items || items.length === 0) return;
+
+    items.forEach(item => {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'ym-vibe-feed-ai-card';
+
+      const bgImg = formatYandexImg(item.backgroundImageUrl, 'm400x400');
+      const avgColor = (item.colors && item.colors.average) || '#333344';
+      const textColor = (item.colors && (item.colors.waveText || item.colors.text)) || '#c8c1ff';
+
+      card.style.setProperty('--vibe-button-background', avgColor);
+      card.style.setProperty('--vibe-button-text-color', textColor);
+      card.style.backgroundColor = avgColor;
+
+      card.innerHTML = `
+        ${bgImg ? `<img src="${escapeHtml(bgImg)}" class="ym-vibe-feed-ai-card-img" alt="">` : ''}
+        <div class="ym-vibe-feed-ai-card-content">
+          <span class="ym-vibe-feed-ai-header">${escapeHtml(item.header || 'Сет Моей волны')}</span>
+          <span class="ym-vibe-feed-ai-title">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+            <span>${escapeHtml(item.title || '')}</span>
+          </span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        const allItems = getAllVibeItems();
+        const match = allItems.find(i =>
+          (item.stationId && i.id && i.id.includes(item.stationId)) ||
+          (item.title && i.name && i.name.toLowerCase() === item.title.toLowerCase())
+        );
+        if (match) {
+          activateVibeItem(match);
+        } else {
+          const playBtn = document.querySelector('button[aria-label*="Воспроизведение"], [class*="PlayButtonWithCover"]');
+          if (playBtn) playBtn.click();
+        }
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  function renderNewReleasesSection(feedContainer, releasesData) {
+    if (!releasesData) return;
+    const releases = releasesData.result?.newReleases || releasesData.newReleases || [];
+    if (!Array.isArray(releases) || releases.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'NewReleases_root__4ONiw ym-vibe-feed-section';
+
+    const header = createSectionHeader('Новые релизы', '/entities/new-releases/NEWRELEASES');
+    section.appendChild(header);
+
+    const carousel = document.createElement('div');
+    carousel.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi ym-vibe-feed-releases-carousel';
+
+    releases.forEach(rel => {
+      const album = rel.album || {};
+      const artist = (rel.artists && rel.artists[0]) || {};
+      const artistName = rel.artists ? rel.artists.map(a => a.name).join(', ') : 'Артист';
+
+      const avatarUrl = formatYandexImg(artist.cover?.uri || rel.cover?.uri, '300x300');
+      const albumCoverUrl = formatYandexImg(album.cover?.uri || rel.cover?.uri, '100x100');
+
+      let subText = album.albumType === 'single' ? 'сингл' : 'альбом';
+      if (rel.releaseDate) {
+        try {
+          const d = new Date(rel.releaseDate);
+          const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+          subText += ` • ${d.getDate()} ${months[d.getMonth()]}`;
+        } catch (e) { }
+      }
+
+      const card = document.createElement('a');
+      card.className = 'ym-vibe-feed-release-card';
+      const albumUrl = `/album/${album.id || ''}`;
+      card.href = albumUrl;
+
+      card.innerHTML = `
+        <div class="ym-vibe-feed-release-cover">
+          <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(artistName)}" loading="lazy">
+          <div class="ym-vibe-feed-release-fade"></div>
+          <div class="ym-vibe-feed-release-artist-caption">${escapeHtml(artistName)}</div>
+        </div>
+        <div class="ym-vibe-feed-release-paper">
+          <img src="${escapeHtml(albumCoverUrl)}" class="ym-vibe-feed-release-thumb" alt="" loading="lazy">
+          <div class="ym-vibe-feed-release-details">
+            <div class="ym-vibe-feed-release-title" title="${escapeHtml(album.title || '')}">${escapeHtml(album.title || '')}</div>
+            <div class="ym-vibe-feed-release-desc">${escapeHtml(subText)}</div>
+          </div>
+          <div class="ym-vibe-feed-release-play-btn" title="Слушать">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+          </div>
+        </div>
+      `;
+
+      card.addEventListener('click', (e) => spaNavigate(albumUrl, e));
+      carousel.appendChild(card);
+    });
+
+    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
+    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    setupCarouselControls(carousel, prevBtn, nextBtn);
+
+    section.appendChild(carousel);
+    feedContainer.appendChild(section);
+  }
+
+  function renderConcertsSection(feedContainer, concertsData) {
+    if (!concertsData) return;
+    const concerts = concertsData.result?.concerts || concertsData.concerts || [];
+    if (!Array.isArray(concerts) || concerts.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'ym-vibe-feed-section ym-concerts-section';
+
+    const header = createSectionHeader('Концерты для вас', '/concerts');
+    section.appendChild(header);
+
+    const carousel = document.createElement('div');
+    carousel.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi ym-vibe-feed-concerts-carousel';
+
+    const monthsRu = ['ЯНВ', 'ФЕВ', 'МАР', 'АПР', 'МАЙ', 'ИЮН', 'ИЮЛ', 'АВГ', 'СЕН', 'ОКТ', 'НОЯ', 'ДЕК'];
+    const dowsRu = ['ВС', 'ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ'];
+
+    concerts.forEach(c => {
+      let monthStr = 'ОКТ';
+      let dayStr = '01';
+      let dowStr = 'ПТ';
+      if (c.datetime) {
+        try {
+          const d = new Date(c.datetime);
+          monthStr = monthsRu[d.getMonth()] || 'ОКТ';
+          dayStr = String(d.getDate()).padStart(2, '0');
+          dowStr = dowsRu[d.getDay()] || 'ПТ';
+        } catch (err) { }
+      }
+
+      const coverImg = formatYandexImg(c.cover?.uri, '400x400');
+      const venueStr = [c.place, c.city].filter(Boolean).join(', ') || 'Концерт';
+
+      const card = document.createElement('div');
+      card.className = 'ym-vibe-feed-concert-card';
+
+      card.innerHTML = `
+        <div class="ym-vibe-feed-concert-image-wrap">
+          <img src="${escapeHtml(coverImg)}" class="ym-vibe-feed-concert-image" alt="${escapeHtml(c.concertTitle || '')}" loading="lazy">
+          <div class="ym-vibe-feed-concert-date-badge">
+            <span class="ym-vibe-feed-concert-date-month">${escapeHtml(monthStr)}</span>
+            <span class="ym-vibe-feed-concert-date-day">${escapeHtml(dayStr)}</span>
+            <span class="ym-vibe-feed-concert-date-dow">${escapeHtml(dowStr)}</span>
+          </div>
+        </div>
+        <div class="ym-vibe-feed-concert-info">
+          <div class="ym-vibe-feed-concert-title" title="${escapeHtml(c.concertTitle || '')}">${escapeHtml(c.concertTitle || '')}</div>
+          <div class="ym-vibe-feed-concert-venue" title="${escapeHtml(venueStr)}">${escapeHtml(venueStr)}</div>
+        </div>
+      `;
+
+      card.addEventListener('click', (e) => spaNavigate('/concerts', e));
+      carousel.appendChild(card);
+    });
+
+    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
+    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    setupCarouselControls(carousel, prevBtn, nextBtn);
+
+    section.appendChild(carousel);
+    feedContainer.appendChild(section);
+  }
+
+  // 9. Observer to maintain button injection, navbar transparency and feed injection
+  let lastFeedCheckUrl = '';
   const observer = new MutationObserver(() => {
     checkAndInjectVibeButton();
     trackAsideWidth();
-    if (getVibeDesignMode() === 'no_wheel') {
+
+    const mode = getVibeDesignMode();
+    const isTarget = isTargetVibePage();
+
+    if (!isTarget) {
+      if (document.documentElement) {
+        document.documentElement.classList.remove('ym-vibe-no-wheel', 'ym-vibe-with-landing');
+      }
+      if (document.body) {
+        document.body.classList.remove('ym-vibe-no-wheel', 'ym-vibe-with-landing');
+      }
+      updateNavbarTransparency(false);
+      removeVibeLandingFeed();
+      return;
+    }
+
+    if (mode === 'no_wheel') {
+      if (document.documentElement) {
+        document.documentElement.classList.add('ym-vibe-no-wheel');
+        document.documentElement.classList.remove('ym-vibe-with-landing');
+      }
+      if (document.body) {
+        document.body.classList.add('ym-vibe-no-wheel');
+        document.body.classList.remove('ym-vibe-with-landing');
+      }
       updateNavbarTransparency(true);
+      removeVibeLandingFeed();
+    } else if (mode === 'vibe_with_landing') {
+      if (document.documentElement) {
+        document.documentElement.classList.remove('ym-vibe-no-wheel');
+        document.documentElement.classList.add('ym-vibe-with-landing');
+      }
+      if (document.body) {
+        document.body.classList.remove('ym-vibe-no-wheel');
+        document.body.classList.add('ym-vibe-with-landing');
+      }
+      updateNavbarTransparency(false);
+      const hasFeed = document.getElementById('ym-vibe-live-landing-feed');
+      if (!hasFeed || window.location.href !== lastFeedCheckUrl) {
+        lastFeedCheckUrl = window.location.href;
+        initVibeLandingFeed();
+      }
+    } else {
+      if (document.documentElement) {
+        document.documentElement.classList.remove('ym-vibe-no-wheel', 'ym-vibe-with-landing');
+      }
+      if (document.body) {
+        document.body.classList.remove('ym-vibe-no-wheel', 'ym-vibe-with-landing');
+      }
+      updateNavbarTransparency(false);
+      removeVibeLandingFeed();
     }
   });
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('popstate', () => {
+      applyVibeMode(getVibeDesignMode());
+    });
+  }
 
   if (typeof document !== 'undefined') {
     observer.observe(document.body || document.documentElement, {
       childList: true,
       subtree: true
     });
-    // Initial check
-    setTimeout(initVibeMode, 500);
-    setTimeout(initVibeMode, 1500);
-    setTimeout(initVibeMode, 3000);
+    // Initial checks
+    setTimeout(initVibeMode, 300);
+    setTimeout(initVibeMode, 1200);
+    setTimeout(initVibeMode, 2500);
   }
 
   // Expose API for external debug or settings
   window.__ymVibeEnhancer = {
     getItems: getAllVibeItems,
     activate: activateVibeItem,
-    applyMode: applyVibeMode
+    applyMode: applyVibeMode,
+    refreshFeed: initVibeLandingFeed
   };
 
 })();
