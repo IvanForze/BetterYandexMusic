@@ -2841,7 +2841,18 @@ function injectStyles() {
       z-index: 100 !important;
     }
 
-    /* Scrollable main card container */
+    /* Reset root layout padding in Mode 3 (vibe_with_landing) to eliminate bottom grey strip / gap */
+    html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]),
+    html.ym-vibe-with-landing [class*="DefaultLayout_root"]:has([class*="VibePage_root"]),
+    body.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]),
+    body.ym-vibe-with-landing [class*="DefaultLayout_root"]:has([class*="VibePage_root"]) {
+      padding-block-start: 0 !important;
+      padding-block-end: 0 !important;
+      padding-inline-end: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* Scrollable main container matching native My Vibe layout (no island borders/radii, extends to viewport edges) */
     html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -2851,9 +2862,12 @@ function injectStyles() {
       scroll-behavior: smooth;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-      border-radius: 20px !important;
-      background: #0f0f12 !important;
-      border: 1px solid rgba(255, 255, 255, 0.06) !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      margin-block-start: 0 !important;
+      margin-block-end: 0 !important;
     }
 
     html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar {
@@ -2894,11 +2908,15 @@ function injectStyles() {
       flex-direction: column !important;
       align-items: center !important;
       overflow-y: visible !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
     }
 
     html.ym-vibe-with-landing [class*="VibePage_root"] {
-      height: auto !important;
-      min-height: calc(100vh - 120px) !important;
+      height: 100vh !important;
+      min-height: 100vh !important;
       width: 100% !important;
       max-width: 100% !important;
       min-width: 0 !important;
@@ -2906,8 +2924,9 @@ function injectStyles() {
       display: flex !important;
       flex-direction: column !important;
       align-items: center !important;
-      justify-content: flex-start !important;
-      padding: 48px 20px 20px 20px !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      margin: 0 !important;
       box-sizing: border-box !important;
       overflow: visible !important;
     }
