@@ -3028,18 +3028,21 @@ function injectStyles() {
       width: 100% !important;
       box-sizing: border-box !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy {
       display: flex !important;
       align-items: center !important;
       gap: 8px !important;
       overflow-x: auto !important;
+      overflow-y: hidden !important;
       scrollbar-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
       list-style: none !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy::-webkit-scrollbar {
       display: none !important;
+      width: 0 !important;
+      height: 0 !important;
     }
     /* --- Likes & History Section (Exact 1-to-1) --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
@@ -3081,12 +3084,18 @@ function injectStyles() {
       width: 100% !important;
     }
 
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {
+      gap: 0 !important;
+    }
+
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
       padding: 12px 24px 8px 24px !important;
+      padding-bottom: 8px !important;
+      padding-block-end: 8px !important;
       margin: 0 !important;
       width: 100% !important;
       box-sizing: border-box !important;
@@ -3155,21 +3164,101 @@ function injectStyles() {
       fill: currentColor !important;
       display: block !important;
     }
-
-    /* Native 1-to-1 Category Chips (топ, по жанру, под настроение, под занятие) */
-    /* Native Category Tabs (топ, по жанру, под настроение, под занятие) */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_tabCarousel__bSvp0 {
+    /* --- Robust AI Set Category Filter Chips --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row {
       display: flex !important;
       align-items: center !important;
+      flex-direction: row !important;
       gap: 8px !important;
       overflow-x: auto !important;
+      overflow-y: hidden !important;
       scrollbar-width: none !important;
       margin: 0 !important;
-      padding: 0 0 12px 24px !important;
+      margin-bottom: 0 !important;
+      margin-block-end: 0 !important;
+      padding: 0 0 16px 24px !important;
+      padding-bottom: 16px !important;
+      padding-block-end: 16px !important;
       list-style: none !important;
+      box-sizing: border-box !important;
+      height: auto !important;
+      min-height: 52px !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_tabCarousel__bSvp0::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar {
       display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-item {
+      list-style: none !important;
+      flex-shrink: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 36px !important;
+      min-height: 36px !important;
+      max-height: 36px !important;
+      padding: 0 16px !important;
+      border-radius: 9999px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;
+      font-family: "YS Text", sans-serif !important;
+      font-style: normal !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      letter-spacing: normal !important;
+      white-space: nowrap !important;
+      cursor: pointer !important;
+      flex-shrink: 0 !important;
+      box-sizing: border-box !important;
+      transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;
+      text-decoration: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover .Tab_title__hAYZk {
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected="true"] {
+      background: var(--ym-controls-color-secondary-default-enabled, rgba(255, 255, 255, 0.2)) !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+      font-weight: 700 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_description__p1fTO {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: normal !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_title__hAYZk {
+      font-family: "YS Text", sans-serif !important;
+      font-style: normal !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;
+      white-space: nowrap !important;
+      transition: color 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active .Tab_title__hAYZk,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS .Tab_title__hAYZk,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected="true"] .Tab_title__hAYZk {
+      font-weight: 700 !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
     }
 
     /* --- Native 1-to-1 AI Set Cards Carousel --- */
@@ -3180,7 +3269,9 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 4px 0 12px 24px !important;
+      padding: 0 0 12px 24px !important;
+      padding-top: 0 !important;
+      padding-block-start: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;

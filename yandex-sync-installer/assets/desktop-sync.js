@@ -5787,18 +5787,21 @@ function injectStyles() {
       width: 100% !important;
       box-sizing: border-box !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy {
       display: flex !important;
       align-items: center !important;
       gap: 8px !important;
       overflow-x: auto !important;
+      overflow-y: hidden !important;
       scrollbar-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
       list-style: none !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy::-webkit-scrollbar {
       display: none !important;
+      width: 0 !important;
+      height: 0 !important;
     }
     /* --- Likes & History Section (Exact 1-to-1) --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
@@ -5840,12 +5843,18 @@ function injectStyles() {
       width: 100% !important;
     }
 
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {
+      gap: 0 !important;
+    }
+
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
       padding: 12px 24px 8px 24px !important;
+      padding-bottom: 8px !important;
+      padding-block-end: 8px !important;
       margin: 0 !important;
       width: 100% !important;
       box-sizing: border-box !important;
@@ -5914,21 +5923,101 @@ function injectStyles() {
       fill: currentColor !important;
       display: block !important;
     }
-
-    /* Native 1-to-1 Category Chips (топ, по жанру, под настроение, под занятие) */
-    /* Native Category Tabs (топ, по жанру, под настроение, под занятие) */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_tabCarousel__bSvp0 {
+    /* --- Robust AI Set Category Filter Chips --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row {
       display: flex !important;
       align-items: center !important;
+      flex-direction: row !important;
       gap: 8px !important;
       overflow-x: auto !important;
+      overflow-y: hidden !important;
       scrollbar-width: none !important;
       margin: 0 !important;
-      padding: 0 0 12px 24px !important;
+      margin-bottom: 0 !important;
+      margin-block-end: 0 !important;
+      padding: 0 0 16px 24px !important;
+      padding-bottom: 16px !important;
+      padding-block-end: 16px !important;
       list-style: none !important;
+      box-sizing: border-box !important;
+      height: auto !important;
+      min-height: 52px !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_tabCarousel__bSvp0::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar {
       display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-item {
+      list-style: none !important;
+      flex-shrink: 0 !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      height: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: 36px !important;
+      min-height: 36px !important;
+      max-height: 36px !important;
+      padding: 0 16px !important;
+      border-radius: 9999px !important;
+      border: none !important;
+      outline: none !important;
+      background: transparent !important;
+      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;
+      font-family: "YS Text", sans-serif !important;
+      font-style: normal !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      letter-spacing: normal !important;
+      white-space: nowrap !important;
+      cursor: pointer !important;
+      flex-shrink: 0 !important;
+      box-sizing: border-box !important;
+      transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;
+      text-decoration: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover {
+      background: rgba(255, 255, 255, 0.08) !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover .Tab_title__hAYZk {
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected="true"] {
+      background: var(--ym-controls-color-secondary-default-enabled, rgba(255, 255, 255, 0.2)) !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+      font-weight: 700 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_description__p1fTO {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      line-height: normal !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_title__hAYZk {
+      font-family: "YS Text", sans-serif !important;
+      font-style: normal !important;
+      font-size: 14px !important;
+      font-weight: 500 !important;
+      line-height: 20px !important;
+      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;
+      white-space: nowrap !important;
+      transition: color 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active .Tab_title__hAYZk,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS .Tab_title__hAYZk,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected="true"] .Tab_title__hAYZk {
+      font-weight: 700 !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
     }
 
     /* --- Native 1-to-1 AI Set Cards Carousel --- */
@@ -5939,7 +6028,9 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 4px 0 12px 24px !important;
+      padding: 0 0 12px 24px !important;
+      padding-top: 0 !important;
+      padding-block-start: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
@@ -22432,7 +22523,6 @@ setTimeout(() => {
                     Мне нравится
                     <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
-                      <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </h2>
                   <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
@@ -22452,7 +22542,6 @@ setTimeout(() => {
                 <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_historyIconContainer__KPPbS">
                   <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
                     <use xlink:href="/icons/sprite.svg#history_m"></use>
-                    <path d="M12 4a8 8 0 1 0 8 8h-2a6 6 0 1 1-6-6V2l4 3.5L12 9V4zm1 4v4.5l3 1.8-.75 1.2-3.75-2.25V8h1.5z" fill="currentColor"/>
                   </svg>
                 </div>
                 <div class="LikesAndHistoryItem_textContainer__yGdOu">
@@ -22460,7 +22549,6 @@ setTimeout(() => {
                     История
                     <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
-                      <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                   </h2>
                   <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
@@ -22525,7 +22613,6 @@ setTimeout(() => {
             <span>${escapeHtml(title)}</span>
             <svg class="LikesAndHistoryItem_titleIcon__2D_yS" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
-              <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
            </a>`
         : `<h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww Vibes_heading__4i5bM">${escapeHtml(title)}</h2>`
@@ -22535,7 +22622,6 @@ setTimeout(() => {
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
-              <path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
         </button>
@@ -22543,7 +22629,6 @@ setTimeout(() => {
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
-              <path d="M6 3.5l4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </span>
         </button>
@@ -22569,37 +22654,41 @@ setTimeout(() => {
     section.appendChild(header);
 
     const chipsRow = document.createElement('ol');
-    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 Vibes_important__Vew_4';
+    chipsRow.className = 'ym-vibe-filter-chips-row TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E Vibes_tabCarousel__bSvp0 Vibes_important__Vew_4';
     chipsRow.setAttribute('role', 'tablist');
+    chipsRow.setAttribute('aria-labelledby', '_r_2jj_');
 
     if (!activeAiCategory) activeAiCategory = waves[0].id;
     const currentCatWave = waves.find(w => w.id === activeAiCategory) || waves[0];
 
     waves.forEach((w, idx) => {
       const li = document.createElement('li');
-      li.className = 'd50IqTKJZhJIMd5aTqAn Vibes_tab__uOfqW Vibes_important__Vew_4';
+      li.className = 'ym-vibe-filter-chip-item d50IqTKJZhJIMd5aTqAn';
       const isSelected = w.id === activeAiCategory;
       const tab = document.createElement('button');
       tab.type = 'button';
       tab.setAttribute('role', 'tab');
-      tab.setAttribute('aria-label', w.title || w.id);
+      tab.id = `_r_2jk_-${idx}-tab`;
+      tab.setAttribute('aria-controls', `_r_2jk_-${idx}-tabpanel`);
       tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      tab.setAttribute('aria-label', w.title || w.id);
+      tab.setAttribute('aria-live', 'off');
+      tab.setAttribute('aria-busy', 'false');
       tab.setAttribute('tabindex', isSelected ? '0' : '-1');
-      tab.id = `_r_d3_-${idx}-tab`;
-      tab.className = `cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t ${isSelected ? 'cBxrIXbcPeS3kSzdJdhS' : ''} Tab_root__LUukY Tab_tab_size_m__c7tVg Vibes_tab__uOfqW Vibes_important__Vew_4`;
+      tab.className = `ym-vibe-filter-chip-btn ${isSelected ? 'is-active cBxrIXbcPeS3kSzdJdhS ' : ''}cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Vibes_tab__uOfqW Vibes_important__Vew_4`;
       tab.innerHTML = `
         <span class="Tab_description__p1fTO">
-          <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk">${escapeHtml(w.title || w.id)}</div>
+          <div title="${escapeHtml(w.title || w.id)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">${escapeHtml(w.title || w.id)}</div>
         </span>
       `;
       tab.addEventListener('click', () => {
         activeAiCategory = w.id;
-        chipsRow.querySelectorAll('[role="tab"]').forEach(t => {
-          t.classList.remove('cBxrIXbcPeS3kSzdJdhS');
+        chipsRow.querySelectorAll('.ym-vibe-filter-chip-btn').forEach(t => {
+          t.classList.remove('is-active', 'cBxrIXbcPeS3kSzdJdhS');
           t.setAttribute('aria-selected', 'false');
           t.setAttribute('tabindex', '-1');
         });
-        tab.classList.add('cBxrIXbcPeS3kSzdJdhS');
+        tab.classList.add('is-active', 'cBxrIXbcPeS3kSzdJdhS');
         tab.setAttribute('aria-selected', 'true');
         tab.setAttribute('tabindex', '0');
         renderAiCards(carouselContainer, w.items || []);
@@ -22611,7 +22700,7 @@ setTimeout(() => {
 
     // Horizontal Scrollable Cards Carousel
     const carouselContainer = document.createElement('ol');
-    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 ym-vibe-feed-ai-carousel';
+    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E ym-vibe-feed-ai-carousel';
     carouselContainer.setAttribute('role', 'list');
     section.appendChild(carouselContainer);
 
@@ -22725,7 +22814,6 @@ setTimeout(() => {
           <span class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Ai2iRN9elHpk_u5splD6 Vi7Rd0SZWqD17F0872TB VibeButton_title__sLC0I" style="-webkit-line-clamp: 2;">
             <svg class="VibeButton_icon__KIv7n l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#play_xxs"></use>
-              <path d="M5 3.5l7 4.5-7 4.5V3.5z" fill="currentColor"></path>
             </svg>
             ${escapeHtml(item.title || '')}
           </span>
