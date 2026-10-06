@@ -77,8 +77,14 @@ function findProviderFromFiber(startFiber) {
   return null;
 }
 
+let cachedSonataCore = null;
+
 // Получить корневой объект Sonata Core (оптимизированный и быстрый поиск)
 function getSonataCore() {
+  if (cachedSonataCore && cachedSonataCore.playbackController) {
+    return cachedSonataCore;
+  }
+
   const rootEl = document.querySelector('#root') || document.querySelector('#__next') || document.body;
   if (!rootEl) return null;
 
@@ -92,16 +98,23 @@ function getSonataCore() {
     if (rootFiber.current) {
       rootFiber = rootFiber.current;
     }
-    return findProviderInTree(rootFiber);
+    const found = findProviderInTree(rootFiber);
+    if (found) {
+      cachedSonataCore = found;
+      return found;
+    }
   }
 
   // 2. Если на корне нет ключа, берем элемент плеера и идем вверх
-  const playerEl = document.querySelector('[class*="player"]');
+  const playerEl = document.querySelector('[class*="player"], [class*="Player"], [class*="Bar_root"], [data-test-id="PLAY_BUTTON"]');
   if (playerEl) {
     const fiberKey = Object.keys(playerEl).find(key => key.startsWith('__reactFiber$'));
     if (fiberKey && playerEl[fiberKey]) {
       const found = findProviderFromFiber(playerEl[fiberKey]);
-      if (found) return found;
+      if (found) {
+        cachedSonataCore = found;
+        return found;
+      }
     }
   }
 
@@ -111,7 +124,10 @@ function getSonataCore() {
     const fiberKey = Object.keys(sampleEl).find(key => key.startsWith('__reactFiber$'));
     if (fiberKey && sampleEl[fiberKey]) {
       const found = findProviderFromFiber(sampleEl[fiberKey]);
-      if (found) return found;
+      if (found) {
+        cachedSonataCore = found;
+        return found;
+      }
     }
   }
   
@@ -546,6 +562,35 @@ function syncPlayerControls(activePlayer, serverState) {
   lastSentTime = serverState.time;
   lastSentTimestamp = Date.now();
 }
+
+// Слушатель для запуска станций и сетов Моей волны через Sonata Core
+window.addEventListener('message', async (event) => {
+  if (event.source !== window || !event.data) return;
+  if (event.data.type === 'BYM_PLAY_VIBE_STATION') {
+    const { seeds, stationId } = event.data;
+    console.log('[SYNC] Received BYM_PLAY_VIBE_STATION:', stationId, seeds);
+    const core = getSonataCore();
+    const player = getActivePlayer();
+    if (core?.factory?.createContext && player?.playContext) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'vibe',
+            meta: { id: stationId || (seeds && seeds[0]) || '' },
+            seeds: seeds || (stationId ? [stationId] : []),
+            from: 'web-landing-discovery_block-sets_by_waves-radio-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        await player.playContext({ context: ctx, loadContextMeta: true });
+        console.log('[SYNC] Handled BYM_PLAY_VIBE_STATION successfully via factory + playContext');
+      } catch (err) {
+        console.error('[SYNC] Error executing BYM_PLAY_VIBE_STATION:', err);
+      }
+    }
+  }
+});
 
 
 // --- Component: shared/scale-changer.js ---
@@ -10817,10 +10862,10 @@ if (document.readyState === 'loading') {
     header.innerHTML = `
       <ol class="TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy Skeleton_tabCarousel__E2kLf" role="tablist">
         <li class="d50IqTKJZhJIMd5aTqAn">
-          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t cBxrIXbcPeS3kSzdJdhS Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By active" type="button" role="tab" aria-selected="true" id="ym-tab-foryou">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t cBxrIXbcPeS3kSzdJdhS Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-0-tab" aria-controls="_r_b2d_-0-tabpanel" aria-selected="true" aria-label="Для вас" aria-hidden="false" tabindex="0" aria-live="off" aria-busy="false">
             <span class="Tab_covers__cvYeI">
-              ${forYouImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(forYouImg1)}">` : ''}
-              ${forYouImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(forYouImg2)}">` : ''}
+              ${forYouImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(forYouImg1)}, ${escapeHtml(forYouImg1.replace('50x50', '100x100'))} 2x" src="${escapeHtml(forYouImg1)}">` : ''}
+              ${forYouImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(forYouImg2)}, ${escapeHtml(forYouImg2.replace('50x50', '100x100'))} 2x" src="${escapeHtml(forYouImg2)}">` : ''}
             </span>
             <span class="Tab_description__p1fTO">
               <div title="Для вас" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">Для вас</div>
@@ -10829,10 +10874,10 @@ if (document.readyState === 'loading') {
           </button>
         </li>
         <li class="d50IqTKJZhJIMd5aTqAn">
-          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" aria-selected="false" id="ym-tab-trends">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-1-tab" aria-controls="_r_b2d_-1-tabpanel" aria-selected="false" aria-label="Тренды" aria-hidden="false" tabindex="-1" aria-live="off" aria-busy="false">
             <span class="Tab_covers__cvYeI">
-              ${trendsImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(trendsImg1)}">` : ''}
-              ${trendsImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" src="${escapeHtml(trendsImg2)}">` : ''}
+              ${trendsImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(trendsImg1)}, ${escapeHtml(trendsImg1.replace('50x50', '100x100'))} 2x" src="${escapeHtml(trendsImg1)}">` : ''}
+              ${trendsImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(trendsImg2)}, ${escapeHtml(trendsImg2.replace('50x50', '100x100'))} 2x" src="${escapeHtml(trendsImg2)}">` : ''}
             </span>
             <span class="Tab_description__p1fTO">
               <div title="Тренды" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">Тренды</div>
@@ -10843,22 +10888,26 @@ if (document.readyState === 'loading') {
       </ol>
     `;
 
-    const tabForYou = header.querySelector('#ym-tab-foryou');
-    const tabTrends = header.querySelector('#ym-tab-trends');
+    const tabForYou = header.querySelector('#_r_b2d_-0-tab');
+    const tabTrends = header.querySelector('#_r_b2d_-1-tab');
     if (tabForYou && tabTrends) {
       tabForYou.addEventListener('click', (e) => {
         e.preventDefault();
-        tabForYou.classList.add('active');
+        tabForYou.classList.add('cBxrIXbcPeS3kSzdJdhS');
         tabForYou.setAttribute('aria-selected', 'true');
-        tabTrends.classList.remove('active');
+        tabForYou.setAttribute('tabindex', '0');
+        tabTrends.classList.remove('cBxrIXbcPeS3kSzdJdhS');
         tabTrends.setAttribute('aria-selected', 'false');
+        tabTrends.setAttribute('tabindex', '-1');
       });
       tabTrends.addEventListener('click', (e) => {
         e.preventDefault();
-        tabTrends.classList.add('active');
+        tabTrends.classList.add('cBxrIXbcPeS3kSzdJdhS');
         tabTrends.setAttribute('aria-selected', 'true');
-        tabForYou.classList.remove('active');
+        tabTrends.setAttribute('tabindex', '0');
+        tabForYou.classList.remove('cBxrIXbcPeS3kSzdJdhS');
         tabForYou.setAttribute('aria-selected', 'false');
+        tabForYou.setAttribute('tabindex', '-1');
         spaNavigate('/chart');
       });
     }
@@ -11070,33 +11119,50 @@ if (document.readyState === 'loading') {
     section.appendChild(header);
 
     const chipsRow = document.createElement('ol');
-    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 ym-vibe-feed-chips';
+    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 Vibes_important__Vew_4';
     chipsRow.setAttribute('role', 'tablist');
 
     if (!activeAiCategory) activeAiCategory = waves[0].id;
     const currentCatWave = waves.find(w => w.id === activeAiCategory) || waves[0];
 
-    waves.forEach(w => {
+    waves.forEach((w, idx) => {
       const li = document.createElement('li');
-      li.className = 'd50IqTKJZhJIMd5aTqAn';
-      const chip = document.createElement('button');
-      chip.type = 'button';
-      chip.className = `ym-vibe-feed-chip ${w.id === activeAiCategory ? 'active' : ''}`;
-      chip.textContent = w.title || w.id;
-      chip.addEventListener('click', () => {
+      li.className = 'd50IqTKJZhJIMd5aTqAn Vibes_tab__uOfqW Vibes_important__Vew_4';
+      const isSelected = w.id === activeAiCategory;
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-label', w.title || w.id);
+      tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      tab.setAttribute('tabindex', isSelected ? '0' : '-1');
+      tab.id = `_r_d3_-${idx}-tab`;
+      tab.className = `cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t ${isSelected ? 'cBxrIXbcPeS3kSzdJdhS' : ''} Tab_root__LUukY Tab_tab_size_m__c7tVg Vibes_tab__uOfqW Vibes_important__Vew_4`;
+      tab.innerHTML = `
+        <span class="Tab_description__p1fTO">
+          <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk">${escapeHtml(w.title || w.id)}</div>
+        </span>
+      `;
+      tab.addEventListener('click', () => {
         activeAiCategory = w.id;
-        section.querySelectorAll('.ym-vibe-feed-chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
+        chipsRow.querySelectorAll('[role="tab"]').forEach(t => {
+          t.classList.remove('cBxrIXbcPeS3kSzdJdhS');
+          t.setAttribute('aria-selected', 'false');
+          t.setAttribute('tabindex', '-1');
+        });
+        tab.classList.add('cBxrIXbcPeS3kSzdJdhS');
+        tab.setAttribute('aria-selected', 'true');
+        tab.setAttribute('tabindex', '0');
         renderAiCards(carouselContainer, w.items || []);
       });
-      li.appendChild(chip);
+      li.appendChild(tab);
       chipsRow.appendChild(li);
     });
     section.appendChild(chipsRow);
 
     // Horizontal Scrollable Cards Carousel
-    const carouselContainer = document.createElement('div');
-    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi ym-vibe-feed-ai-carousel';
+    const carouselContainer = document.createElement('ol');
+    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi Vibes_tabCarousel__bSvp0 ym-vibe-feed-ai-carousel';
+    carouselContainer.setAttribute('role', 'list');
     section.appendChild(carouselContainer);
 
     renderAiCards(carouselContainer, currentCatWave.items || []);
@@ -11108,51 +11174,122 @@ if (document.readyState === 'loading') {
     feedContainer.appendChild(section);
   }
 
+  async function playVibeStation(item) {
+    if (!item) return false;
+    const seeds = item.seeds || (item.stationId ? [item.stationId] : []);
+    const stationId = item.stationId || (seeds && seeds[0]) || '';
+    if (!seeds || seeds.length === 0) {
+      console.warn('[BYM Vibe] No seeds found for station:', item);
+      return false;
+    }
+
+    console.log('[BYM Vibe] Playing station:', item.title || stationId, seeds);
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null);
+    const player = (typeof getActivePlayer === 'function' ? getActivePlayer() : null) ||
+                   (typeof window.getActivePlayer === 'function' ? window.getActivePlayer() : null);
+
+    // 1. Прямой запуск через Sonata Core factory + player.playContext (100% нативный способ)
+    if (core?.factory?.createContext && player?.playContext) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'vibe',
+            meta: { id: stationId },
+            seeds: seeds,
+            from: 'web-landing-discovery_block-sets_by_waves-radio-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        console.log('[BYM Vibe] Created Vibe context:', ctx);
+        await player.playContext({ context: ctx, loadContextMeta: true });
+        console.log('[BYM Vibe] Station started successfully via core.factory.createContext + player.playContext!');
+        return true;
+      } catch (err) {
+        console.error('[BYM Vibe] Error in createContext / playContext:', err);
+      }
+    }
+
+    // 2. Попытка через queueController
+    try {
+      const qc = player?.queueController;
+      if (qc) {
+        if (typeof qc.playRadio === 'function') {
+          await qc.playRadio({ seeds, autoPlay: true });
+          return true;
+        }
+        if (typeof qc.setRadioQueue === 'function') {
+          await qc.setRadioQueue({ seeds, autoPlay: true });
+          return true;
+        }
+      }
+    } catch (qcErr) {
+      console.warn('[BYM Vibe] queueController radio error:', qcErr);
+    }
+
+    // 3. Fallback через postMessage для изолированных контекстов
+    try {
+      window.postMessage({
+        type: 'BYM_PLAY_VIBE_STATION',
+        stationId: stationId,
+        seeds: seeds,
+        title: item.title
+      }, '*');
+      return true;
+    } catch (postErr) {
+      console.warn('[BYM Vibe] postMessage error:', postErr);
+    }
+
+    return false;
+  }
+
   function renderAiCards(container, items) {
     container.replaceChildren();
     if (!items || items.length === 0) return;
 
-    items.forEach(item => {
-      const card = document.createElement('button');
-      card.type = 'button';
-      card.className = 'ym-vibe-feed-ai-card';
+    items.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.className = 'VJ9IexhAEuYSCyGiMfN4 VibesCarousel_item__AupL0 VibesCarousel_important__JkzUC';
 
-      const bgImg = formatYandexImg(item.backgroundImageUrl, 'm400x400');
-      const avgColor = (item.colors && item.colors.average) || '#333344';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO VibeButton_root___i3R5 VibeButton_button__tXFAm';
+      btn.setAttribute('data-intersection-property-id', `_r_dc${idx}_`);
+      btn.setAttribute('aria-live', 'off');
+      btn.setAttribute('aria-busy', 'false');
+
+      const bgImg400 = formatYandexImg(item.backgroundImageUrl, 'm400x400');
+      const bgImg800 = formatYandexImg(item.backgroundImageUrl, 'm800x800');
+      const avgColor = (item.colors && item.colors.average) || '#6b65a9';
       const textColor = (item.colors && (item.colors.waveText || item.colors.text)) || '#c8c1ff';
 
-      card.style.setProperty('--vibe-button-background', avgColor);
-      card.style.setProperty('--vibe-button-text-color', textColor);
-      card.style.backgroundColor = avgColor;
+      btn.style.setProperty('--vibe-button-background', avgColor);
+      btn.style.setProperty('--vibe-button-text-color', textColor);
 
-      card.innerHTML = `
-        ${bgImg ? `<img src="${escapeHtml(bgImg)}" class="ym-vibe-feed-ai-card-img" alt="">` : ''}
-        <div class="ym-vibe-feed-ai-card-content">
-          <span class="ym-vibe-feed-ai-header">${escapeHtml(item.header || 'Сет Моей волны')}</span>
-          <span class="ym-vibe-feed-ai-title">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+      btn.innerHTML = `
+        ${bgImg400 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG VibeButton_image__GOwKJ" alt="" loading="eager" srcset="${escapeHtml(bgImg400)}, ${escapeHtml(bgImg800 || bgImg400)} 2x" src="${escapeHtml(bgImg400)}">` : ''}
+        <span class="VibeButton_textContainer__j9nOW">
+          <span class="_MWOVuZRvUQdXKTMcOPx _oBLf5gprWsKjCw4Ce58 Vi7Rd0SZWqD17F0872TB VibeButton_subtitle__MQ_Ca">${escapeHtml(item.header || 'Сет Моей волны под настроение')}</span>
+          <span class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Ai2iRN9elHpk_u5splD6 Vi7Rd0SZWqD17F0872TB VibeButton_title__sLC0I" style="-webkit-line-clamp: 2;">
+            <svg class="VibeButton_icon__KIv7n l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#play_xxs"></use>
+              <path d="M5 3.5l7 4.5-7 4.5V3.5z" fill="currentColor"></path>
             </svg>
-            <span>${escapeHtml(item.title || '')}</span>
+            ${escapeHtml(item.title || '')}
           </span>
-        </div>
+        </span>
       `;
 
-      card.addEventListener('click', () => {
-        const allItems = getAllVibeItems();
-        const match = allItems.find(i =>
-          (item.stationId && i.id && i.id.includes(item.stationId)) ||
-          (item.title && i.name && i.name.toLowerCase() === item.title.toLowerCase())
-        );
-        if (match) {
-          activateVibeItem(match);
-        } else {
-          const playBtn = document.querySelector('button[aria-label*="Воспроизведение"], [class*="PlayButtonWithCover"]');
-          if (playBtn) playBtn.click();
-        }
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        playVibeStation(item);
       });
 
-      container.appendChild(card);
+      li.appendChild(btn);
+      container.appendChild(li);
     });
   }
 
@@ -11187,32 +11324,52 @@ if (document.readyState === 'loading') {
         } catch (e) { }
       }
 
-      const card = document.createElement('a');
+      const card = document.createElement('div');
       card.className = 'ym-vibe-feed-release-card';
       const albumUrl = `/album/${album.id || ''}`;
-      card.href = albumUrl;
 
       card.innerHTML = `
         <div class="ym-vibe-feed-release-cover">
           <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(artistName)}" loading="lazy">
-          <div class="ym-vibe-feed-release-fade"></div>
+          <div class="NewRelease_fade__rVE0_ ym-vibe-feed-release-fade"></div>
           <div class="ym-vibe-feed-release-artist-caption">${escapeHtml(artistName)}</div>
         </div>
-        <div class="ym-vibe-feed-release-paper">
-          <img src="${escapeHtml(albumCoverUrl)}" class="ym-vibe-feed-release-thumb" alt="" loading="lazy">
-          <div class="ym-vibe-feed-release-details">
-            <div class="ym-vibe-feed-release-title" title="${escapeHtml(album.title || '')}">${escapeHtml(album.title || '')}</div>
-            <div class="ym-vibe-feed-release-desc">${escapeHtml(subText)}</div>
+        <div class="NewReleaseCard_root__IY5m_" style="--new-release-cover-color: #282828; --new-release-color: #1a1a1a;">
+          <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" src="${escapeHtml(albumCoverUrl)}" alt="${escapeHtml(album.title || '')}" loading="lazy">
+          <div class="NewReleaseCard_info__rcfoY">
+            <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI NewReleaseCard_title__N5soS" title="${escapeHtml(album.title || '')}">${escapeHtml(album.title || '')}</div>
+            <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI NewReleaseCard_description__Daz5q">${escapeHtml(subText)}</div>
           </div>
-          <div class="ym-vibe-feed-release-play-btn" title="Слушать">
-            <svg viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="6 3 20 12 6 21 6 3"></polygon>
-            </svg>
+          <div class="NewReleaseCard_container__XvwZC">
+            <button aria-label="Воспроизведение" class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button">
+              <span class="JjlbHZ4FaP9EAcR_1DxF">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
+                </svg>
+              </span>
+            </button>
           </div>
+          <a aria-label="${escapeHtml(album.title || '')}" class="buOTZq_TKQOVyjMLrXvB NewReleaseCard_paperLink__NN_8o" href="${escapeHtml(albumUrl)}"></a>
         </div>
       `;
 
-      card.addEventListener('click', (e) => spaNavigate(albumUrl, e));
+      const link = card.querySelector('.NewReleaseCard_paperLink__NN_8o');
+      if (link) {
+        link.addEventListener('click', (e) => spaNavigate(albumUrl, e));
+      }
+      const cover = card.querySelector('.ym-vibe-feed-release-cover');
+      if (cover) {
+        cover.addEventListener('click', (e) => spaNavigate(albumUrl, e));
+      }
+      const playBtn = card.querySelector('.ym-vibe-release-play-btn');
+      if (playBtn) {
+        playBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          spaNavigate(albumUrl);
+        });
+      }
+
       carousel.appendChild(card);
     });
 
@@ -11363,13 +11520,96 @@ if (document.readyState === 'loading') {
     setTimeout(initVibeMode, 2500);
   }
 
+  // Debug helper function to spy on Sonata Core and native button clicks
+  window.BYM_DEBUG_VIBE = function() {
+    console.log("%c[BYM Debugger] Запущен шпион за плеером и нативными кнопками!", "color: #ffdb4d; font-size: 16px; font-weight: bold;");
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || (window.getSonataCore ? window.getSonataCore() : null);
+    const player = (typeof getActivePlayer === 'function' ? getActivePlayer() : null) || (window.getActivePlayer ? window.getActivePlayer() : null);
+
+    console.log("1. Sonata Core:", core);
+    console.log("2. Active Player:", player);
+
+    if (core?.playbackController) {
+      const proto = Object.getPrototypeOf(core.playbackController) || {};
+      console.log("3. core.playbackController methods:", Object.getOwnPropertyNames(proto));
+    }
+    if (player?.contextController) {
+      const proto = Object.getPrototypeOf(player.contextController) || {};
+      console.log("4. player.contextController methods:", Object.getOwnPropertyNames(proto));
+    }
+    if (player?.queueController) {
+      const proto = Object.getPrototypeOf(player.queueController) || {};
+      console.log("5. player.queueController methods:", Object.getOwnPropertyNames(proto));
+    }
+
+    function spyOnObject(obj, name) {
+      if (!obj) return;
+      const proto = Object.getPrototypeOf(obj) || obj;
+      const props = Object.getOwnPropertyNames(proto);
+      for (const key of props) {
+        if (typeof obj[key] === 'function' && key !== 'constructor' && !key.startsWith('_bym_spied')) {
+          const orig = obj[key].bind(obj);
+          obj[key] = function(...args) {
+            console.log(`%c[SPY CALL] ${name}.${key}(`, "color: #10b981; font-weight: bold;", ...args, ")");
+            try {
+              return orig(...args);
+            } catch(e) {
+              console.error(`[SPY ERROR] ${name}.${key}:`, e);
+              throw e;
+            }
+          };
+          obj[key]._bym_spied = true;
+        }
+      }
+    }
+
+    if (core?.playbackController) spyOnObject(core.playbackController, 'core.playbackController');
+    if (core?.contextController) spyOnObject(core.contextController, 'core.contextController');
+    if (player?.contextController) spyOnObject(player.contextController, 'player.contextController');
+    if (player?.queueController) spyOnObject(player.queueController, 'player.queueController');
+    if (player) spyOnObject(player, 'player');
+
+    if (!window._bym_click_spied) {
+      window._bym_click_spied = true;
+      window.addEventListener('click', (e) => {
+        const btn = e.target.closest('button, [role="button"], li');
+        if (!btn) return;
+        console.log("%c[CLICKED ELEMENT]", "color: #3b82f6; font-weight: bold;", btn);
+        for (const key in btn) {
+          if (key.startsWith('__reactProps$')) {
+            console.log("[REACT PROPS]:", btn[key]);
+          }
+          if (key.startsWith('__reactFiber$')) {
+            let f = btn[key];
+            console.log("[REACT FIBER memoizedProps]:", f.memoizedProps);
+            let depth = 0;
+            while (f && depth < 8) {
+              if (f.memoizedProps && (f.memoizedProps.onClick || f.memoizedProps.seeds || f.memoizedProps.item || f.memoizedProps.stationId)) {
+                console.log(`[FIBER PARENT level ${depth} props]:`, f.memoizedProps);
+              }
+              f = f.return;
+              depth++;
+            }
+          }
+        }
+      }, true);
+    }
+
+    console.log("%c[ШПИОН АКТИВИРОВАН] Теперь кликните на любую оригинальную кнопку сета на странице!", "color: #ffdb4d; font-size: 14px; font-weight: bold;");
+    return "Шпион активен. Кликните по оригинальной кнопке!";
+  };
+
   // Expose API for external debug or settings
   window.__ymVibeEnhancer = {
     getItems: getAllVibeItems,
     activate: activateVibeItem,
+    playStation: playVibeStation,
+    debug: window.BYM_DEBUG_VIBE,
     applyMode: applyVibeMode,
     refreshFeed: initVibeLandingFeed
   };
+  window.BYM_playVibeStation = playVibeStation;
 
 })();
 

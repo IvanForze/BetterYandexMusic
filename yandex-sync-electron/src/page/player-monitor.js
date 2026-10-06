@@ -38,7 +38,13 @@ function findProviderFromFiber(startFiber) {
   return null;
 }
 
+let cachedSonataCore = null;
+
 function getSonataCore() {
+  if (cachedSonataCore && cachedSonataCore.playbackController) {
+    return cachedSonataCore;
+  }
+
   const rootEl = document.querySelector('#root') || document.querySelector('#__next') || document.body;
   if (!rootEl) return null;
 
@@ -51,15 +57,22 @@ function getSonataCore() {
     if (rootFiber.current) {
       rootFiber = rootFiber.current;
     }
-    return findProviderInTree(rootFiber);
+    const found = findProviderInTree(rootFiber);
+    if (found) {
+      cachedSonataCore = found;
+      return found;
+    }
   }
 
-  const playerEl = document.querySelector('[class*="player"]');
+  const playerEl = document.querySelector('[class*="player"], [class*="Player"], [class*="Bar_root"], [data-test-id="PLAY_BUTTON"]');
   if (playerEl) {
     const fiberKey = Object.keys(playerEl).find(key => key.startsWith('__reactFiber$'));
     if (fiberKey && playerEl[fiberKey]) {
       const found = findProviderFromFiber(playerEl[fiberKey]);
-      if (found) return found;
+      if (found) {
+        cachedSonataCore = found;
+        return found;
+      }
     }
   }
 
@@ -68,7 +81,10 @@ function getSonataCore() {
     const fiberKey = Object.keys(sampleEl).find(key => key.startsWith('__reactFiber$'));
     if (fiberKey && sampleEl[fiberKey]) {
       const found = findProviderFromFiber(sampleEl[fiberKey]);
-      if (found) return found;
+      if (found) {
+        cachedSonataCore = found;
+        return found;
+      }
     }
   }
 
@@ -82,6 +98,7 @@ function getActivePlayer() {
   return activePlaybackWrapper.value || null;
 }
 
+window.getSonataCore = getSonataCore;
 window.getActivePlayer = getActivePlayer;
 
 function getTrackMetadata(activePlayer) {
@@ -502,3 +519,32 @@ function checkAndSendState() {
 
 // Запускаем мониторинг локального плеера
 setInterval(checkAndSendState, 500);
+
+// Слушатель для запуска станций и сетов Моей волны через Sonata Core
+window.addEventListener('message', async (event) => {
+  if (event.source !== window || !event.data) return;
+  if (event.data.type === 'BYM_PLAY_VIBE_STATION') {
+    const { seeds, stationId } = event.data;
+    console.log('[SYNC] Received BYM_PLAY_VIBE_STATION:', stationId, seeds);
+    const core = getSonataCore();
+    const player = getActivePlayer();
+    if (core?.factory?.createContext && player?.playContext) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'vibe',
+            meta: { id: stationId || (seeds && seeds[0]) || '' },
+            seeds: seeds || (stationId ? [stationId] : []),
+            from: 'web-landing-discovery_block-sets_by_waves-radio-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        await player.playContext({ context: ctx, loadContextMeta: true });
+        console.log('[SYNC] Handled BYM_PLAY_VIBE_STATION successfully via factory + playContext');
+      } catch (err) {
+        console.error('[SYNC] Error executing BYM_PLAY_VIBE_STATION:', err);
+      }
+    }
+  }
+});
