@@ -9868,8 +9868,8 @@ if (document.readyState === 'loading') {
       document.body.classList.toggle('ym-vibe-with-landing', isWithLanding);
     }
     ensureVibeTransparencyStyles();
-    // Only no_wheel on target vibe page gets transparent navbar; otherwise reset
-    updateNavbarTransparency(isNoWheel);
+    // Transparent navbar in both no_wheel and vibe_with_landing modes on target vibe page
+    updateNavbarTransparency(isNoWheel || isWithLanding);
 
     if (isWithLanding) {
       initVibeLandingFeed();
@@ -9889,60 +9889,116 @@ if (document.readyState === 'loading') {
     styleEl.textContent = `
       html.ym-vibe-no-wheel aside,
       body.ym-vibe-no-wheel aside,
+      html.ym-vibe-with-landing aside,
+      body.ym-vibe-with-landing aside,
       html.ym-vibe-no-wheel aside[class*="Navbar"],
       body.ym-vibe-no-wheel aside[class*="Navbar"],
+      html.ym-vibe-with-landing aside[class*="Navbar"],
+      body.ym-vibe-with-landing aside[class*="Navbar"],
       html.ym-vibe-no-wheel [class*="Navbar_root"],
       body.ym-vibe-no-wheel [class*="Navbar_root"],
+      html.ym-vibe-with-landing [class*="Navbar_root"],
+      body.ym-vibe-with-landing [class*="Navbar_root"],
       html.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
       body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+      html.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
+      body.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_root"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_root"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
       html.ym-vibe-no-wheel [class*="SidebarDesktop"],
       body.ym-vibe-no-wheel [class*="SidebarDesktop"],
+      html.ym-vibe-with-landing [class*="SidebarDesktop"],
+      body.ym-vibe-with-landing [class*="SidebarDesktop"],
       html.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
       body.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+      html.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
+      body.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
       html.ym-vibe-no-wheel [class*="PinsList_root"],
       body.ym-vibe-no-wheel [class*="PinsList_root"],
+      html.ym-vibe-with-landing [class*="PinsList_root"],
+      body.ym-vibe-with-landing [class*="PinsList_root"],
       html.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
       body.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+      html.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
+      body.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
       html.ym-vibe-no-wheel [class*="UserProfile_root"],
       body.ym-vibe-no-wheel [class*="UserProfile_root"],
+      html.ym-vibe-with-landing [class*="UserProfile_root"],
+      body.ym-vibe-with-landing [class*="UserProfile_root"],
       html.ym-vibe-no-wheel aside.Navbar_root__chF4R,
       body.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+      html.ym-vibe-with-landing aside.Navbar_root__chF4R,
+      body.ym-vibe-with-landing aside.Navbar_root__chF4R,
       html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
       body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+      html.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
+      body.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
       html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
       body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+      html.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
+      body.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
       html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
       body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+      html.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
+      body.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
       html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
       body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+      html.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
+      body.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
       html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
       body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+      html.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
+      body.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
       html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
       body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+      html.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
+      body.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
       html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
       body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+      html.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
+      body.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
       html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
       body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+      html.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
+      body.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
       html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
       body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+      html.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
+      body.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
       html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
       body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+      html.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
+      body.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
       html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
-      body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS {
+      body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
+      html.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS,
+      body.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS {
         background: transparent !important;
         background-color: transparent !important;
         border: none !important;
@@ -9951,18 +10007,27 @@ if (document.readyState === 'loading') {
       }
       html.ym-vibe-no-wheel aside::before,
       body.ym-vibe-no-wheel aside::before,
+      html.ym-vibe-with-landing aside::before,
+      body.ym-vibe-with-landing aside::before,
       html.ym-vibe-no-wheel aside::after,
       body.ym-vibe-no-wheel aside::after,
+      html.ym-vibe-with-landing aside::after,
+      body.ym-vibe-with-landing aside::after,
       html.ym-vibe-no-wheel [class*="Navbar"]::before,
       body.ym-vibe-no-wheel [class*="Navbar"]::before,
+      html.ym-vibe-with-landing [class*="Navbar"]::before,
+      body.ym-vibe-with-landing [class*="Navbar"]::before,
       html.ym-vibe-no-wheel [class*="Navbar"]::after,
-      body.ym-vibe-no-wheel [class*="Navbar"]::after {
+      body.ym-vibe-no-wheel [class*="Navbar"]::after,
+      html.ym-vibe-with-landing [class*="Navbar"]::after,
+      body.ym-vibe-with-landing [class*="Navbar"]::after {
         display: none !important;
         background: transparent !important;
       }
 
       /* Full-screen wave visualizer spanning column 1 and 2 under transparent navbar */
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] {
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"],
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] {
         grid-column: 1 / -1 !important;
         grid-row: 1 !important;
         margin: 0 !important;
@@ -9971,10 +10036,11 @@ if (document.readyState === 'loading') {
         max-width: 100vw !important;
         height: 100% !important;
         z-index: 1 !important;
-        pointer-events: none !important;
+        pointer-events: auto !important;
       }
 
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside {
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside,
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside {
         grid-column: 1 !important;
         grid-row: 1 !important;
         position: relative !important;
@@ -9982,18 +10048,20 @@ if (document.readyState === 'loading') {
         pointer-events: auto !important;
       }
 
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] button,
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] a,
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="CommonLayout_content"] input,
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibeControls"],
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="PlayButton"] {
-        pointer-events: auto !important;
-      }
-
       /* Dynamically offset content by actual navbar width (200px expanded, 64px collapsed, etc.) */
       html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_root"] > div:not([class*="VibeCanvas"]) {
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_root"] > div:not([class*="VibeCanvas"]),
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_root"] > div:not([class*="VibeCanvas"]) {
         padding-left: var(--ym-aside-width, 200px) !important;
+        box-sizing: border-box !important;
+        width: 100% !important;
+        transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);
+      }
+
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed {
+        padding-left: calc(var(--ym-aside-width, 200px) + 24px) !important;
+        padding-right: 24px !important;
         box-sizing: border-box !important;
         width: 100% !important;
         transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);
@@ -10002,8 +10070,17 @@ if (document.readyState === 'loading') {
       /* Pure CSS fallback for collapsed sidebar if CSS variable not yet populated */
       html.ym-vibe-no-wheel.ym-navbar-collapsed [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
       html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside [class*="title_collapsed"]) [class*="VibePage_content"],
-      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside.ym-collapsed) [class*="VibePage_content"] {
+      html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside.ym-collapsed) [class*="VibePage_content"],
+      html.ym-vibe-with-landing.ym-navbar-collapsed [class*="CommonLayout_root"]:has([class*="VibePage_root"]) [class*="VibePage_content"],
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside [class*="title_collapsed"]) [class*="VibePage_content"],
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside.ym-collapsed) [class*="VibePage_content"] {
         padding-left: 64px !important;
+      }
+
+      html.ym-vibe-with-landing.ym-navbar-collapsed #ym-vibe-live-landing-feed,
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside [class*="title_collapsed"]) #ym-vibe-live-landing-feed,
+      html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]):has(aside.ym-collapsed) #ym-vibe-live-landing-feed {
+        padding-left: calc(64px + 24px) !important;
       }
     `;
   }
@@ -10840,6 +10917,9 @@ if (document.readyState === 'loading') {
 
     // 5. Exact 1-to-1 Section: Концерты для вас
     renderConcertsSection(feed, data.concerts);
+
+    // 6. Update initial playback indicators for all cards (Play/Pause states)
+    updateLandingPlaybackIndicators();
   }
 
   function renderLandingTabs(feedContainer, lhData, newReleasesData) {
@@ -11030,37 +11110,72 @@ if (document.readyState === 'loading') {
     feedContainer.appendChild(section);
   }
 
+  const ENABLED_CONTROL_CLASS = 'i5WuBm5mfG0mflk_1jH_';
+
+  function setCarouselButtonState(btn, isDisabled) {
+    if (!btn) return;
+    if (isDisabled) {
+      btn.disabled = true;
+      btn.setAttribute('data-disabled', 'true');
+      btn.classList.remove(ENABLED_CONTROL_CLASS);
+    } else {
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      btn.removeAttribute('data-disabled');
+      btn.classList.add(ENABLED_CONTROL_CLASS);
+    }
+  }
+
+  function scrollCarouselOneItem(container, direction) {
+    if (!container) return;
+    const items = Array.from(container.children).filter(el => el.nodeType === 1);
+    if (items.length === 0) return;
+
+    // Step distance between consecutive items (item width + gap)
+    let step = 0;
+    if (items.length >= 2) {
+      const r0 = items[0].getBoundingClientRect();
+      const r1 = items[1].getBoundingClientRect();
+      step = Math.round(r1.left - r0.left);
+    }
+    if (!step || step <= 0) {
+      const r0 = items[0].getBoundingClientRect();
+      step = Math.round(r0.width > 0 ? r0.width + 16 : 300);
+    }
+
+    container.scrollBy({
+      left: direction * step,
+      behavior: 'smooth'
+    });
+  }
+
   function setupCarouselControls(container, prevBtn, nextBtn) {
     if (!container) return;
     const update = () => {
       const atStart = container.scrollLeft <= 5;
       const atEnd = container.scrollLeft + container.clientWidth >= container.scrollWidth - 5;
-      if (prevBtn) {
-        prevBtn.disabled = atStart;
-        prevBtn.setAttribute('data-disabled', atStart ? 'true' : 'false');
-      }
-      if (nextBtn) {
-        nextBtn.disabled = atEnd;
-        nextBtn.setAttribute('data-disabled', atEnd ? 'true' : 'false');
-      }
+      setCarouselButtonState(prevBtn, atStart);
+      setCarouselButtonState(nextBtn, atEnd);
     };
     if (prevBtn) {
       prevBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const dist = Math.max(340, container.clientWidth * 0.75);
-        container.scrollBy({ left: -dist, behavior: 'smooth' });
+        scrollCarouselOneItem(container, -1);
+        try { prevBtn.blur(); } catch (_) {}
       });
     }
     if (nextBtn) {
       nextBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        const dist = Math.max(340, container.clientWidth * 0.75);
-        container.scrollBy({ left: dist, behavior: 'smooth' });
+        scrollCarouselOneItem(container, 1);
+        try { nextBtn.blur(); } catch (_) {}
       });
     }
     container.addEventListener('scroll', update, { passive: true });
     // Native smooth momentum and snapping - NO wheel deltaY hijacking!
+    update();
     setTimeout(update, 100);
+    setTimeout(update, 500);
   }
 
   function createSectionHeader(title, linkHref) {
@@ -11077,16 +11192,16 @@ if (document.readyState === 'loading') {
         : `<h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww Vibes_heading__4i5bM">${escapeHtml(title)}</h2>`
       }
       <div class="CarouselControls_root__E_hwc Vibes_controls__bUp2H">
-        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO CarouselControls_control__L8t4i prev" type="button" tabindex="-1" aria-hidden="true" disabled data-disabled="true" aria-label="Назад">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" disabled="" data-disabled="true" aria-live="off" aria-busy="false">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
-            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
             </svg>
           </span>
         </button>
-        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO CarouselControls_control__L8t4i next" type="button" tabindex="-1" aria-hidden="true" aria-label="Вперед">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" aria-live="off" aria-busy="false">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
-            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
             </svg>
           </span>
@@ -11165,11 +11280,182 @@ if (document.readyState === 'loading') {
 
     renderAiCards(carouselContainer, currentCatWave.items || []);
 
-    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
-    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+    const prevBtn = controls[0];
+    const nextBtn = controls[1];
     setupCarouselControls(carouselContainer, prevBtn, nextBtn);
 
     feedContainer.appendChild(section);
+  }
+
+  function findSonataCoreFallback() {
+    if (typeof window !== 'undefined') {
+      if (typeof window.getSonataCore === 'function') {
+        const c = window.getSonataCore();
+        if (c) return c;
+      }
+      try {
+        const rootEl = document.querySelector('#root') || document.querySelector('#__next') || document.body;
+        if (rootEl) {
+          const fiberKey = Object.keys(rootEl).find(k => k.startsWith('__reactContainer$') || k.startsWith('__reactFiber$'));
+          if (fiberKey && rootEl[fiberKey]) {
+            let node = rootEl[fiberKey];
+            if (node.current) node = node.current;
+            const queue = [node];
+            while (queue.length > 0) {
+              const cur = queue.shift();
+              if (!cur) continue;
+              const val = cur.memoizedProps?.value;
+              if (val && typeof val === 'object' && val.playbackController) return val;
+              if (cur.child) {
+                let child = cur.child;
+                while (child) {
+                  queue.push(child);
+                  child = child.sibling;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) { }
+    }
+    return null;
+  }
+
+  function getSafeActivePlayer() {
+    if (typeof window !== 'undefined' && typeof window.getActivePlayer === 'function') {
+      const p = window.getActivePlayer();
+      if (p) return p;
+    }
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || findSonataCoreFallback();
+    const wrapper = core?.playbackController?.activePlayback;
+    return (wrapper && wrapper.value) || wrapper || null;
+  }
+
+  function isPlayerPlaying(player) {
+    if (!player) return false;
+    const playingState = player.playbackState?.playingState;
+    if (playingState === 'playing') return true;
+    const status = player.playbackState?.playerState?.status?.value || player.playbackState?.playerState?.status;
+    if (status === 'playing') return true;
+    return false;
+  }
+
+  function isAlbumCurrentlyPlaying(albumId) {
+    if (!albumId) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const targetIdStr = String(albumId);
+    let isMatch = false;
+
+    // 1. Проверяем контекст
+    const ctx = player.contextController?.currentContext;
+    const ctxType = ctx?.type || ctx?.data?.type;
+    const ctxMetaId = ctx?.meta?.id || ctx?.data?.meta?.id;
+
+    if (ctxType === 'album' && String(ctxMetaId) === targetIdStr) {
+      isMatch = true;
+    }
+
+    // 2. Проверяем текущий играющий трек
+    if (!isMatch) {
+      const track = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
+      if (track?.albums && Array.isArray(track.albums)) {
+        if (track.albums.some(a => String(a.id) === targetIdStr)) {
+          isMatch = true;
+        }
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isStationCurrentlyPlaying(item) {
+    if (!item) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const ctx = player.contextController?.currentContext;
+    if (!ctx) return { isMatch: false, isPlaying: false };
+
+    const ctxType = ctx?.type || ctx?.data?.type;
+    const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || '');
+    const ctxSeeds = (ctx?.meta?.seeds || ctx?.data?.seeds || []).map(String);
+
+    const targetStationId = item.stationId ? String(item.stationId) : '';
+    const itemSeeds = Array.isArray(item.seeds) ? item.seeds.map(String) : [];
+
+    let isMatch = false;
+    if (targetStationId && (ctxMetaId === targetStationId || ctxSeeds.includes(targetStationId))) {
+      isMatch = true;
+    } else if (itemSeeds.length > 0 && ctxSeeds.length > 0) {
+      if (itemSeeds.some(s => ctxSeeds.includes(s))) {
+        isMatch = true;
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function updateLandingPlaybackIndicators() {
+    const feed = document.getElementById('ym-vibe-live-landing-feed');
+    if (!feed) return;
+
+    // 1. Карточки Новых релизов
+    const releaseButtons = feed.querySelectorAll('.ym-vibe-release-play-btn');
+    releaseButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+      }
+    });
+
+    // 2. Карточки "Свели в AI-сет"
+    const aiButtons = feed.querySelectorAll('.ym-vibe-ai-card-btn');
+    aiButtons.forEach(btn => {
+      let itemData = null;
+      try {
+        itemData = JSON.parse(btn.getAttribute('data-item') || '{}');
+      } catch (e) { }
+
+      const state = isStationCurrentlyPlaying(itemData);
+      const svgUse = btn.querySelector('.ym-vibe-ai-icon use');
+      const title = itemData?.title || '';
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', `Пауза: ${title}`);
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_xxs');
+        }
+        btn.setAttribute('aria-label', title || 'Воспроизведение');
+      }
+    });
   }
 
   async function playVibeStation(item) {
@@ -11184,9 +11470,9 @@ if (document.readyState === 'loading') {
     console.log('[BYM Vibe] Playing station:', item.title || stationId, seeds);
 
     const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
-                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null);
-    const player = (typeof getActivePlayer === 'function' ? getActivePlayer() : null) ||
-                   (typeof window.getActivePlayer === 'function' ? window.getActivePlayer() : null);
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
 
     // 1. Прямой запуск через Sonata Core factory + player.playContext (100% нативный способ)
     if (core?.factory?.createContext && player?.playContext) {
@@ -11253,10 +11539,15 @@ if (document.readyState === 'loading') {
 
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO VibeButton_root___i3R5 VibeButton_button__tXFAm';
+      btn.className = 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO VibeButton_root___i3R5 VibeButton_button__tXFAm ym-vibe-ai-card-btn';
       btn.setAttribute('data-intersection-property-id', `_r_dc${idx}_`);
       btn.setAttribute('aria-live', 'off');
       btn.setAttribute('aria-busy', 'false');
+      btn.setAttribute('data-item', JSON.stringify({
+        stationId: item.stationId || '',
+        seeds: item.seeds || [],
+        title: item.title || ''
+      }));
 
       const bgImg400 = formatYandexImg(item.backgroundImageUrl, 'm400x400');
       const bgImg800 = formatYandexImg(item.backgroundImageUrl, 'm800x800');
@@ -11271,7 +11562,7 @@ if (document.readyState === 'loading') {
         <span class="VibeButton_textContainer__j9nOW">
           <span class="_MWOVuZRvUQdXKTMcOPx _oBLf5gprWsKjCw4Ce58 Vi7Rd0SZWqD17F0872TB VibeButton_subtitle__MQ_Ca">${escapeHtml(item.header || 'Сет Моей волны под настроение')}</span>
           <span class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Ai2iRN9elHpk_u5splD6 Vi7Rd0SZWqD17F0872TB VibeButton_title__sLC0I" style="-webkit-line-clamp: 2;">
-            <svg class="VibeButton_icon__KIv7n l3tE1hAMmBj2aoPPwU08" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+            <svg class="VibeButton_icon__KIv7n l3tE1hAMmBj2aoPPwU08 ym-vibe-ai-icon" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#play_xxs"></use>
             </svg>
             ${escapeHtml(item.title || '')}
@@ -11279,15 +11570,98 @@ if (document.readyState === 'loading') {
         </span>
       `;
 
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        playVibeStation(item);
+        const st = isStationCurrentlyPlaying(item);
+        const p = getSafeActivePlayer();
+        if (st.isMatch) {
+          if (typeof p?.togglePause === 'function') {
+            p.togglePause();
+          } else if (st.isPlaying && typeof p?.pause === 'function') {
+            p.pause();
+          } else if (!st.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+            if (p.resume) p.resume();
+            else p.play();
+          } else {
+            await playVibeStation(item);
+          }
+        } else {
+          await playVibeStation(item);
+        }
+        updateLandingPlaybackIndicators();
+        setTimeout(updateLandingPlaybackIndicators, 60);
+        setTimeout(updateLandingPlaybackIndicators, 250);
+        setTimeout(updateLandingPlaybackIndicators, 600);
       });
 
       li.appendChild(btn);
       container.appendChild(li);
     });
+
+    updateLandingPlaybackIndicators();
+  }
+
+  function hexToRgb(hex) {
+    if (!hex || typeof hex !== 'string') return { r: 32, g: 32, b: 32 };
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    if (h.length !== 6) return { r: 32, g: 32, b: 32 };
+    return {
+      r: parseInt(h.substring(0, 2), 16) || 0,
+      g: parseInt(h.substring(2, 4), 16) || 0,
+      b: parseInt(h.substring(4, 6), 16) || 0
+    };
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 1000) / 10,
+      l: Math.round(l * 1000) / 10
+    };
+  }
+
+  async function playAlbumContext(albumId) {
+    if (!albumId) return false;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player?.playContext) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'album',
+            meta: { id: String(albumId) },
+            from: 'web-landing-discovery_block-new_releases-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        await player.playContext({ context: ctx, loadContextMeta: true });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing album context via Sonata:', err);
+      }
+    }
+    return false;
   }
 
   function renderNewReleasesSection(feedContainer, releasesData) {
@@ -11297,85 +11671,225 @@ if (document.readyState === 'loading') {
 
     const section = document.createElement('section');
     section.className = 'NewReleases_root__4ONiw ym-vibe-feed-section';
+    section.setAttribute('data-intersection-property-id', 'NEWRELEASES');
+    section.setAttribute('data-test-id', 'NEW_RELEASES');
 
-    const header = createSectionHeader('Новые релизы', '/entities/new-releases/NEWRELEASES');
+    const header = document.createElement('div');
+    header.className = 'BlockHeader_root__j3mbg SkeletonBlock_headerContainer__fl8EX';
+    header.innerHTML = `
+      <div class="BlockHeader_start__ZrGP5">
+        <div class="BlockHeader_textContainer___2wn9">
+          <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB BlockHeader_title__5xlx6" href="/entities/new-releases/NEWRELEASES">
+            <div class="VUb2BxfgkGQhG1RDQGwF BlockHeader_linkContainer__EuW_L">
+              <span class="BlockHeader_linkText__Or6VB">
+                <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww BlockHeader_heading__4iqvS" id="_r_7fq_">Новые релизы</h2>
+              </span>
+              <svg class="TXa2RKc_Hf0QPdmUDMwI BlockHeader_titleIcon__GQFEK UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
+              </svg>
+            </div>
+          </a>
+        </div>
+      </div>
+      <div class="CarouselControls_root__E_hwc NewReleases_controls__zlJZF">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" disabled="" data-disabled="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
+            </svg>
+          </span>
+        </button>
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
+      </div>
+    `;
+
+    const titleLink = header.querySelector('a.BlockHeader_title__5xlx6');
+    if (titleLink) {
+      titleLink.addEventListener('click', (e) => spaNavigate('/entities/new-releases/NEWRELEASES', e));
+    }
     section.appendChild(header);
 
-    const carousel = document.createElement('div');
-    carousel.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi ym-vibe-feed-releases-carousel';
+    const carousel = document.createElement('ol');
+    carousel.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E ym-vibe-feed-releases-carousel';
+    carousel.setAttribute('aria-labelledby', '_r_7fq_');
+    carousel.setAttribute('role', 'list');
 
-    releases.forEach(rel => {
+    releases.forEach((rel, idx) => {
       const album = rel.album || {};
-      const artist = (rel.artists && rel.artists[0]) || {};
-      const artistName = rel.artists ? rel.artists.map(a => a.name).join(', ') : 'Артист';
+      const artists = Array.isArray(rel.artists) && rel.artists.length > 0 ? rel.artists : [{ name: 'Артист', id: '' }];
+      const primaryArtist = artists[0] || {};
+      const primaryArtistName = primaryArtist.name || 'Артист';
 
-      const avatarUrl = formatYandexImg(artist.cover?.uri || rel.cover?.uri, '300x300');
-      const albumCoverUrl = formatYandexImg(album.cover?.uri || rel.cover?.uri, '100x100');
+      const artistCoverUri = primaryArtist.cover?.uri || rel.cover?.uri || album.cover?.uri;
+      const artistCover300 = formatYandexImg(artistCoverUri, '300x300');
+      const artistCover600 = formatYandexImg(artistCoverUri, '600x600');
 
-      let subText = album.albumType === 'single' ? 'сингл' : 'альбом';
-      if (rel.releaseDate) {
+      const albumCoverUri = album.cover?.uri || rel.cover?.uri;
+      const albumCover100 = formatYandexImg(albumCoverUri, '100x100');
+      const albumCover200 = formatYandexImg(albumCoverUri, '200x200');
+
+      const releaseColor = album.cover?.color || rel.color || '#201c1d';
+      const rgb = hexToRgb(releaseColor);
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      const coverColor = `hsl(${hsl.h}, ${hsl.s}%, 20%)`;
+      const fadeBg = `linear-gradient(180.14deg, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0) 30.88%, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4) 70.8%, rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.9) 80.88%)`;
+
+      const albumType = (album.type || album.albumType || 'single').toLowerCase();
+      const albumTypeStr = albumType === 'single' ? 'сингл' : (albumType === 'podcast' ? 'подкаст' : 'альбом');
+      let dateStr = '';
+      if (rel.releaseDate || album.releaseDate) {
         try {
-          const d = new Date(rel.releaseDate);
+          const d = new Date(rel.releaseDate || album.releaseDate);
           const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
-          subText += ` • ${d.getDate()} ${months[d.getMonth()]}`;
+          dateStr = `${d.getDate()} ${months[d.getMonth()]}`;
         } catch (e) { }
       }
 
-      const card = document.createElement('div');
-      card.className = 'ym-vibe-feed-release-card';
-      const albumUrl = `/album/${album.id || ''}`;
+      const isExplicit = Boolean(album.contentWarning === 'explicit' || album.explicit || rel.explicit);
+      const hasTrailer = Boolean(rel.trailer || album.trailer);
 
-      card.innerHTML = `
-        <div class="ym-vibe-feed-release-cover">
-          <img src="${escapeHtml(avatarUrl)}" alt="${escapeHtml(artistName)}" loading="lazy">
-          <div class="NewRelease_fade__rVE0_ ym-vibe-feed-release-fade"></div>
-          <div class="ym-vibe-feed-release-artist-caption">${escapeHtml(artistName)}</div>
-        </div>
-        <div class="NewReleaseCard_root__IY5m_" style="--new-release-cover-color: #282828; --new-release-color: #1a1a1a;">
-          <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" src="${escapeHtml(albumCoverUrl)}" alt="${escapeHtml(album.title || '')}" loading="lazy">
-          <div class="NewReleaseCard_info__rcfoY">
-            <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI NewReleaseCard_title__N5soS" title="${escapeHtml(album.title || '')}">${escapeHtml(album.title || '')}</div>
-            <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI NewReleaseCard_description__Daz5q">${escapeHtml(subText)}</div>
+      const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
+
+      const ariaLabelAlbum = `${albumTypeStr.charAt(0).toUpperCase() + albumTypeStr.slice(1)} ${album.title || ''}`;
+      const albumUrl = `/album/${album.id || ''}`;
+      const primaryArtistUrl = `/artist/${primaryArtist.id || ''}`;
+
+      const explicitHtml = isExplicit ? `
+        <span class="NewReleaseCard_explicitMarkContainer__QHRoH">
+          <svg class="ExplicitMarkIcon_explicitMark__0BPeQ NewReleaseCard_explicitMark__isgxE Rkdd2vKC_3xa1eUdRdHP" focusable="false" aria-label="Возрастное ограничение 18+" aria-hidden="false">
+            <use xlink:href="/icons/sprite.svg#exclamation_xxxs"></use>
+          </svg>
+        </span>
+      ` : '';
+
+      const trailerHtml = hasTrailer ? `
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewRelease_trailerButton__OYAW6" type="button" aria-label="Запустить трейлер" data-intersection-property-id="onboarding-tooltip" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xs"></use>
+            </svg>
+          </span>
+        </button>
+      ` : '';
+
+      const li = document.createElement('li');
+      li.className = 'VJ9IexhAEuYSCyGiMfN4 NewReleases_item__Gv0iR NewReleases_important__qkt9x';
+
+      li.innerHTML = `
+        <div class="NewRelease_root__W0T4a" data-intersection-property-id="_r_rel_${idx}_">
+          <div class="NewRelease_cover__EVFNR">
+            <div class="qaIScXjx1qyXuaIHXQIo QIWoHHDozGGG5w2JYImt ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI NewRelease_coverImage__9x6Uk">
+              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewRelease_image__Vw6_k" alt="${escapeHtml(primaryArtistName)}" loading="eager" aria-hidden="true" srcset="${escapeHtml(artistCover300)}, ${escapeHtml(artistCover600 || artistCover300)} 2x" src="${escapeHtml(artistCover300)}">
+              <div class="NewRelease_fade__rVE0_" style="background: ${escapeHtml(fadeBg)};"></div>
+            </div>
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_fade__rVE0_" aria-label="${escapeHtml(primaryArtistName)}" href="${escapeHtml(primaryArtistUrl)}"></a>
+            <div class="SeparatedArtists_root_variant_breakWord__1sziE SeparatedArtists_root_clamp__SyvjM NewRelease_artists__wGTaP" style="-webkit-line-clamp: 2;">
+              ${artistsHtml}
+            </div>
           </div>
-          <div class="NewReleaseCard_container__XvwZC">
-            <button aria-label="Воспроизведение" class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button">
-              <span class="JjlbHZ4FaP9EAcR_1DxF">
-                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                  <polygon points="6 3 20 12 6 21 6 3"></polygon>
-                </svg>
-              </span>
-            </button>
+          <div class="qaIScXjx1qyXuaIHXQIo NFJAa_h_EAjwQVY7bU5J ZcpulvHgF_wsgzB8Hye9 NewReleaseCard_root__IY5m_ NewRelease_card__yn06x" style="--new-release-cover-color: ${escapeHtml(coverColor)}; --new-release-color: ${escapeHtml(releaseColor)};">
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewReleaseCard_paperLink__NN_8o" aria-label="${escapeHtml(ariaLabelAlbum)}" href="${escapeHtml(albumUrl)}"></a>
+            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" alt="Альбом ${escapeHtml(album.title || '')}" loading="eager" srcset="${escapeHtml(albumCover100)}, ${escapeHtml(albumCover200 || albumCover100)} 2x" src="${escapeHtml(albumCover100)}">
+            <div class="NewReleaseCard_info__rcfoY">
+              <div title="${escapeHtml(album.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_title__N5soS" aria-label="${escapeHtml(ariaLabelAlbum)}" style="-webkit-line-clamp: 2;">${escapeHtml(album.title || '')}</div>
+              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_description__Daz5q" style="-webkit-line-clamp: 1;">
+                <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR NewRelease_descriptionContainer__g56GG">
+                  <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(albumTypeStr)}</span>
+                  <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR"> • </span>
+                  <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(dateStr)}</span>
+                </span>
+              </div>
+            </div>
+            <div class="NewReleaseCard_container__XvwZC">
+              ${explicitHtml}
+              ${trailerHtml}
+              <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-album-id="${escapeHtml(album.id || '')}">
+                <span class="JjlbHZ4FaP9EAcR_1DxF">
+                  <svg class="J9wTKytjOWG73QMoN5WP o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
+                    <use xlink:href="/icons/sprite.svg#play_filled_m"></use>
+                  </svg>
+                </span>
+              </button>
+            </div>
           </div>
-          <a aria-label="${escapeHtml(album.title || '')}" class="buOTZq_TKQOVyjMLrXvB NewReleaseCard_paperLink__NN_8o" href="${escapeHtml(albumUrl)}"></a>
         </div>
       `;
 
-      const link = card.querySelector('.NewReleaseCard_paperLink__NN_8o');
-      if (link) {
-        link.addEventListener('click', (e) => spaNavigate(albumUrl, e));
-      }
-      const cover = card.querySelector('.ym-vibe-feed-release-cover');
-      if (cover) {
-        cover.addEventListener('click', (e) => spaNavigate(albumUrl, e));
-      }
-      const playBtn = card.querySelector('.ym-vibe-release-play-btn');
-      if (playBtn) {
-        playBtn.addEventListener('click', (e) => {
+      // Event Listeners
+      const paperLink = li.querySelector('.NewReleaseCard_paperLink__NN_8o');
+      if (paperLink) paperLink.addEventListener('click', (e) => spaNavigate(albumUrl, e));
+
+      const fadeLink = li.querySelector('a.NewRelease_fade__rVE0_');
+      if (fadeLink) fadeLink.addEventListener('click', (e) => spaNavigate(primaryArtistUrl, e));
+
+      const artistAnchors = li.querySelectorAll('.NewRelease_artistLink__CO3Zn');
+      artistAnchors.forEach(a => {
+        a.addEventListener('click', (e) => {
+          const href = a.getAttribute('href');
+          if (href) spaNavigate(href, e);
+        });
+      });
+
+      const trailerBtn = li.querySelector('.NewRelease_trailerButton__OYAW6');
+      if (trailerBtn) {
+        trailerBtn.addEventListener('click', (e) => {
           e.stopPropagation();
           e.preventDefault();
           spaNavigate(albumUrl);
         });
       }
 
-      carousel.appendChild(card);
+      const playBtn = li.querySelector('.ym-vibe-release-play-btn');
+      if (playBtn) {
+        playBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          if (album.id) {
+            const st = isAlbumCurrentlyPlaying(album.id);
+            const p = getSafeActivePlayer();
+            if (st.isMatch) {
+              if (typeof p?.togglePause === 'function') {
+                p.togglePause();
+              } else if (st.isPlaying && typeof p?.pause === 'function') {
+                p.pause();
+              } else if (!st.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+                if (p.resume) p.resume();
+                else p.play();
+              } else {
+                await playAlbumContext(album.id);
+              }
+            } else {
+              const played = await playAlbumContext(album.id);
+              if (!played) spaNavigate(albumUrl);
+            }
+          } else {
+            spaNavigate(albumUrl);
+          }
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+          setTimeout(updateLandingPlaybackIndicators, 600);
+        });
+      }
+
+      carousel.appendChild(li);
     });
 
-    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
-    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+    const prevBtn = controls[0];
+    const nextBtn = controls[1];
     setupCarouselControls(carousel, prevBtn, nextBtn);
 
     section.appendChild(carousel);
     feedContainer.appendChild(section);
+
+    updateLandingPlaybackIndicators();
   }
 
   function renderConcertsSection(feedContainer, concertsData) {
@@ -11433,8 +11947,9 @@ if (document.readyState === 'loading') {
       carousel.appendChild(card);
     });
 
-    const prevBtn = header.querySelector('.CarouselControls_control__L8t4i.prev');
-    const nextBtn = header.querySelector('.CarouselControls_control__L8t4i.next');
+    const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+    const prevBtn = controls[0];
+    const nextBtn = controls[1];
     setupCarouselControls(carousel, prevBtn, nextBtn);
 
     section.appendChild(carousel);
@@ -11482,7 +11997,7 @@ if (document.readyState === 'loading') {
         document.body.classList.remove('ym-vibe-no-wheel');
         document.body.classList.add('ym-vibe-with-landing');
       }
-      updateNavbarTransparency(false);
+      updateNavbarTransparency(true);
       const hasFeed = document.getElementById('ym-vibe-live-landing-feed');
       if (!hasFeed || window.location.href !== lastFeedCheckUrl) {
         lastFeedCheckUrl = window.location.href;
@@ -11504,6 +12019,20 @@ if (document.readyState === 'loading') {
     window.addEventListener('popstate', () => {
       applyVibeMode(getVibeDesignMode());
     });
+    window.addEventListener('message', (e) => {
+      if (e.data?.type === 'YM_SYNC_STATE_CHANGED') {
+        updateLandingPlaybackIndicators();
+      }
+    });
+    if (typeof document !== 'undefined') {
+      document.addEventListener('play', () => updateLandingPlaybackIndicators(), true);
+      document.addEventListener('pause', () => updateLandingPlaybackIndicators(), true);
+    }
+    setInterval(() => {
+      if (document.getElementById('ym-vibe-live-landing-feed')) {
+        updateLandingPlaybackIndicators();
+      }
+    }, 350);
   }
 
   if (typeof document !== 'undefined') {

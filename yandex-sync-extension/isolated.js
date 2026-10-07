@@ -2257,63 +2257,119 @@ function injectStyles() {
       z-index: -999 !important;
     }
 
-    /* Bulletproof Transparent sidebar in No Wheel mode */
+    /* Bulletproof Transparent sidebar in No Wheel mode and Vibe With Landing mode */
     html.ym-vibe-no-wheel aside,
     body.ym-vibe-no-wheel aside,
+    html.ym-vibe-with-landing aside,
+    body.ym-vibe-with-landing aside,
     html.ym-vibe-no-wheel aside[class*="Navbar"],
     body.ym-vibe-no-wheel aside[class*="Navbar"],
+    html.ym-vibe-with-landing aside[class*="Navbar"],
+    body.ym-vibe-with-landing aside[class*="Navbar"],
     html.ym-vibe-no-wheel [class*="Navbar_root"],
     body.ym-vibe-no-wheel [class*="Navbar_root"],
+    html.ym-vibe-with-landing [class*="Navbar_root"],
+    body.ym-vibe-with-landing [class*="Navbar_root"],
     html.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
     body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    html.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
+    body.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_root"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_root"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
     html.ym-vibe-no-wheel [class*="SidebarDesktop"],
     body.ym-vibe-no-wheel [class*="SidebarDesktop"],
+    html.ym-vibe-with-landing [class*="SidebarDesktop"],
+    body.ym-vibe-with-landing [class*="SidebarDesktop"],
     html.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
     body.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
     html.ym-vibe-no-wheel [class*="PinsList_root"],
     body.ym-vibe-no-wheel [class*="PinsList_root"],
+    html.ym-vibe-with-landing [class*="PinsList_root"],
+    body.ym-vibe-with-landing [class*="PinsList_root"],
     html.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
     body.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+    html.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
+    body.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
     html.ym-vibe-no-wheel [class*="UserProfile_root"],
     body.ym-vibe-no-wheel [class*="UserProfile_root"],
+    html.ym-vibe-with-landing [class*="UserProfile_root"],
+    body.ym-vibe-with-landing [class*="UserProfile_root"],
     html.ym-vibe-no-wheel aside.Navbar_root__chF4R,
     body.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+    html.ym-vibe-with-landing aside.Navbar_root__chF4R,
+    body.ym-vibe-with-landing aside.Navbar_root__chF4R,
     html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
     body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+    html.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
+    body.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
     html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
     body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+    html.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
+    body.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
     html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
     body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
+    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
     html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
     body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
+    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
     html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
     body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+    html.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
+    body.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
     html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
     body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+    html.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
+    body.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
     html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
     body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    html.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    body.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
     html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
     body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+    html.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
+    body.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
     html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
     body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+    html.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
+    body.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
     html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
     body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+    html.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
+    body.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
     html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
-    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS {
+    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
+    html.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS,
+    body.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS {
       background: transparent !important;
       background-color: transparent !important;
       border: none !important;
@@ -2322,12 +2378,20 @@ function injectStyles() {
     }
     html.ym-vibe-no-wheel aside::before,
     body.ym-vibe-no-wheel aside::before,
+    html.ym-vibe-with-landing aside::before,
+    body.ym-vibe-with-landing aside::before,
     html.ym-vibe-no-wheel aside::after,
     body.ym-vibe-no-wheel aside::after,
+    html.ym-vibe-with-landing aside::after,
+    body.ym-vibe-with-landing aside::after,
     html.ym-vibe-no-wheel [class*="Navbar"]::before,
     body.ym-vibe-no-wheel [class*="Navbar"]::before,
+    html.ym-vibe-with-landing [class*="Navbar"]::before,
+    body.ym-vibe-with-landing [class*="Navbar"]::before,
     html.ym-vibe-no-wheel [class*="Navbar"]::after,
-    body.ym-vibe-no-wheel [class*="Navbar"]::after {
+    body.ym-vibe-no-wheel [class*="Navbar"]::after,
+    html.ym-vibe-with-landing [class*="Navbar"]::after,
+    body.ym-vibe-with-landing [class*="Navbar"]::after {
       display: none !important;
       background: transparent !important;
     }
@@ -2829,30 +2893,7 @@ function injectStyles() {
        Mode 3: Vibe with Live Landing Feed (Hybrid Mode)
        ========================================================================= */
 
-    /* Solid black left navbar in Mode 3 (vibe_with_landing) - strictly scoped to Vibe page */
-    html.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
-    body.ym-vibe-with-landing:has([class*="VibePage_root"]) aside,
-    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
-    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="NavbarDesktop_root"],
-    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"],
-    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="DefaultLayout_navbar"] {
-      background: #000000 !important;
-      background-color: #000000 !important;
-      z-index: 100 !important;
-    }
-
-    /* Reset root layout padding in Mode 3 (vibe_with_landing) to eliminate bottom grey strip / gap */
-    html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]),
-    html.ym-vibe-with-landing [class*="DefaultLayout_root"]:has([class*="VibePage_root"]),
-    body.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]),
-    body.ym-vibe-with-landing [class*="DefaultLayout_root"]:has([class*="VibePage_root"]) {
-      padding-block-start: 0 !important;
-      padding-block-end: 0 !important;
-      padding-inline-end: 0 !important;
-      margin: 0 !important;
-    }
-
-    /* Scrollable main container matching native My Vibe layout (no island borders/radii, extends to viewport edges) */
+    /* Scrollable main container in Mode 3 (vibe_with_landing) while keeping original body / layout paddings */
     html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) {
       overflow-y: auto !important;
       overflow-x: hidden !important;
@@ -2862,12 +2903,8 @@ function injectStyles() {
       scroll-behavior: smooth;
       scrollbar-width: thin;
       scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-      border-radius: 0 !important;
       background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
-      margin-block-start: 0 !important;
-      margin-block-end: 0 !important;
+      pointer-events: auto !important;
     }
 
     html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar {
@@ -2894,9 +2931,10 @@ function injectStyles() {
       pointer-events: none !important;
     }
 
-    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
-    body.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) main[class*="Content_main"],
-    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_vibeWidgetContainer"] {
+    html.ym-vibe-with-landing [class*="CommonLayout_content"] main[class*="Content_main"],
+    body.ym-vibe-with-landing [class*="CommonLayout_content"] main[class*="Content_main"],
+    html.ym-vibe-with-landing [class*="MainPage_vibeWidgetContainer"],
+    body.ym-vibe-with-landing [class*="MainPage_vibeWidgetContainer"] {
       width: 100% !important;
       max-width: 100% !important;
       min-width: 0 !important;
@@ -2906,7 +2944,7 @@ function injectStyles() {
       min-height: auto !important;
       display: flex !important;
       flex-direction: column !important;
-      align-items: center !important;
+      align-items: stretch !important;
       overflow-y: visible !important;
       border: none !important;
       border-radius: 0 !important;
@@ -3012,7 +3050,10 @@ function injectStyles() {
       max-width: 100% !important;
       min-width: 0 !important;
       margin: 16px 0 0 0 !important;
-      padding: 0 0 80px 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 80px !important;
+      padding-right: 24px !important;
+      padding-left: calc(var(--ym-aside-width, 200px) + 24px) !important;
       box-sizing: border-box !important;
       display: flex !important;
       flex-direction: column !important;
@@ -3020,11 +3061,19 @@ function injectStyles() {
       gap: 24px !important;
       z-index: 2 !important;
       overflow-x: hidden !important;
+      transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);
+      pointer-events: auto !important;
+    }
+
+    html.ym-vibe-with-landing.ym-navbar-collapsed #ym-vibe-live-landing-feed,
+    html.ym-vibe-with-landing:has(aside [class*="title_collapsed"]) #ym-vibe-live-landing-feed,
+    html.ym-vibe-with-landing:has(aside.ym-collapsed) #ym-vibe-live-landing-feed {
+      padding-left: calc(64px + 24px) !important;
     }
 
     /* --- Tabs Row (Для вас / Тренды) --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {
-      padding: 0 0 0 24px !important;
+      padding: 0 !important;
       margin: 0 !important;
       width: 100% !important;
       box-sizing: border-box !important;
@@ -3047,7 +3096,7 @@ function injectStyles() {
     }
     /* --- Likes & History Section (Exact 1-to-1) --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
-      padding: 0 0 0 24px !important;
+      padding: 0 !important;
       margin: 0 !important;
       width: 100% !important;
       box-sizing: border-box !important;
@@ -3083,23 +3132,64 @@ function injectStyles() {
       flex-direction: column !important;
       gap: 16px !important;
       width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
     }
 
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {
       gap: 0 !important;
     }
 
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_root__j3mbg,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
       display: flex !important;
       align-items: center !important;
       justify-content: space-between !important;
-      padding: 12px 24px 8px 24px !important;
+      padding: 12px 0 8px 0 !important;
       padding-bottom: 8px !important;
       padding-block-end: 8px !important;
       margin: 0 !important;
       width: 100% !important;
+      max-width: 100% !important;
       box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_start__ZrGP5 {
+      width: auto !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
+      align-items: center !important;
+      display: flex !important;
+      gap: var(--ym-spacer-size-s, 8px) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity var(--ym-duration-transition, 0.2s ease) !important;
+      margin-left: auto !important;
+    }
+    @media only screen and (max-width: 767.98px) {
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
+        display: none !important;
+      }
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc:hover {
+      opacity: 1 !important;
+      pointer-events: auto !important;
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
@@ -3125,45 +3215,6 @@ function injectStyles() {
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {
       transform: translateX(3px) !important;
       opacity: 1 !important;
-    }
-
-    /* Native Carousel Controls (Arrow Buttons) */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc {
-      display: flex !important;
-      align-items: center !important;
-      gap: 10px !important;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i {
-      width: 32px !important;
-      height: 32px !important;
-      border-radius: 50% !important;
-      background: transparent !important;
-      border: 2px solid rgba(255, 255, 255, 0.12) !important;
-      color: #ffffff !important;
-      display: flex !important;
-      align-items: center !important;
-      justify-content: center !important;
-      cursor: pointer !important;
-      padding: 4px !important;
-      transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
-      outline: none !important;
-      box-sizing: border-box !important;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:hover:not(:disabled):not([data-disabled="true"]) {
-      background: rgba(255, 255, 255, 0.08) !important;
-      border-color: rgba(255, 255, 255, 0.24) !important;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i:disabled,
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i[data-disabled="true"] {
-      opacity: 0.3 !important;
-      cursor: default !important;
-      pointer-events: none !important;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_control__L8t4i svg {
-      width: 12px !important;
-      height: 12px !important;
-      fill: currentColor !important;
-      display: block !important;
     }
     /* --- Robust AI Set Category Filter Chips --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row {
@@ -3293,9 +3344,15 @@ function injectStyles() {
       align-items: center !important;
     }
 
-    /* --- Native 1-to-1 New Releases Carousel --- */
+    /* --- Native 1-to-1 New Releases Section --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw {
+      gap: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel {
       display: flex !important;
+      flex-direction: row !important;
       gap: 16px !important;
       overflow-x: auto !important;
       overflow-y: hidden !important;
@@ -3305,77 +3362,20 @@ function injectStyles() {
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
       box-sizing: border-box !important;
+      list-style: none !important;
+      margin: 0 !important;
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card {
-      width: 340px !important;
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_item__Gv0iR {
       flex-shrink: 0 !important;
+      list-style: none !important;
       scroll-snap-align: start !important;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      cursor: pointer;
-      text-decoration: none;
-      color: inherit;
-      box-sizing: border-box;
-      transition: transform 0.22s cubic-bezier(0.2, 0, 0, 1);
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover {
-      transform: translateY(-3px);
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover {
-      width: 282px;
-      height: 282px;
-      border-radius: 50%;
-      overflow: hidden;
-      position: relative;
-      margin: 0 auto -64px auto;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-      background: #1e1e24;
-      flex-shrink: 0;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-cover img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-      display: block;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card:hover .ym-vibe-feed-release-cover img {
-      transform: scale(1.04);
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-fade {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180.14deg, rgba(32, 28, 29, 0) 30.88%, rgba(32, 28, 29, 0.45) 70.8%, rgba(32, 28, 29, 0.92) 80.88%);
-      z-index: 1;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-artist-caption {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      text-align: center;
-      font-size: 24px;
-      font-weight: 700;
-      line-height: 26px;
-      color: #ffffff;
-      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
-      z-index: 2;
-    }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-release-card .NewReleaseCard_root__IY5m_ {
-      width: 340px !important;
-      box-sizing: border-box !important;
-      border-radius: var(--ym-radius-size-l) !important;
-      z-index: 3 !important;
-    }
+
 
     /* --- Native 1-to-1 Concerts Carousel --- */
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel {
