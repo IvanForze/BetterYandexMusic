@@ -1,0 +1,214 @@
+/* =========================================================================
+       My Vibe Carousel Redesign & Vibe Popover
+       ========================================================================= */
+
+    /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */
+    body.ym-vibe-no-wheel [class*="WheelDesktop_root"],
+    body.ym-vibe-no-wheel [class*="VibePage_wheel"],
+    body.ym-vibe-with-landing [class*="WheelDesktop_root"],
+    body.ym-vibe-with-landing [class*="VibePage_wheel"] {
+      position: absolute !important;
+      left: -9999px !important;
+      top: -9999px !important;
+      width: 320px !important;
+      height: 600px !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      overflow: hidden !important;
+      z-index: -999 !important;
+    }
+
+    /* Bulletproof Transparent sidebar in No Wheel mode and Vibe With Landing mode */
+    html.ym-vibe-no-wheel aside,
+    body.ym-vibe-no-wheel aside,
+    html.ym-vibe-with-landing aside,
+    body.ym-vibe-with-landing aside,
+    html.ym-vibe-no-wheel aside[class*="Navbar"],
+    body.ym-vibe-no-wheel aside[class*="Navbar"],
+    html.ym-vibe-with-landing aside[class*="Navbar"],
+    body.ym-vibe-with-landing aside[class*="Navbar"],
+    html.ym-vibe-no-wheel [class*="Navbar_root"],
+    body.ym-vibe-no-wheel [class*="Navbar_root"],
+    html.ym-vibe-with-landing [class*="Navbar_root"],
+    body.ym-vibe-with-landing [class*="Navbar_root"],
+    html.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    body.ym-vibe-no-wheel [class*="DefaultLayout_navbar"],
+    html.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
+    body.ym-vibe-with-landing [class*="DefaultLayout_navbar"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_root"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_root"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_root"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_logoWrapper"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_logoWrapper"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContainer"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContainer"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_scrollableContent"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_scrollableContent"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigation"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigation_new"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigation_new"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_navigationGroup"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_navigationGroup"],
+    html.ym-vibe-no-wheel [class*="SidebarDesktop"],
+    body.ym-vibe-no-wheel [class*="SidebarDesktop"],
+    html.ym-vibe-with-landing [class*="SidebarDesktop"],
+    body.ym-vibe-with-landing [class*="SidebarDesktop"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktop_pinsList"],
+    html.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
+    body.ym-vibe-with-landing [class*="NavbarDesktop_pinsList"],
+    html.ym-vibe-no-wheel [class*="PinsList_root"],
+    body.ym-vibe-no-wheel [class*="PinsList_root"],
+    html.ym-vibe-with-landing [class*="PinsList_root"],
+    body.ym-vibe-with-landing [class*="PinsList_root"],
+    html.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+    body.ym-vibe-no-wheel [class*="NavbarDesktopUserWidget"],
+    html.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
+    body.ym-vibe-with-landing [class*="NavbarDesktopUserWidget"],
+    html.ym-vibe-no-wheel [class*="UserProfile_root"],
+    body.ym-vibe-no-wheel [class*="UserProfile_root"],
+    html.ym-vibe-with-landing [class*="UserProfile_root"],
+    body.ym-vibe-with-landing [class*="UserProfile_root"],
+    html.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+    body.ym-vibe-no-wheel aside.Navbar_root__chF4R,
+    html.ym-vibe-with-landing aside.Navbar_root__chF4R,
+    body.ym-vibe-with-landing aside.Navbar_root__chF4R,
+    html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+    body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,
+    html.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
+    body.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,
+    html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+    body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,
+    html.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
+    body.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,
+    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,
+    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
+    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,
+    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,
+    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
+    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,
+    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,
+    html.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
+    body.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,
+    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,
+    html.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
+    body.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,
+    html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    html.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    body.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,
+    html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+    body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,
+    html.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
+    body.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,
+    html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+    body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,
+    html.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
+    body.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,
+    html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+    body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,
+    html.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
+    body.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,
+    html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
+    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,
+    html.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS,
+    body.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS {
+      background: transparent !important;
+      background-color: transparent !important;
+      border: none !important;
+      border-right: none !important;
+      box-shadow: none !important;
+    }
+    html.ym-vibe-no-wheel aside::before,
+    body.ym-vibe-no-wheel aside::before,
+    html.ym-vibe-with-landing aside::before,
+    body.ym-vibe-with-landing aside::before,
+    html.ym-vibe-no-wheel aside::after,
+    body.ym-vibe-no-wheel aside::after,
+    html.ym-vibe-with-landing aside::after,
+    body.ym-vibe-with-landing aside::after,
+    html.ym-vibe-no-wheel [class*="Navbar"]::before,
+    body.ym-vibe-no-wheel [class*="Navbar"]::before,
+    html.ym-vibe-with-landing [class*="Navbar"]::before,
+    body.ym-vibe-with-landing [class*="Navbar"]::before,
+    html.ym-vibe-no-wheel [class*="Navbar"]::after,
+    body.ym-vibe-no-wheel [class*="Navbar"]::after,
+    html.ym-vibe-with-landing [class*="Navbar"]::after,
+    body.ym-vibe-with-landing [class*="Navbar"]::after {
+      display: none !important;
+      background: transparent !important;
+    }
+
+    /* Only show trigger button in no_wheel and vibe_with_landing modes */
+    body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {
+      display: none !important;
+    }
+
+    /* Context container (Мне нравится ✕) */
+    [class*="VibePage_context"] {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-bottom: 6px !important;
+    }
+
+    /* Ensure Vibe Meta stacks vertically centered */
+    body.ym-vibe-no-wheel [class*="VibePage_meta"],
+    body.ym-vibe-with-landing [class*="VibePage_meta"] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+    }
+
+    /* Trigger Button (Clean, no border, placed vertically UNDER the context button) */
+    .ym-vibe-settings-trigger-btn {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      align-self: center !important;
+      margin: 4px auto 12px auto !important;
+      padding: 7px 18px;
+      border-radius: 9999px;
+      border: none !important;
+      outline: none !important;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: none !important;
+      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+      user-select: none;
+      z-index: 10;
+    }
+    .ym-vibe-settings-trigger-btn:hover {
+      background: rgba(255, 255, 255, 0.14);
+      border: none !important;
+      color: #ffffff !important;
+      box-shadow: none !important;
+      transform: translateY(-1px);
+    }
+    .ym-vibe-settings-trigger-btn:active {
+      transform: translateY(0) scale(0.98);
+    }

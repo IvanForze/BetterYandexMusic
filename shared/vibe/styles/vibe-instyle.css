@@ -1,0 +1,102 @@
+/* --- Native 1-to-1 In Style Section & Album Cards --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+      list-style: none !important;
+      margin: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_item__e5_Qz {
+      flex-shrink: 0 !important;
+      list-style: none !important;
+      scroll-snap-align: start !important;
+      width: 190px !important;
+      min-width: 170px !important;
+      max-width: 210px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_root__vP6k4 {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      text-decoration: none !important;
+      position: relative !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY {
+      position: relative !important;
+      border-radius: var(--ym-radius-size-m, 12px) !important;
+      overflow: hidden !important;
+      cursor: pointer !important;
+      aspect-ratio: 1 !important;
+      width: 100% !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_image__Mm55s {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+      transition: transform 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_image__Mm55s {
+      transform: scale(1.03) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_controls__yuO40 {
+      position: absolute !important;
+      inset: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      padding: 8px !important;
+      box-sizing: border-box !important;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_controls__yuO40,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:focus-within .AlbumCard_controls__yuO40 {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_control__qx7Xh {
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_tab_withCovers__dJzMH {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 4px 14px 4px 6px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {
+      display: flex !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      display: block !important;
+    }

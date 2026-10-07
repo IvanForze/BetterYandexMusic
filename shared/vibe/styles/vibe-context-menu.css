@@ -1,0 +1,153 @@
+/* =========================================================================
+       BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)
+       ========================================================================= */
+    .ym-native-album-menu,
+    .ym-native-album-submenu,
+    .ym-native-sub-menu {
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+      user-select: none !important;
+    }
+    .ym-native-album-menu button,
+    .ym-native-album-submenu button,
+    .ym-native-sub-menu button {
+      width: 100% !important;
+      text-align: left !important;
+      cursor: pointer !important;
+    }
+
+    .ym-album-context-menu {
+      position: fixed;
+      z-index: 9999999;
+      min-width: 210px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.78);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+      color: #ffffff;
+      font-family: 'YS Text', 'Yandex Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: scale(0.95);
+      transform-origin: top left;
+      transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    body.ym-light-theme .ym-album-context-menu {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+      color: #121212;
+    }
+
+    .ym-album-context-menu.ym-menu-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .ym-album-context-menu .ym-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.12s ease;
+      position: relative;
+    }
+
+    .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .ym-album-context-menu .ym-menu-item-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      fill: currentColor;
+      opacity: 0.85;
+    }
+
+    .ym-album-context-menu .ym-menu-item-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ym-album-context-menu .ym-menu-arrow {
+      width: 12px;
+      height: 12px;
+      opacity: 0.6;
+      margin-left: auto;
+      fill: currentColor;
+    }
+
+    /* Submenu for Share */
+    .ym-album-context-menu .ym-submenu {
+      position: absolute;
+      top: -6px;
+      left: calc(100% + 6px);
+      min-width: 200px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.88);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+      pointer-events: none;
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-submenu {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    }
+
+    .ym-album-context-menu .ym-menu-item-share:hover .ym-submenu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .ym-menu-toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      padding: 10px 20px;
+      border-radius: 30px;
+      background: rgba(24, 24, 28, 0.92);
+      backdrop-filter: blur(20px);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      z-index: 10000000;
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .ym-menu-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }

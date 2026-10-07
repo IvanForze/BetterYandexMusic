@@ -1,0 +1,333 @@
+/* =========================================================================
+       Mode 3: Vibe with Live Landing Feed (Hybrid Mode)
+       ========================================================================= */
+
+    /* Scrollable main container in Mode 3 (vibe_with_landing) while keeping original body / layout paddings */
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"]) {
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      height: 100% !important;
+      max-height: 100% !important;
+      box-sizing: border-box !important;
+      scroll-behavior: smooth;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+      background: transparent !important;
+      pointer-events: auto !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar {
+      width: 6px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+    }
+    html.ym-vibe-with-landing [class*="CommonLayout_content"]:has([class*="VibePage_root"])::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Vibe Widget container and hero section - Constrain width to prevent 10688px blowout (ONLY on Vibe page) */
+    html.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"],
+    body.ym-vibe-with-landing:has([class*="VibePage_root"]) [class*="MainPage_actionsBar"] {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+      pointer-events: none !important;
+    }
+
+    html.ym-vibe-with-landing [class*="CommonLayout_content"] main[class*="Content_main"],
+    body.ym-vibe-with-landing [class*="CommonLayout_content"] main[class*="Content_main"],
+    html.ym-vibe-with-landing [class*="MainPage_vibeWidgetContainer"],
+    body.ym-vibe-with-landing [class*="MainPage_vibeWidgetContainer"] {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      overflow-x: hidden !important;
+      box-sizing: border-box !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+      overflow-y: visible !important;
+      border: none !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_root"] {
+      height: 100vh !important;
+      min-height: 100vh !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      box-sizing: border-box !important;
+      overflow: visible !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_meta"] {
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      height: auto !important;
+      width: 100% !important;
+      max-width: 900px !important;
+      margin: 0 auto !important;
+      position: relative !important;
+      z-index: 5 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_context"] {
+      order: 1 !important;
+      margin-bottom: 6px !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMeta"] {
+      order: 2 !important;
+      height: auto !important;
+      min-height: auto !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin-bottom: 110px !important;
+      position: relative !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_entityMetaBody"] {
+      height: auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      position: relative !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_textContainer"] {
+      height: auto !important;
+      padding-bottom: 0 !important;
+      margin: 0 !important;
+    }
+
+    html.ym-vibe-with-landing [class*="VibePage_playerBlock"] {
+      order: 3 !important;
+      position: relative !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 auto 12px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-settings-btn {
+      order: 4 !important;
+      margin: 6px auto 16px auto !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-quick-block {
+      display: none !important;
+    }
+
+    /* Center the animated fluid canvas behind vibe player */
+    html.ym-vibe-with-landing [class*="VibePage_root"] [class*="VibeWidgetAnimation_root"] {
+      position: absolute !important;
+      left: 50% !important;
+      top: 38% !important;
+      transform: translate(-50%, -50%) !important;
+      pointer-events: none !important;
+    }
+
+    /* ========================================================
+       NATIVE 1-TO-1 LANDING FEED (STRICTLY SCOPED TO MODE 3 ONLY)
+       Never leaks to https://music.yandex.ru/landing/main
+       ======================================================== */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+      margin: 16px 0 0 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 80px !important;
+      padding-right: 24px !important;
+      padding-left: calc(var(--ym-aside-width, 200px) + 24px) !important;
+      box-sizing: border-box !important;
+      display: flex !important;
+      flex-direction: column !important;
+      flex-shrink: 0 !important;
+      gap: 24px !important;
+      z-index: 2 !important;
+      overflow-x: hidden !important;
+      transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);
+      pointer-events: auto !important;
+    }
+
+    html.ym-vibe-with-landing.ym-navbar-collapsed #ym-vibe-live-landing-feed,
+    html.ym-vibe-with-landing:has(aside [class*="title_collapsed"]) #ym-vibe-live-landing-feed,
+    html.ym-vibe-with-landing:has(aside.ym-collapsed) #ym-vibe-live-landing-feed {
+      padding-left: calc(64px + 24px) !important;
+    }
+
+    /* --- Tabs Row (Для вас / Тренды) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy {
+      display: flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      list-style: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    /* --- Likes & History Section (Exact 1-to-1) --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {
+      padding: 0 !important;
+      margin: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD {
+      display: flex !important;
+      gap: 16px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      list-style: none !important;
+      overflow-x: auto !important;
+      scrollbar-width: none !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD::-webkit-scrollbar {
+      display: none !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carouselItem__Yq5Xw {
+      width: 392px !important;
+      max-width: calc(50vw - 32px) !important;
+      min-width: 280px !important;
+      height: 82px !important;
+      flex-shrink: 0 !important;
+      scroll-snap-align: start !important;
+      list-style: none !important;
+    }
+
+    /* --- Common Section Styles & Headers --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 16px !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {
+      gap: 0 !important;
+    }
+
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_root__j3mbg,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {
+      display: flex !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      padding: 12px 0 8px 0 !important;
+      padding-bottom: 8px !important;
+      padding-block-end: 8px !important;
+      margin: 0 !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_start__ZrGP5 {
+      width: auto !important;
+      flex: 1 1 auto !important;
+      min-width: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
+      align-items: center !important;
+      display: flex !important;
+      gap: var(--ym-spacer-size-s, 8px) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity var(--ym-duration-transition, 0.2s ease) !important;
+      margin-left: auto !important;
+    }
+    @media only screen and (max-width: 767.98px) {
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
+        display: none !important;
+      }
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .InStyle_controls__mGqhj,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .InStyle_controls__mGqhj,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc:hover {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_heading__4iqvS,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
+      font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+      font-size: 24px !important;
+      font-weight: 700 !important;
+      line-height: 26px !important;
+      color: #ffffff !important;
+      margin: 0 !important;
+      letter-spacing: normal !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link svg {
+      width: 14px !important;
+      height: 14px !important;
+      opacity: 0.5 !important;
+      transition: transform 0.15s ease, opacity 0.15s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {
+      transform: translateX(3px) !important;
+      opacity: 1 !important;
+    }
