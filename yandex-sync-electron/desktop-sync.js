@@ -5921,6 +5921,7 @@ function injectStyles() {
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
       align-items: center !important;
       display: flex !important;
@@ -5933,15 +5934,19 @@ function injectStyles() {
     @media only screen and (max-width: 767.98px) {
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
         display: none !important;
       }
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,
@@ -5950,6 +5955,7 @@ function injectStyles() {
       pointer-events: auto !important;
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_heading__4iqvS,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
       font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
       font-size: 24px !important;
@@ -5974,8 +5980,9 @@ function injectStyles() {
       transform: translateX(3px) !important;
       opacity: 1 !important;
     }
-    /* --- Robust AI Set Category Filter Chips --- */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row {
+    /* --- Robust AI Set & Waves Category Filter Chips --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
       display: flex !important;
       align-items: center !important;
       flex-direction: row !important;
@@ -5986,15 +5993,18 @@ function injectStyles() {
       margin: 0 !important;
       margin-bottom: 0 !important;
       margin-block-end: 0 !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
+      padding-inline-start: 0 !important;
       padding-bottom: 16px !important;
       padding-block-end: 16px !important;
       list-style: none !important;
       box-sizing: border-box !important;
       height: auto !important;
-      min-height: 52px !important;
+      min-height: 48px !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
@@ -6071,15 +6081,17 @@ function injectStyles() {
       color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
     }
 
-    /* --- Native 1-to-1 AI Set Cards Carousel --- */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel {
+    /* --- Native 1-to-1 AI Set & Waves Cards Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel {
       display: flex !important;
       flex-direction: row !important;
       gap: 16px !important;
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 12px 24px !important;
+      padding: 0 0 12px 0 !important;
+      padding-left: 0 !important;
       padding-top: 0 !important;
       padding-block-start: 0 !important;
       scroll-snap-type: x mandatory !important;
@@ -6089,7 +6101,8 @@ function injectStyles() {
       list-style: none !important;
       margin: 0 !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
@@ -6100,6 +6113,109 @@ function injectStyles() {
       scroll-snap-align: start !important;
       display: flex !important;
       align-items: center !important;
+    }
+
+    /* --- Native 1-to-1 In Style Section & Album Cards --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+      list-style: none !important;
+      margin: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_item__e5_Qz {
+      flex-shrink: 0 !important;
+      list-style: none !important;
+      scroll-snap-align: start !important;
+      width: 190px !important;
+      min-width: 170px !important;
+      max-width: 210px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_root__vP6k4 {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      text-decoration: none !important;
+      position: relative !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY {
+      position: relative !important;
+      border-radius: var(--ym-radius-size-m, 12px) !important;
+      overflow: hidden !important;
+      cursor: pointer !important;
+      aspect-ratio: 1 !important;
+      width: 100% !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_image__Mm55s {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+      transition: transform 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_image__Mm55s {
+      transform: scale(1.03) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_controls__yuO40 {
+      position: absolute !important;
+      inset: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      padding: 8px !important;
+      box-sizing: border-box !important;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_controls__yuO40,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:focus-within .AlbumCard_controls__yuO40 {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_control__qx7Xh {
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_tab_withCovers__dJzMH {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 4px 14px 4px 6px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {
+      display: flex !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      display: block !important;
     }
 
     /* --- Native 1-to-1 New Releases Section --- */
@@ -6115,7 +6231,8 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
@@ -6142,7 +6259,8 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
@@ -6243,6 +6361,158 @@ function injectStyles() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* =========================================================================
+       BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)
+       ========================================================================= */
+    .ym-native-album-menu,
+    .ym-native-sub-menu {
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+      user-select: none !important;
+    }
+    .ym-native-album-menu button,
+    .ym-native-sub-menu button {
+      width: 100% !important;
+      text-align: left !important;
+      cursor: pointer !important;
+    }
+
+    .ym-album-context-menu {
+      position: fixed;
+      z-index: 9999999;
+      min-width: 210px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.78);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+      color: #ffffff;
+      font-family: 'YS Text', 'Yandex Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: scale(0.95);
+      transform-origin: top left;
+      transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    body.ym-light-theme .ym-album-context-menu {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+      color: #121212;
+    }
+
+    .ym-album-context-menu.ym-menu-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .ym-album-context-menu .ym-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.12s ease;
+      position: relative;
+    }
+
+    .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .ym-album-context-menu .ym-menu-item-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      fill: currentColor;
+      opacity: 0.85;
+    }
+
+    .ym-album-context-menu .ym-menu-item-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ym-album-context-menu .ym-menu-arrow {
+      width: 12px;
+      height: 12px;
+      opacity: 0.6;
+      margin-left: auto;
+      fill: currentColor;
+    }
+
+    /* Submenu for Share */
+    .ym-album-context-menu .ym-submenu {
+      position: absolute;
+      top: -6px;
+      left: calc(100% + 6px);
+      min-width: 200px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.88);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+      pointer-events: none;
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-submenu {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    }
+
+    .ym-album-context-menu .ym-menu-item-share:hover .ym-submenu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .ym-menu-toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      padding: 10px 20px;
+      border-radius: 30px;
+      background: rgba(24, 24, 28, 0.92);
+      backdrop-filter: blur(20px);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      z-index: 10000000;
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .ym-menu-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
   `;
@@ -22323,11 +22593,15 @@ setTimeout(() => {
   let landingFeedCache = {
     likesHistory: null,
     mixesWaves: null,
+    waves: null,
+    inStyle: null,
     newReleases: null,
     concerts: null,
     timestamp: 0
   };
   let activeAiCategory = 'mix';
+  let activeWavesCategory = 'mix';
+  let activeInStyleArtistId = null;
   let isFetchingFeed = false;
 
   function formatYandexImg(uri, size = '400x400') {
@@ -22368,15 +22642,19 @@ setTimeout(() => {
     isFetchingFeed = true;
 
     try {
-      const [lhRes, mwRes, nrRes, cRes] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing-blocks/in-style', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/new-releases', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
       ]);
 
       if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
       if (mwRes.status === 'fulfilled' && mwRes.value) landingFeedCache.mixesWaves = mwRes.value;
+      if (wavesRes.status === 'fulfilled' && wavesRes.value) landingFeedCache.waves = wavesRes.value;
+      if (inStyleRes.status === 'fulfilled' && inStyleRes.value) landingFeedCache.inStyle = inStyleRes.value;
       if (nrRes.status === 'fulfilled' && nrRes.value) landingFeedCache.newReleases = nrRes.value;
       if (cRes.status === 'fulfilled' && cRes.value) landingFeedCache.concerts = cRes.value;
 
@@ -22453,13 +22731,19 @@ setTimeout(() => {
     // 3. Exact 1-to-1 Section: Свели в AI-сет
     renderAiSetsSection(feed, data.mixesWaves);
 
-    // 4. Exact 1-to-1 Section: Новые релизы
+    // 4. Exact 1-to-1 Section: Больше открытий (WAVES)
+    renderMoreDiscoveriesSection(feed, data.waves);
+
+    // 5. Exact 1-to-1 Section: В стиле (IN_STYLE)
+    renderInStyleSection(feed, data.inStyle);
+
+    // 6. Exact 1-to-1 Section: Новые релизы
     renderNewReleasesSection(feed, data.newReleases);
 
-    // 5. Exact 1-to-1 Section: Концерты для вас
+    // 7. Exact 1-to-1 Section: Концерты для вас
     renderConcertsSection(feed, data.concerts);
 
-    // 6. Update initial playback indicators for all cards (Play/Pause states)
+    // 8. Update initial playback indicators for all cards (Play/Pause states)
     updateLandingPlaybackIndicators();
   }
 
@@ -22887,13 +23171,19 @@ setTimeout(() => {
     const player = getSafeActivePlayer();
     if (!player) return { isMatch: false, isPlaying: false };
 
+    // Если сейчас играет ТРЕЙЛЕР, обычный альбом не считается играющим
+    const ctx = player.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
     const targetIdStr = String(albumId);
     let isMatch = false;
 
     // 1. Проверяем контекст
-    const ctx = player.contextController?.currentContext;
-    const ctxType = ctx?.type || ctx?.data?.type;
-    const ctxMetaId = ctx?.meta?.id || ctx?.data?.meta?.id;
+    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+    const ctxMetaId = ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id;
 
     if (ctxType === 'album' && String(ctxMetaId) === targetIdStr) {
       isMatch = true;
@@ -22913,6 +23203,18 @@ setTimeout(() => {
       isMatch,
       isPlaying: isMatch && isPlayerPlaying(player)
     };
+  }
+
+  function isAlbumTrailerCurrentlyPlaying(albumId) {
+    if (!albumId) return false;
+    const player = getSafeActivePlayer();
+    if (!player) return false;
+    const ctx = player.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    const isTrailer = ctxData?.trailer === true || player.id === 'TRAILER';
+    const targetIdStr = String(albumId);
+    const metaId = String(ctxData?.meta?.id || ctx?.meta?.id || '');
+    return isTrailer && metaId === targetIdStr && isPlayerPlaying(player);
   }
 
   function isStationCurrentlyPlaying(item) {
@@ -22995,6 +23297,80 @@ setTimeout(() => {
           svgUse.setAttribute('href', '/icons/sprite.svg#play_xxs');
         }
         btn.setAttribute('aria-label', title || 'Воспроизведение');
+      }
+    });
+
+    // 3. Карточки "Больше открытий" (WAVES)
+    const waveButtons = feed.querySelectorAll('.ym-vibe-wave-btn');
+    waveButtons.forEach(btn => {
+      let itemData = null;
+      try {
+        itemData = JSON.parse(btn.getAttribute('data-item') || '{}');
+      } catch (e) { }
+
+      const state = isStationCurrentlyPlaying(itemData);
+      const svgUse = btn.querySelector('.ym-vibe-wave-icon use');
+      const title = itemData?.title || '';
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', `Пауза: ${title}`);
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_xxs');
+        }
+        btn.setAttribute('aria-label', title || 'Воспроизведение');
+      }
+    });
+
+    // 4. Карточки "В стиле" (IN_STYLE)
+    const inStylePlayButtons = feed.querySelectorAll('.ym-vibe-instyle-play-btn');
+    inStylePlayButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+      }
+    });
+
+    // 5. Карточки с трейлером ("В стиле" и "Новые релизы")
+    const trailerButtons = feed.querySelectorAll('.AlbumCard_trailerButton__typHh, .NewRelease_trailerButton__OYAW6');
+    trailerButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+      const isSmall = btn.classList.contains('AlbumCard_trailerButton__typHh');
+      const trailerIcon = isSmall ? '/icons/sprite.svg#trailer_xxs' : '/icons/sprite.svg#trailer_xs';
+      const pauseIcon = isSmall ? '/icons/sprite.svg#pause_xxs' : '/icons/sprite.svg#pause_xs';
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', pauseIcon);
+          svgUse.setAttribute('href', pauseIcon);
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', trailerIcon);
+          svgUse.setAttribute('href', trailerIcon);
+        }
+        btn.setAttribute('aria-label', 'Запустить трейлер');
       }
     });
   }
@@ -23205,6 +23581,918 @@ setTimeout(() => {
     return false;
   }
 
+  let cachedRootModel = null;
+
+  function getYmRootModel() {
+    if (cachedRootModel?.isRootModel || cachedRootModel?.pinsCollection) {
+      return cachedRootModel;
+    }
+
+    if (window.__ym_root_model?.isRootModel || window.__ym_root_model?.pinsCollection) {
+      cachedRootModel = window.__ym_root_model;
+      return cachedRootModel;
+    }
+
+    // 1. Поиск вверх по Fiber от любого элемента страницы
+    const anchor = document.querySelector('nav') ||
+                   document.querySelector('header') ||
+                   document.querySelector('[class*="PlayerBar"]') ||
+                   document.body.firstElementChild;
+    if (anchor) {
+      const fiberKey = Object.keys(anchor).find(k => k.startsWith('__reactFiber$'));
+      let cur = anchor[fiberKey];
+      while (cur) {
+        const val = cur.memoizedProps?.value;
+        if (val?.isRootModel || val?.pinsCollection) {
+          cachedRootModel = val;
+          window.__ym_root_model = val;
+          return val;
+        }
+        cur = cur.return;
+      }
+    }
+
+    // 2. Поиск по дереву от #root
+    const rootEl = document.querySelector('#root');
+    const rootKey = rootEl ? Object.keys(rootEl).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactContainer$')) : null;
+    if (rootEl && rootKey) {
+      const stack = [rootEl[rootKey]];
+      let count = 0;
+      while (stack.length > 0 && count < 2500) {
+        const cur = stack.pop();
+        count++;
+        if (!cur) continue;
+        const val = cur.memoizedProps?.value;
+        if (val?.isRootModel || val?.pinsCollection) {
+          cachedRootModel = val;
+          window.__ym_root_model = val;
+          return val;
+        }
+        if (cur.child) stack.push(cur.child);
+        if (cur.sibling) stack.push(cur.sibling);
+      }
+    }
+
+    return null;
+  }
+
+  function getPinsCollection() {
+    const root = getYmRootModel();
+    return root?.pinsCollection || null;
+  }
+
+  function getTrailerService() {
+    const root = getYmRootModel();
+    if (root?.trailer && typeof root.trailer.openAlbumTrailer === 'function') {
+      return root.trailer;
+    }
+    return null;
+  }
+
+  function isAlbumPinned(albumId) {
+    if (!albumId) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const idStr = String(albumId);
+    const pinKey = `album_item${albumId}`;
+
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (pins.isPinned(pinKey)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (pins.index?.has && pins.index.has(pinKey)) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.album?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function playAlbumTrailer(albumId) {
+    if (!albumId) return false;
+    const targetIdStr = String(albumId);
+
+    // 1. Приоритетный путь: нативный сервис трейлера Яндекс Музыки (запуск трейлера + открытие шторки справа)
+    try {
+      const svc = getTrailerService();
+      if (svc && typeof svc.openAlbumTrailer === 'function') {
+        svc.openAlbumTrailer(targetIdStr);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[BYM] Error playing trailer via native service:', err);
+    }
+
+    // 2. Фоллбек путь: воспроизведение контекста трейлера через Sonata Core
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player?.playContext) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'album',
+            trailer: true,
+            meta: { id: targetIdStr },
+            from: 'web-album-trailer-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        await player.playContext({ context: ctx, loadContextMeta: true });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing album trailer via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
+  async function togglePinAlbum(albumId, shouldBePinned) {
+    if (!albumId) return false;
+    const numId = Number(albumId) || albumId;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isAlbumPinned(albumId);
+    const method = isCurrentlyPinned ? 'DELETE' : 'PUT';
+
+    // Для добавления: пробуем нативный метод pinsCollection
+    if (!isCurrentlyPinned && pins && typeof pins.toggleAlbumPin === 'function') {
+      try {
+        await pins.toggleAlbumPin({ id: numId });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Native pin error, fallback to HTTP:', err);
+      }
+    }
+
+    // Для удаления (DELETE) или фоллбека: точный HTTP REST-запрос
+    try {
+      await fetch('https://api.music.yandex.ru/pin/album', {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: numId }),
+        credentials: 'include'
+      });
+
+      // Синхронизируем стор закрепов Яндекса, чтобы Navbar сразу обновился
+      if (pins && typeof pins.getData === 'function') {
+        pins.getData().catch(() => {});
+      }
+      return true;
+    } catch (err) {
+      console.warn('[BYM] Pin HTTP error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikeAlbum(albumId, isCurrentlyLiked) {
+    if (!albumId) return false;
+    const uid = window.__ym_user_id || '857786338';
+    const action = isCurrentlyLiked ? 'remove' : 'add';
+    try {
+      await fetch(`https://api.music.yandex.ru/users/${uid}/likes/albums/${action}?album-id=${albumId}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      fetch('https://api.music.yandex.ru/collection/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ likedAlbums: { revision: Date.now() } }),
+        credentials: 'include'
+      }).catch(() => {});
+      return true;
+    } catch (err) {
+      console.warn('[BYM] Like error:', err);
+      return false;
+    }
+  }
+
+  let activeContextMenuEl = null;
+
+  function closeAlbumContextMenu() {
+    if (activeContextMenuEl) {
+      activeContextMenuEl.style.opacity = '0';
+      activeContextMenuEl.style.transform = 'scale(0.96)';
+      const elToRemove = activeContextMenuEl;
+      setTimeout(() => {
+        if (elToRemove && elToRemove.parentNode) elToRemove.remove();
+      }, 150);
+      activeContextMenuEl = null;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.ym-native-album-menu') && !e.target.closest('.AlbumCard_menuButton__pxkA6')) {
+      closeAlbumContextMenu();
+    }
+  });
+
+  window.addEventListener('scroll', () => {
+    closeAlbumContextMenu();
+  }, { passive: true });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAlbumContextMenu();
+    }
+  });
+
+  function showMenuToast(message) {
+    let toast = document.querySelector('.ym-menu-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'ym-menu-toast';
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  function openAlbumContextMenu(buttonEl, album, item) {
+    closeAlbumContextMenu();
+
+    const card = buttonEl.closest('.AlbumCard_root__vP6k4');
+    const pinBtn = card?.querySelector('.AlbumCard_pinButton__Mdi_E');
+    const isPinned = pinBtn ? pinBtn.getAttribute('aria-pressed') === 'true' : isAlbumPinned(album.id);
+    const isLiked = Boolean(album._isLiked);
+
+    const menu = document.createElement('div');
+    menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu';
+    menu.setAttribute('tabindex', '0');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-orientation', 'vertical');
+
+    menu.innerHTML = `
+      <div class="ggP7WX2_erziDHFOo32s">
+        <!-- 1. Закрепить -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="pin">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isPinned ? 'pin_filled_xxs' : 'pin_xxs'}"></use>
+            </svg>
+            ${isPinned ? 'Открепить' : 'Закрепить'}
+          </span>
+        </button>
+
+        <!-- 2. Нравится -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitemcheckbox" aria-checked="${isLiked ? 'true' : 'false'}" tabindex="-1" data-action="like">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isLiked ? 'liked_xxs' : 'dislike_xxs'}"></use>
+            </svg>
+            ${isLiked ? 'Не нравится' : 'Нравится'}
+          </span>
+        </button>
+
+        <!-- 3. Трейлер -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+            </svg>
+            Трейлер
+          </span>
+        </button>
+
+        <!-- 4. Моя волна по альбому -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="wave">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#vibe_xxs"></use>
+            </svg>
+            Моя волна по альбому
+          </span>
+        </button>
+
+        <!-- 5. Поделиться (с нативным подменю) -->
+        <div class="ym-native-share-container" style="position: relative;">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="share">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+              </svg>
+              Поделиться
+              <svg class="KNLFZ4Jd_xKFInxHox4i l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" style="margin-left: auto;">
+                <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+              </svg>
+            </span>
+          </button>
+          <div class="s7_MO4NdsYs7nPQALD8W ym-native-sub-menu" role="menu" style="display: none; position: absolute; left: 100%; top: -6px; min-width: 190px; z-index: 10001;">
+            <div class="ggP7WX2_erziDHFOo32s">
+              <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="copy-link">
+                <span class="JjlbHZ4FaP9EAcR_1DxF">Скопировать ссылку</span>
+              </button>
+              <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="copy-html">
+                <span class="JjlbHZ4FaP9EAcR_1DxF">HTML-код</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(menu);
+    activeContextMenuEl = menu;
+
+    const rect = buttonEl.getBoundingClientRect();
+    const menuWidth = 230;
+    const menuHeight = 240;
+
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - 6;
+    }
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.zIndex = '9999999';
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.96)';
+    menu.style.transformOrigin = 'top right';
+    menu.style.transition = 'opacity 150ms ease, transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+    });
+
+    // Обработчик подменю шаринга (наведение мыши)
+    const shareContainer = menu.querySelector('.ym-native-share-container');
+    const subMenu = menu.querySelector('.ym-native-sub-menu');
+    if (shareContainer && subMenu) {
+      shareContainer.addEventListener('mouseenter', () => {
+        // Проверяем, помещается ли справа
+        const containerRect = shareContainer.getBoundingClientRect();
+        if (containerRect.right + 200 > window.innerWidth) {
+          subMenu.style.left = 'auto';
+          subMenu.style.right = '100%';
+        } else {
+          subMenu.style.left = '100%';
+          subMenu.style.right = 'auto';
+        }
+        subMenu.style.display = 'block';
+      });
+      shareContainer.addEventListener('mouseleave', () => {
+        subMenu.style.display = 'none';
+      });
+    }
+
+    menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      itemBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemBtn.getAttribute('data-action');
+        if (action === 'share') return;
+
+        closeAlbumContextMenu();
+
+        if (action === 'pin') {
+          if (pinBtn) pinBtn.click();
+          else togglePinAlbum(album.id, !isPinned);
+        } else if (action === 'like') {
+          const nextLike = !isLiked;
+          album._isLiked = nextLike;
+          await toggleLikeAlbum(album.id, isLiked);
+          showMenuToast(nextLike ? 'Добавлено в коллекцию' : 'Удалено из коллекции');
+        } else if (action === 'trailer') {
+          await playAlbumTrailer(album.id);
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+        } else if (action === 'wave') {
+          await playVibeStation({
+            stationId: `album:${album.id}`,
+            seeds: [`album:${album.id}`],
+            title: album.title ? `Моя волна: ${album.title}` : 'Моя волна по альбому'
+          });
+        } else if (action === 'copy-link') {
+          const link = `https://music.yandex.ru/album/${album.id}`;
+          try {
+            await navigator.clipboard.writeText(link);
+            showMenuToast('Ссылка скопирована');
+          } catch (_) {
+            showMenuToast('Не удалось скопировать ссылку');
+          }
+        } else if (action === 'copy-html') {
+          const iframeCode = `<iframe frameborder="0" style="border:none;width:100%;height:450px;" width="100%" height="450" src="https://music.yandex.ru/iframe/#album/${album.id}"></iframe>`;
+          try {
+            await navigator.clipboard.writeText(iframeCode);
+            showMenuToast('HTML-код скопирован');
+          } catch (_) {
+            showMenuToast('Не удалось скопировать код');
+          }
+        }
+      });
+    });
+  }
+
+  function renderMoreDiscoveriesSection(feedContainer, wavesData) {
+    if (!wavesData) return;
+    const waves = wavesData.result?.waves || wavesData.waves || [];
+    if (!Array.isArray(waves) || waves.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'Vibes_root__Bk6PF ym-vibe-feed-section';
+    section.setAttribute('data-intersection-property-id', 'WAVES');
+    section.setAttribute('data-test-id', 'WAVES');
+
+    // Header with Title & Carousel Arrows
+    const header = document.createElement('div');
+    header.className = 'BlockHeader_root__j3mbg SkeletonBlock_headerContainer__fl8EX Vibes_header__RcW5b Vibes_important__Vew_4 ym-vibe-feed-header';
+    header.innerHTML = `
+      <div class="BlockHeader_start__ZrGP5">
+        <div class="BlockHeader_textContainer___2wn9">
+          <div class="BlockHeader_title__5xlx6">
+            <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww BlockHeader_heading__4iqvS">Больше открытий</h2>
+          </div>
+        </div>
+      </div>
+      <div class="CarouselControls_root__E_hwc Vibes_controls__bUp2H">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" disabled="" data-disabled="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
+            </svg>
+          </span>
+        </button>
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
+      </div>
+    `;
+    section.appendChild(header);
+
+    const chipsRow = document.createElement('ol');
+    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E Vibes_tabCarousel__bSvp0 Vibes_important__Vew_4 ym-vibe-filter-chips-row';
+    chipsRow.setAttribute('role', 'tablist');
+
+    if (!activeWavesCategory || !waves.some(w => w.id === activeWavesCategory)) {
+      activeWavesCategory = waves[0].id;
+    }
+    const currentCat = waves.find(w => w.id === activeWavesCategory) || waves[0];
+
+    waves.forEach((w, idx) => {
+      const li = document.createElement('li');
+      li.className = 'd50IqTKJZhJIMd5aTqAn ym-vibe-filter-chip-item';
+      const isSelected = w.id === activeWavesCategory;
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.setAttribute('role', 'tab');
+      tab.id = `_r_waves_${idx}-tab`;
+      tab.setAttribute('aria-controls', `_r_waves_${idx}-tabpanel`);
+      tab.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      tab.setAttribute('aria-label', w.title || w.id);
+      tab.setAttribute('aria-live', 'off');
+      tab.setAttribute('aria-busy', 'false');
+      tab.setAttribute('tabindex', isSelected ? '0' : '-1');
+      tab.className = `ym-vibe-filter-chip-btn ${isSelected ? 'is-active cBxrIXbcPeS3kSzdJdhS ' : ''}cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Vibes_tab__uOfqW Vibes_important__Vew_4`;
+      tab.innerHTML = `
+        <span class="Tab_description__p1fTO">
+          <div title="${escapeHtml(w.title || w.id)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">${escapeHtml(w.title || w.id)}</div>
+        </span>
+      `;
+      tab.addEventListener('click', () => {
+        activeWavesCategory = w.id;
+        chipsRow.querySelectorAll('.ym-vibe-filter-chip-btn').forEach(t => {
+          t.classList.remove('is-active', 'cBxrIXbcPeS3kSzdJdhS');
+          t.setAttribute('aria-selected', 'false');
+          t.setAttribute('tabindex', '-1');
+        });
+        tab.classList.add('is-active', 'cBxrIXbcPeS3kSzdJdhS');
+        tab.setAttribute('aria-selected', 'true');
+        tab.setAttribute('tabindex', '0');
+        renderWaveCards(carouselContainer, w.items || []);
+        carouselContainer.scrollLeft = 0;
+      });
+      li.appendChild(tab);
+      chipsRow.appendChild(li);
+    });
+    section.appendChild(chipsRow);
+
+    const tabPanel = document.createElement('div');
+    tabPanel.className = 'oSPcFawW7MIQ9ZTANH9N';
+    tabPanel.setAttribute('role', 'tabpanel');
+
+    const carouselContainer = document.createElement('ol');
+    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E ym-vibe-feed-waves-carousel';
+    carouselContainer.setAttribute('role', 'list');
+    tabPanel.appendChild(carouselContainer);
+    section.appendChild(tabPanel);
+
+    renderWaveCards(carouselContainer, currentCat.items || []);
+
+    const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+    setupCarouselControls(carouselContainer, controls[0], controls[1]);
+
+    feedContainer.appendChild(section);
+  }
+
+  function renderWaveCards(container, items) {
+    container.replaceChildren();
+    if (!items || items.length === 0) return;
+
+    items.forEach((item, idx) => {
+      const li = document.createElement('li');
+      li.className = 'VJ9IexhAEuYSCyGiMfN4 VibesCarousel_item__AupL0 VibesCarousel_important__JkzUC';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p qU2apWBO1yyEK0lZ3lPO VibeButton_root___i3R5 VibeButton_button__tXFAm ym-vibe-wave-btn';
+      btn.setAttribute('data-intersection-property-id', `_r_wave_${idx}_`);
+      btn.setAttribute('aria-live', 'off');
+      btn.setAttribute('aria-busy', 'false');
+      btn.setAttribute('data-item', JSON.stringify({
+        stationId: item.stationId || '',
+        seeds: item.seeds || [],
+        title: item.title || ''
+      }));
+
+      const bgImg400 = formatYandexImg(item.backgroundImageUrl, 'm400x400');
+      const bgImg800 = formatYandexImg(item.backgroundImageUrl, 'm800x800');
+      const avgColor = (item.colors && item.colors.average) || '#6b65a9';
+      const textColor = (item.colors && (item.colors.waveText || item.colors.text)) || '#c8c1ff';
+
+      btn.style.setProperty('--vibe-button-background', avgColor);
+      btn.style.setProperty('--vibe-button-text-color', textColor);
+
+      const isLong = item.title && item.title.length > 25;
+
+      btn.innerHTML = `
+        ${bgImg400 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG VibeButton_image__GOwKJ" alt="" loading="eager" srcset="${escapeHtml(bgImg400)}, ${escapeHtml(bgImg800 || bgImg400)} 2x" src="${escapeHtml(bgImg400)}">` : ''}
+        <span class="VibeButton_textContainer__j9nOW">
+          <span class="_MWOVuZRvUQdXKTMcOPx _oBLf5gprWsKjCw4Ce58 Vi7Rd0SZWqD17F0872TB VibeButton_subtitle__MQ_Ca">${escapeHtml(item.header || 'Моя волна')}</span>
+          <span class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Ai2iRN9elHpk_u5splD6 Vi7Rd0SZWqD17F0872TB VibeButton_title__sLC0I ${isLong ? 'VibeButton_title_long__gSVM5' : ''}" style="-webkit-line-clamp: 2;">
+            <svg class="VibeButton_icon__KIv7n l3tE1hAMmBj2aoPPwU08 ym-vibe-wave-icon" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#play_xxs"></use>
+            </svg>
+            ${escapeHtml(item.title || '')}
+          </span>
+        </span>
+      `;
+
+      btn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const st = isStationCurrentlyPlaying(item);
+        const p = getSafeActivePlayer();
+        if (st.isMatch) {
+          if (typeof p?.togglePause === 'function') {
+            p.togglePause();
+          } else if (st.isPlaying && typeof p?.pause === 'function') {
+            p.pause();
+          } else if (!st.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+            if (p.resume) p.resume();
+            else p.play();
+          } else {
+            await playVibeStation(item);
+          }
+        } else {
+          await playVibeStation(item);
+        }
+        updateLandingPlaybackIndicators();
+        setTimeout(updateLandingPlaybackIndicators, 60);
+        setTimeout(updateLandingPlaybackIndicators, 250);
+        setTimeout(updateLandingPlaybackIndicators, 600);
+      });
+
+      li.appendChild(btn);
+      container.appendChild(li);
+    });
+
+    updateLandingPlaybackIndicators();
+  }
+
+  function renderInStyleSection(feedContainer, inStyleData) {
+    if (!inStyleData) return;
+    const inStyleTabs = inStyleData.result?.inStyleTabs || inStyleData.inStyleTabs || [];
+    if (!Array.isArray(inStyleTabs) || inStyleTabs.length === 0) return;
+
+    const section = document.createElement('section');
+    section.className = 'InStyle_root__ZsdXE ym-vibe-feed-section';
+    section.setAttribute('data-intersection-property-id', 'IN_STYLE');
+    section.setAttribute('data-test-id', 'IN_STYLE');
+
+    // Header with Title & Carousel Arrows
+    const header = document.createElement('div');
+    header.className = 'BlockHeader_root__j3mbg SkeletonBlock_headerContainer__fl8EX InStyle_header__C2AWP InStyle_important__msPsl ym-vibe-feed-header';
+    header.innerHTML = `
+      <div class="BlockHeader_start__ZrGP5">
+        <div class="BlockHeader_textContainer___2wn9">
+          <div class="BlockHeader_title__5xlx6">
+            <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww BlockHeader_heading__4iqvS">В стиле</h2>
+          </div>
+        </div>
+      </div>
+      <div class="CarouselControls_root__E_hwc InStyle_controls__mGqhj">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" disabled="" data-disabled="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
+            </svg>
+          </span>
+        </button>
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
+      </div>
+    `;
+    section.appendChild(header);
+
+    const chipsRow = document.createElement('ol');
+    chipsRow.className = 'TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E InStyle_tabCarousel__SXqBO InStyle_important__msPsl ym-vibe-filter-chips-row';
+    chipsRow.setAttribute('role', 'tablist');
+
+    if (!activeInStyleArtistId || !inStyleTabs.some(t => String(t.id) === String(activeInStyleArtistId))) {
+      activeInStyleArtistId = inStyleTabs[0].id;
+    }
+    const currentArtistTab = inStyleTabs.find(t => String(t.id) === String(activeInStyleArtistId)) || inStyleTabs[0];
+
+    inStyleTabs.forEach((tab, idx) => {
+      const li = document.createElement('li');
+      li.className = 'd50IqTKJZhJIMd5aTqAn ym-vibe-filter-chip-item';
+      const isSelected = String(tab.id) === String(activeInStyleArtistId);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.setAttribute('role', 'tab');
+      btn.id = `_r_instyle_${idx}-tab`;
+      btn.setAttribute('aria-controls', `_r_instyle_${idx}-tabpanel`);
+      btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+      btn.setAttribute('aria-label', tab.title || '');
+      btn.setAttribute('aria-live', 'off');
+      btn.setAttribute('aria-busy', 'false');
+      btn.setAttribute('tabindex', isSelected ? '0' : '-1');
+      btn.className = `ym-vibe-filter-chip-btn ${isSelected ? 'cBxrIXbcPeS3kSzdJdhS is-active ' : ''}cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_s__zXitP Tab_tab_withCovers__dJzMH InStyle_tab__DeURY InStyle_important__msPsl`;
+
+      const cover50 = formatYandexImg(tab.cover?.uri, '50x50');
+      const cover100 = formatYandexImg(tab.cover?.uri, '100x100');
+
+      btn.innerHTML = `
+        ${cover50 ? `<span class="Tab_covers__cvYeI"><img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(cover50)}, ${escapeHtml(cover100)} 2x" src="${escapeHtml(cover50)}"></span>` : ''}
+        <span class="Tab_description__p1fTO">
+          <div title="${escapeHtml(tab.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">${escapeHtml(tab.title || '')}</div>
+        </span>
+      `;
+      btn.addEventListener('click', () => {
+        activeInStyleArtistId = tab.id;
+        chipsRow.querySelectorAll('.ym-vibe-filter-chip-btn').forEach(t => {
+          t.classList.remove('is-active', 'cBxrIXbcPeS3kSzdJdhS');
+          t.setAttribute('aria-selected', 'false');
+          t.setAttribute('tabindex', '-1');
+        });
+        btn.classList.add('is-active', 'cBxrIXbcPeS3kSzdJdhS');
+        btn.setAttribute('aria-selected', 'true');
+        btn.setAttribute('tabindex', '0');
+        renderInStyleCards(carouselContainer, tab.items || []);
+        carouselContainer.scrollLeft = 0;
+      });
+      li.appendChild(btn);
+      chipsRow.appendChild(li);
+    });
+    section.appendChild(chipsRow);
+
+    const tabPanel = document.createElement('div');
+    tabPanel.className = 'oSPcFawW7MIQ9ZTANH9N';
+    tabPanel.setAttribute('role', 'tabpanel');
+
+    const carouselContainer = document.createElement('ol');
+    carouselContainer.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_container__9IxUi SkeletonBlock_important__faY0E ym-vibe-feed-instyle-carousel';
+    carouselContainer.setAttribute('role', 'list');
+    tabPanel.appendChild(carouselContainer);
+    section.appendChild(tabPanel);
+
+    renderInStyleCards(carouselContainer, currentArtistTab.items || []);
+
+    const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+    setupCarouselControls(carouselContainer, controls[0], controls[1]);
+
+    feedContainer.appendChild(section);
+  }
+
+  function renderInStyleCards(container, items) {
+    container.replaceChildren();
+    if (!items || items.length === 0) return;
+
+    items.forEach((item, idx) => {
+      const album = item.album || {};
+      if (!album.id) return;
+
+      const albumTitle = album.title || '';
+      const albumCover200 = formatYandexImg(album.cover?.uri, '200x200');
+      const albumCover400 = formatYandexImg(album.cover?.uri, '400x400');
+      const artists = item.artists || album.artists || [];
+      const isExplicit = album.contentWarning === 'explicit';
+
+      const li = document.createElement('li');
+      li.className = 'VJ9IexhAEuYSCyGiMfN4 InStyle_item__e5_Qz InStyle_important__msPsl';
+
+      const card = document.createElement('div');
+      card.className = 'laBJlJAaqEVS0i_4Ot3l AlbumCard_root__vP6k4';
+      card.setAttribute('aria-label', `Альбом ${albumTitle}`);
+
+      const artistsHtml = artists.map(art => `
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_artistLink__uPR_2 ym-instyle-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+          <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(art.name || '')}</span>
+        </a>
+      `).join(', ');
+
+      const isPinnedInitially = isAlbumPinned(album.id);
+      const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+
+      card.innerHTML = `
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c AlbumCard_srTitleLink__TxBNz ym-instyle-album-link" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+        <div>
+          <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI AlbumCard_cover__zXmdl">
+            <div class="AlbumCard_coverBlock__94ZzY">
+              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG AlbumCard_image__Mm55s" alt="Альбом ${escapeHtml(albumTitle)}" loading="eager" aria-hidden="true" srcset="${escapeHtml(albumCover200)}, ${escapeHtml(albumCover400)} 2x" src="${escapeHtml(albumCover200)}">
+              <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE cSCPJSa6Lx6OnpM4ljX9 AlbumCard_controls__yuO40">
+                <div class="P6gOmyFtXyetUz0dqhF3">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} AlbumCard_pinButton__Mdi_E AlbumCard_control__qx7Xh" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-album-id="${album.id}">
+                    <span class="JjlbHZ4FaP9EAcR_1DxF">
+                      <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                        <use xlink:href="${initialPinIcon}"></use>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+                <div class="bL0wE1Bui8zpIZbvMVL3">
+                  <div class="RvWjZle1erRBXzJEF9Zj">
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY AlbumCard_trailerButton__typHh AlbumCard_control__qx7Xh" type="button" aria-label="Запустить трейлер" data-album-id="${album.id}" aria-live="off" aria-busy="false">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+                        </svg>
+                      </span>
+                    </button>
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY AlbumCard_playButton__mYK9R AlbumCard_control__qx7Xh ym-vibe-instyle-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-album-id="${album.id}">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="bBh7lvgdfF7bqNqlK78Q">
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO zmtVwO34EPppZErNrlIC AlbumCard_menuButton__pxkA6 AlbumCard_control__qx7Xh" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-album-id="${album.id}">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#more_xxs"></use>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="IO4kvpDGNI2J0CHwcKSf">
+          <div class="l8SktNpJd30JWp1owp_b Mb33JzAWx9EjbQAeScFt PVBDIXF2RTUThmbNT9sV">
+            <div class="LmhA6nlLyzxwYIX31gYa">
+              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
+                <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR AlbumCard_title__8YvhT" aria-hidden="true" style="-webkit-line-clamp: 2;">
+                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_titleLink__u_WLG ym-instyle-album-link" aria-label="${escapeHtml(albumTitle)} " tabindex="-1" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+                </div>
+              </div>
+              ${isExplicit ? `<span><svg class="ExplicitMarkIcon_explicitMark__0BPeQ Rkdd2vKC_3xa1eUdRdHP" focusable="false" aria-label="Возрастное ограничение 18+" aria-hidden="false"><use xlink:href="/icons/sprite.svg#exclamation_xxxs"></use></svg></span>` : ''}
+            </div>
+            <div class="SeparatedArtists_root_variant_breakAll__34YbW SeparatedArtists_root_clamp__SyvjM AlbumCard_artists__phKco" style="-webkit-line-clamp: 1;">
+              ${artistsHtml}
+            </div>
+          </div>
+        </div>
+      `;
+
+      card.querySelectorAll('.ym-instyle-album-link').forEach(a => {
+        a.addEventListener('click', (e) => spaNavigate(`/album/${album.id}`, e));
+      });
+      card.querySelectorAll('.ym-instyle-artist-link').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href) a.addEventListener('click', (e) => spaNavigate(href, e));
+      });
+
+      const playBtn = card.querySelector('.ym-vibe-instyle-play-btn');
+      if (playBtn) {
+        playBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const st = isAlbumCurrentlyPlaying(album.id);
+          const p = getSafeActivePlayer();
+          if (st.isMatch) {
+            if (typeof p?.togglePause === 'function') {
+              p.togglePause();
+            } else if (st.isPlaying && typeof p?.pause === 'function') {
+              p.pause();
+            } else if (!st.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+              if (p.resume) p.resume();
+              else p.play();
+            } else {
+              await playAlbumContext(album.id);
+            }
+          } else {
+            await playAlbumContext(album.id);
+          }
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+          setTimeout(updateLandingPlaybackIndicators, 600);
+        });
+      }
+
+      // Трейлер альбома
+      const trailerBtn = card.querySelector('.AlbumCard_trailerButton__typHh');
+      if (trailerBtn) {
+        trailerBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const isPlaying = isAlbumTrailerCurrentlyPlaying(album.id);
+          const p = getSafeActivePlayer();
+          if (isPlaying) {
+            if (typeof p?.togglePause === 'function') p.togglePause();
+            else if (typeof p?.pause === 'function') p.pause();
+          } else {
+            await playAlbumTrailer(album.id);
+          }
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+          setTimeout(updateLandingPlaybackIndicators, 600);
+        });
+      }
+
+      // Закрепление альбома (PIN)
+      const pinBtn = card.querySelector('.AlbumCard_pinButton__Mdi_E');
+      if (pinBtn) {
+        pinBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const isCurrentlyPinned = pinBtn.getAttribute('aria-pressed') === 'true';
+          const nextState = !isCurrentlyPinned;
+          pinBtn.setAttribute('aria-pressed', nextState ? 'true' : 'false');
+          pinBtn.setAttribute('aria-label', nextState ? 'Открепить' : 'Закрепить');
+          pinBtn.classList.remove('PinButton_animation_scaled__Aj6LA', 'PinButton_animation_unscaled__QM3sC');
+          pinBtn.classList.add(nextState ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC');
+
+          const svgUse = pinBtn.querySelector('use');
+          if (svgUse) {
+            const nextIcon = nextState ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+            svgUse.setAttribute('xlink:href', nextIcon);
+            svgUse.setAttribute('href', nextIcon);
+          }
+
+          await togglePinAlbum(album.id, nextState);
+        });
+      }
+
+      // Контекстное меню альбома (MENU)
+      const menuBtn = card.querySelector('.AlbumCard_menuButton__pxkA6');
+      if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openAlbumContextMenu(menuBtn, album, item);
+        });
+        menuBtn.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+        });
+      }
+
+      li.appendChild(card);
+      container.appendChild(li);
+    });
+
+    updateLandingPlaybackIndicators();
+  }
+
   function renderNewReleasesSection(feedContainer, releasesData) {
     if (!releasesData) return;
     const releases = releasesData.result?.newReleases || releasesData.newReleases || [];
@@ -23310,7 +24598,7 @@ setTimeout(() => {
       ` : '';
 
       const trailerHtml = hasTrailer ? `
-        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewRelease_trailerButton__OYAW6" type="button" aria-label="Запустить трейлер" data-intersection-property-id="onboarding-tooltip" aria-live="off" aria-busy="false">
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewRelease_trailerButton__OYAW6" type="button" aria-label="Запустить трейлер" data-album-id="${escapeHtml(album.id || '')}" data-intersection-property-id="onboarding-tooltip" aria-live="off" aria-busy="false">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
               <use xlink:href="/icons/sprite.svg#trailer_xs"></use>
@@ -23379,10 +24667,23 @@ setTimeout(() => {
 
       const trailerBtn = li.querySelector('.NewRelease_trailerButton__OYAW6');
       if (trailerBtn) {
-        trailerBtn.addEventListener('click', (e) => {
+        trailerBtn.addEventListener('click', async (e) => {
           e.stopPropagation();
           e.preventDefault();
-          spaNavigate(albumUrl);
+          if (album.id) {
+            const isPlaying = isAlbumTrailerCurrentlyPlaying(album.id);
+            const p = getSafeActivePlayer();
+            if (isPlaying) {
+              if (typeof p?.togglePause === 'function') p.togglePause();
+              else if (typeof p?.pause === 'function') p.pause();
+            } else {
+              await playAlbumTrailer(album.id);
+            }
+            updateLandingPlaybackIndicators();
+            setTimeout(updateLandingPlaybackIndicators, 60);
+            setTimeout(updateLandingPlaybackIndicators, 250);
+            setTimeout(updateLandingPlaybackIndicators, 600);
+          }
         });
       }
 

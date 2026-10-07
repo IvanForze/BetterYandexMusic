@@ -3162,6 +3162,7 @@ function injectStyles() {
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
       align-items: center !important;
       display: flex !important;
@@ -3174,15 +3175,19 @@ function injectStyles() {
     @media only screen and (max-width: 767.98px) {
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,
+      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,
       html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {
         display: none !important;
       }
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .CarouselControls_root__E_hwc,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .InStyle_controls__mGqhj,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,
@@ -3191,6 +3196,7 @@ function injectStyles() {
       pointer-events: auto !important;
     }
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_heading__4iqvS,
     html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {
       font-family: "YSMusic Headline", "YS Text", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
       font-size: 24px !important;
@@ -3215,8 +3221,9 @@ function injectStyles() {
       transform: translateX(3px) !important;
       opacity: 1 !important;
     }
-    /* --- Robust AI Set Category Filter Chips --- */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row {
+    /* --- Robust AI Set & Waves Category Filter Chips --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {
       display: flex !important;
       align-items: center !important;
       flex-direction: row !important;
@@ -3227,15 +3234,18 @@ function injectStyles() {
       margin: 0 !important;
       margin-bottom: 0 !important;
       margin-block-end: 0 !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
+      padding-inline-start: 0 !important;
       padding-bottom: 16px !important;
       padding-block-end: 16px !important;
       list-style: none !important;
       box-sizing: border-box !important;
       height: auto !important;
-      min-height: 52px !important;
+      min-height: 48px !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
@@ -3312,15 +3322,17 @@ function injectStyles() {
       color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
     }
 
-    /* --- Native 1-to-1 AI Set Cards Carousel --- */
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel {
+    /* --- Native 1-to-1 AI Set & Waves Cards Carousel --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel {
       display: flex !important;
       flex-direction: row !important;
       gap: 16px !important;
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 12px 24px !important;
+      padding: 0 0 12px 0 !important;
+      padding-left: 0 !important;
       padding-top: 0 !important;
       padding-block-start: 0 !important;
       scroll-snap-type: x mandatory !important;
@@ -3330,7 +3342,8 @@ function injectStyles() {
       list-style: none !important;
       margin: 0 !important;
     }
-    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar {
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
       height: 0 !important;
@@ -3341,6 +3354,109 @@ function injectStyles() {
       scroll-snap-align: start !important;
       display: flex !important;
       align-items: center !important;
+    }
+
+    /* --- Native 1-to-1 In Style Section & Album Cards --- */
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE {
+      position: relative !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0 !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel {
+      display: flex !important;
+      flex-direction: row !important;
+      gap: 16px !important;
+      overflow-x: auto !important;
+      overflow-y: hidden !important;
+      scrollbar-width: none !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
+      scroll-snap-type: x mandatory !important;
+      scroll-behavior: smooth !important;
+      -webkit-overflow-scrolling: touch !important;
+      box-sizing: border-box !important;
+      list-style: none !important;
+      margin: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_item__e5_Qz {
+      flex-shrink: 0 !important;
+      list-style: none !important;
+      scroll-snap-align: start !important;
+      width: 190px !important;
+      min-width: 170px !important;
+      max-width: 210px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_root__vP6k4 {
+      display: flex !important;
+      flex-direction: column !important;
+      width: 100% !important;
+      text-decoration: none !important;
+      position: relative !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY {
+      position: relative !important;
+      border-radius: var(--ym-radius-size-m, 12px) !important;
+      overflow: hidden !important;
+      cursor: pointer !important;
+      aspect-ratio: 1 !important;
+      width: 100% !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_image__Mm55s {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      display: block !important;
+      transition: transform 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_image__Mm55s {
+      transform: scale(1.03) !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_controls__yuO40 {
+      position: absolute !important;
+      inset: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+      padding: 8px !important;
+      box-sizing: border-box !important;
+      background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transition: opacity 0.2s ease !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_controls__yuO40,
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:focus-within .AlbumCard_controls__yuO40 {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_control__qx7Xh {
+      cursor: pointer !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_tab_withCovers__dJzMH {
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 8px !important;
+      padding: 4px 14px 4px 6px !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {
+      display: flex !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+    }
+    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {
+      width: 28px !important;
+      height: 28px !important;
+      border-radius: 50% !important;
+      object-fit: cover !important;
+      display: block !important;
     }
 
     /* --- Native 1-to-1 New Releases Section --- */
@@ -3356,7 +3472,8 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
@@ -3383,7 +3500,8 @@ function injectStyles() {
       overflow-x: auto !important;
       overflow-y: hidden !important;
       scrollbar-width: none !important;
-      padding: 0 0 16px 24px !important;
+      padding: 0 0 16px 0 !important;
+      padding-left: 0 !important;
       scroll-snap-type: x mandatory !important;
       scroll-behavior: smooth !important;
       -webkit-overflow-scrolling: touch !important;
@@ -3484,6 +3602,158 @@ function injectStyles() {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    /* =========================================================================
+       BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)
+       ========================================================================= */
+    .ym-native-album-menu,
+    .ym-native-sub-menu {
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+      user-select: none !important;
+    }
+    .ym-native-album-menu button,
+    .ym-native-sub-menu button {
+      width: 100% !important;
+      text-align: left !important;
+      cursor: pointer !important;
+    }
+
+    .ym-album-context-menu {
+      position: fixed;
+      z-index: 9999999;
+      min-width: 210px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.78);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);
+      color: #ffffff;
+      font-family: 'YS Text', 'Yandex Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0;
+      transform: scale(0.95);
+      transform-origin: top left;
+      transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      user-select: none;
+      box-sizing: border-box;
+    }
+
+    body.ym-light-theme .ym-album-context-menu {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);
+      color: #121212;
+    }
+
+    .ym-album-context-menu.ym-menu-visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .ym-album-context-menu .ym-menu-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      color: inherit;
+      transition: background 0.12s ease;
+      position: relative;
+    }
+
+    .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-menu-item:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .ym-album-context-menu .ym-menu-item-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      fill: currentColor;
+      opacity: 0.85;
+    }
+
+    .ym-album-context-menu .ym-menu-item-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ym-album-context-menu .ym-menu-arrow {
+      width: 12px;
+      height: 12px;
+      opacity: 0.6;
+      margin-left: auto;
+      fill: currentColor;
+    }
+
+    /* Submenu for Share */
+    .ym-album-context-menu .ym-submenu {
+      position: absolute;
+      top: -6px;
+      left: calc(100% + 6px);
+      min-width: 200px;
+      padding: 6px;
+      background: rgba(30, 26, 28, 0.88);
+      backdrop-filter: blur(32px) saturate(190%);
+      -webkit-backdrop-filter: blur(32px) saturate(190%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(-4px);
+      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+      pointer-events: none;
+    }
+
+    body.ym-light-theme .ym-album-context-menu .ym-submenu {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);
+    }
+
+    .ym-album-context-menu .ym-menu-item-share:hover .ym-submenu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .ym-menu-toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      padding: 10px 20px;
+      border-radius: 30px;
+      background: rgba(24, 24, 28, 0.92);
+      backdrop-filter: blur(20px);
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      z-index: 10000000;
+      opacity: 0;
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+
+    .ym-menu-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
 
   `;
