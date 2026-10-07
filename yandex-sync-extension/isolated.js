@@ -3609,11 +3609,13 @@ function injectStyles() {
        BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)
        ========================================================================= */
     .ym-native-album-menu,
+    .ym-native-album-submenu,
     .ym-native-sub-menu {
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
       user-select: none !important;
     }
     .ym-native-album-menu button,
+    .ym-native-album-submenu button,
     .ym-native-sub-menu button {
       width: 100% !important;
       text-align: left !important;

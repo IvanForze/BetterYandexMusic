@@ -6367,11 +6367,13 @@ function injectStyles() {
        BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)
        ========================================================================= */
     .ym-native-album-menu,
+    .ym-native-album-submenu,
     .ym-native-sub-menu {
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;
       user-select: none !important;
     }
     .ym-native-album-menu button,
+    .ym-native-album-submenu button,
     .ym-native-sub-menu button {
       width: 100% !important;
       text-align: left !important;
@@ -23783,8 +23785,33 @@ setTimeout(() => {
   }
 
   let activeContextMenuEl = null;
+  let activeSubmenuEl = null;
+  let submenuCloseTimer = null;
+
+  function closeSubmenu(immediate = false) {
+    if (submenuCloseTimer) {
+      clearTimeout(submenuCloseTimer);
+      submenuCloseTimer = null;
+    }
+    if (activeSubmenuEl) {
+      const el = activeSubmenuEl;
+      activeSubmenuEl = null;
+      if (immediate) {
+        if (el.parentNode) el.remove();
+      } else {
+        el.style.opacity = '0';
+        el.style.transform = 'scale(0.96)';
+        setTimeout(() => {
+          if (el.parentNode) el.remove();
+        }, 120);
+      }
+    }
+    const shareBtn = activeContextMenuEl?.querySelector('[data-action="share"]');
+    if (shareBtn) shareBtn.setAttribute('aria-expanded', 'false');
+  }
 
   function closeAlbumContextMenu() {
+    closeSubmenu(true);
     if (activeContextMenuEl) {
       activeContextMenuEl.style.opacity = '0';
       activeContextMenuEl.style.transform = 'scale(0.96)';
@@ -23797,7 +23824,11 @@ setTimeout(() => {
   }
 
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.ym-native-album-menu') && !e.target.closest('.AlbumCard_menuButton__pxkA6')) {
+    if (
+      !e.target.closest('.ym-native-album-menu') &&
+      !e.target.closest('.ym-native-album-submenu') &&
+      !e.target.closest('.AlbumCard_menuButton__pxkA6')
+    ) {
       closeAlbumContextMenu();
     }
   });
@@ -23882,30 +23913,18 @@ setTimeout(() => {
           </span>
         </button>
 
-        <!-- 5. Поделиться (с нативным подменю) -->
-        <div class="ym-native-share-container" style="position: relative;">
-          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="share">
-            <span class="JjlbHZ4FaP9EAcR_1DxF">
-              <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                <use xlink:href="/icons/sprite.svg#share_xxs"></use>
-              </svg>
-              Поделиться
-              <svg class="KNLFZ4Jd_xKFInxHox4i l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" style="margin-left: auto;">
-                <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
-              </svg>
-            </span>
-          </button>
-          <div class="s7_MO4NdsYs7nPQALD8W ym-native-sub-menu" role="menu" style="display: none; position: absolute; left: 100%; top: -6px; min-width: 190px; z-index: 10001;">
-            <div class="ggP7WX2_erziDHFOo32s">
-              <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="copy-link">
-                <span class="JjlbHZ4FaP9EAcR_1DxF">Скопировать ссылку</span>
-              </button>
-              <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="copy-html">
-                <span class="JjlbHZ4FaP9EAcR_1DxF">HTML-код</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <!-- 5. Поделиться -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="share">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+            </svg>
+            Поделиться
+            <svg class="KNLFZ4Jd_xKFInxHox4i l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" style="margin-left: auto;">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
       </div>
     `;
 
@@ -23939,26 +23958,135 @@ setTimeout(() => {
       menu.style.transform = 'scale(1)';
     });
 
-    // Обработчик подменю шаринга (наведение мыши)
-    const shareContainer = menu.querySelector('.ym-native-share-container');
-    const subMenu = menu.querySelector('.ym-native-sub-menu');
-    if (shareContainer && subMenu) {
-      shareContainer.addEventListener('mouseenter', () => {
-        // Проверяем, помещается ли справа
-        const containerRect = shareContainer.getBoundingClientRect();
-        if (containerRect.right + 200 > window.innerWidth) {
-          subMenu.style.left = 'auto';
-          subMenu.style.right = '100%';
-        } else {
-          subMenu.style.left = '100%';
-          subMenu.style.right = 'auto';
-        }
-        subMenu.style.display = 'block';
+    // Обработчик подменю шаринга (Portal в document.body как в нативном Яндекс Музыке)
+    function openSubmenu() {
+      if (submenuCloseTimer) {
+        clearTimeout(submenuCloseTimer);
+        submenuCloseTimer = null;
+      }
+      if (activeSubmenuEl) return;
+
+      const shareBtn = menu.querySelector('button[data-action="share"]');
+      if (!shareBtn) return;
+      shareBtn.setAttribute('aria-expanded', 'true');
+
+      const sub = document.createElement('div');
+      sub.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-submenu';
+      sub.setAttribute('tabindex', '-1');
+      sub.setAttribute('role', 'menu');
+      sub.setAttribute('aria-orientation', 'vertical');
+      sub.innerHTML = `
+        <div class="ggP7WX2_erziDHFOo32s">
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" aria-live="off" aria-busy="false" data-action="copy-link">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#chain_xxs"></use>
+              </svg>Скопировать ссылку</span>
+          </button>
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" aria-live="off" aria-busy="false" data-action="copy-html">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#code_xxs"></use>
+              </svg>HTML-код</span>
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(sub);
+      activeSubmenuEl = sub;
+
+      const shareRect = shareBtn.getBoundingClientRect();
+      const subWidth = 205;
+      let sLeft = shareRect.right + 2;
+      let opensToLeft = false;
+      if (sLeft + subWidth > window.innerWidth - 10) {
+        sLeft = shareRect.left - subWidth - 2;
+        opensToLeft = true;
+      }
+      let sTop = shareRect.top - 6;
+      if (sTop + 90 > window.innerHeight - 10) {
+        sTop = window.innerHeight - 100;
+      }
+
+      sub.style.position = 'fixed';
+      sub.style.left = `${Math.round(sLeft)}px`;
+      sub.style.top = `${Math.round(sTop)}px`;
+      sub.style.zIndex = '10000000';
+      sub.style.opacity = '0';
+      sub.style.transform = 'scale(0.96)';
+      sub.style.transformOrigin = opensToLeft ? 'top right' : 'top left';
+      sub.style.transition = 'opacity 120ms ease, transform 120ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+      requestAnimationFrame(() => {
+        sub.style.opacity = '1';
+        sub.style.transform = 'scale(1)';
       });
-      shareContainer.addEventListener('mouseleave', () => {
-        subMenu.style.display = 'none';
+
+      sub.addEventListener('mouseenter', () => {
+        if (submenuCloseTimer) {
+          clearTimeout(submenuCloseTimer);
+          submenuCloseTimer = null;
+        }
+      });
+
+      sub.addEventListener('mouseleave', () => {
+        submenuCloseTimer = setTimeout(() => {
+          closeSubmenu();
+        }, 120);
+      });
+
+      sub.querySelectorAll('button[data-action]').forEach(sBtn => {
+        sBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const action = sBtn.getAttribute('data-action');
+          closeAlbumContextMenu();
+          if (action === 'copy-link') {
+            const link = `https://music.yandex.ru/album/${album.id}`;
+            try {
+              await navigator.clipboard.writeText(link);
+              showMenuToast('Ссылка скопирована');
+            } catch (_) {
+              showMenuToast('Не удалось скопировать ссылку');
+            }
+          } else if (action === 'copy-html') {
+            const iframeCode = `<iframe frameborder="0" style="border:none;width:100%;height:450px;" width="100%" height="450" src="https://music.yandex.ru/iframe/#album/${album.id}"></iframe>`;
+            try {
+              await navigator.clipboard.writeText(iframeCode);
+              showMenuToast('HTML-код скопирован');
+            } catch (_) {
+              showMenuToast('Не удалось скопировать код');
+            }
+          }
+        });
       });
     }
+
+    const shareBtn = menu.querySelector('button[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('mouseenter', () => {
+        openSubmenu();
+      });
+      shareBtn.addEventListener('mouseleave', () => {
+        submenuCloseTimer = setTimeout(() => {
+          closeSubmenu();
+        }, 120);
+      });
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (activeSubmenuEl) {
+          closeSubmenu();
+        } else {
+          openSubmenu();
+        }
+      });
+    }
+
+    // При наведении на другие элементы родительского меню немедленно закрываем подменю
+    menu.querySelectorAll('button[data-action]:not([data-action="share"])').forEach(otherBtn => {
+      otherBtn.addEventListener('mouseenter', () => {
+        closeSubmenu();
+      });
+    });
 
     menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
       itemBtn.addEventListener('click', async (e) => {
@@ -23987,22 +24115,6 @@ setTimeout(() => {
             seeds: [`album:${album.id}`],
             title: album.title ? `Моя волна: ${album.title}` : 'Моя волна по альбому'
           });
-        } else if (action === 'copy-link') {
-          const link = `https://music.yandex.ru/album/${album.id}`;
-          try {
-            await navigator.clipboard.writeText(link);
-            showMenuToast('Ссылка скопирована');
-          } catch (_) {
-            showMenuToast('Не удалось скопировать ссылку');
-          }
-        } else if (action === 'copy-html') {
-          const iframeCode = `<iframe frameborder="0" style="border:none;width:100%;height:450px;" width="100%" height="450" src="https://music.yandex.ru/iframe/#album/${album.id}"></iframe>`;
-          try {
-            await navigator.clipboard.writeText(iframeCode);
-            showMenuToast('HTML-код скопирован');
-          } catch (_) {
-            showMenuToast('Не удалось скопировать код');
-          }
         }
       });
     });
