@@ -1,0 +1,42 @@
+/* =========================================================================
+   BetterYandexMusic: Editorial Compilations Sections (Тренды)
+   Exact 1-to-1 Native Layout matching Yandex Music
+   ========================================================================= */
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section {
+  gap: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  padding: 0 0 16px 0 !important;
+  padding-left: 0 !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+  list-style: none !important;
+  margin: 0 !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section .CarouselBlock_item__DatZ2 {
+  flex-shrink: 0 !important;
+  list-style: none !important;
+  scroll-snap-align: start !important;
+  width: 172px !important;
+  min-width: 172px !important;
+  max-width: 172px !important;
+}

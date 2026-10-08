@@ -16,6 +16,7 @@
     premiere: null,
     albumsMonth: null,
     mixesMusic: null,
+    editorialCompilations: {},
     timestamp: 0
   };
   let activeLandingTab = 'for_you'; // 'for_you' | 'trends'
@@ -23,6 +24,73 @@
   let activeWavesCategory = 'mix';
   let activeInStyleArtistId = null;
   let isFetchingFeed = false;
+
+  const EDITORIAL_TRENDS_SECTIONS = [
+    {
+      id: 'ml_playlists',
+      title: 'Редакция х Алгоритмы',
+      description: 'Плейлисты для любого настроения',
+      viewAllActionLink: '/entities/editorial-compilation/ml_playlists',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/ml_playlists'
+    },
+    {
+      id: 'editors_playlists',
+      title: 'Редакция лайкает',
+      description: 'Музыка, которую мы слушаем прямо сейчас',
+      viewAllActionLink: '/entities/editorial-compilation/editors_playlists',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/editors_playlists'
+    },
+    {
+      id: 'foreign',
+      title: 'Вы могли пропустить',
+      description: '',
+      viewAllActionLink: '/entities/editorial-compilation/foreign',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/foreign'
+    },
+    {
+      id: 'letnyaya_podborka',
+      title: 'Осенняя',
+      description: '',
+      viewAllActionLink: '/entities/editorial-compilation/letnyaya_podborka',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/letnyaya_podborka'
+    },
+    {
+      id: 'RUSSIA_newcomers',
+      title: 'Открытия',
+      description: 'Восходящие звёзды музыкальной сцены',
+      viewAllActionLink: '/entities/editorial-compilation/RUSSIA_newcomers',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/RUSSIA_newcomers'
+    },
+    {
+      id: 'ALL_isrka',
+      title: 'Зажглись от Искры',
+      description: 'Взлетели в Моей волне, засияли в нашем плейлисте',
+      viewAllActionLink: '/entities/editorial-artists/ALL_isrka',
+      testId: 'EDITORIAL_ARTISTS',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/artists/ALL_isrka'
+    },
+    {
+      id: 'ALL_albums_with_commentary',
+      title: 'Артисты комментируют',
+      description: 'Истории создания альбомов от первого лица',
+      viewAllActionLink: '/entities/editorial-compilation/ALL_albums_with_commentary',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/ALL_albums_with_commentary'
+    },
+    {
+      id: 'nitro_playlists',
+      title: 'Они взлетели в Нитро',
+      description: 'Треки, покорившие Мою волну за последний месяц',
+      viewAllActionLink: '/entities/editorial-compilation/nitro_playlists',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/nitro_playlists'
+    },
+    {
+      id: 'RUSSIA_editorial_compilation',
+      title: 'Выбор редакции',
+      description: 'Лучшие плейлисты по версии музыкальных редакторов',
+      viewAllActionLink: '/entities/editorial-compilation/RUSSIA_editorial_compilation',
+      endpoint: 'https://api.music.yandex.ru/landing/block/editorial/compilation/RUSSIA_editorial_compilation'
+    }
+  ];
 
   function formatYandexImg(uri, size = '400x400') {
     if (!uri) return '';
@@ -149,7 +217,13 @@
     isFetchingFeed = true;
 
     try {
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, mmData] = await Promise.allSettled([
+      const editorialPromises = EDITORIAL_TRENDS_SECTIONS.map(cfg =>
+        fetch(cfg.endpoint, { credentials: 'include' })
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      );
+
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, mmData, ...editorialResults] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
@@ -158,7 +232,8 @@
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
-        fetchMixesData()
+        fetchMixesData(),
+        ...editorialPromises
       ]);
 
       if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
@@ -176,6 +251,15 @@
       if (mmData.status === 'fulfilled' && mmData.value) {
         landingFeedCache.mixesMusic = mmData.value?.items ? mmData.value.items : mmData.value;
       }
+
+      editorialResults.forEach((res, i) => {
+        if (res.status === 'fulfilled' && res.value) {
+          const cfg = EDITORIAL_TRENDS_SECTIONS[i];
+          if (cfg) {
+            landingFeedCache.editorialCompilations[cfg.id] = res.value?.result || res.value;
+          }
+        }
+      });
 
       landingFeedCache.timestamp = now;
     } catch (e) {
@@ -276,6 +360,25 @@
       // 2. Секция 2: Альбомы месяца
       if (typeof renderAlbumsOfTheMonthSection === 'function') {
         renderAlbumsOfTheMonthSection(feed, data.albumsMonth);
+      }
+
+      // 3. Редакционные подборки:
+      // - Редакция х Алгоритмы
+      // - Редакция лайкает
+      // - Вы могли пропустить
+      // - Осенняя
+      // - Открытия
+      // - Зажглись от Искры
+      // - Артисты комментируют
+      // - Они взлетели в Нитро
+      // - Выбор редакции
+      if (typeof renderEditorialCompilationSection === 'function' && data.editorialCompilations) {
+        EDITORIAL_TRENDS_SECTIONS.forEach(cfg => {
+          const secData = data.editorialCompilations[cfg.id];
+          if (secData) {
+            renderEditorialCompilationSection(feed, cfg, secData);
+          }
+        });
       }
     }
 
