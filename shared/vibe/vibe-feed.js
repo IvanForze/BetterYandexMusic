@@ -15,6 +15,7 @@
     concerts: null,
     premiere: null,
     albumsMonth: null,
+    mixesMusic: null,
     timestamp: 0
   };
   let activeLandingTab = 'for_you'; // 'for_you' | 'trends'
@@ -29,11 +30,98 @@
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'https://' + url;
     }
+    if (url.includes('mixes.covers')) {
+      return url.replace('%%', size);
+    }
     if (url.includes('get-music-misc')) {
-      const miscSize = size.startsWith('m') ? size : 'm400x400';
+      const miscSize = size.startsWith('m') ? size : (size.includes('x') ? size : 'm400x400');
       return url.replace('%%', miscSize);
     }
     return url.replace('%%', size);
+  }
+
+  function extractMixesFromStatePatches() {
+    if (typeof window !== 'undefined' && Array.isArray(window.__STATE_PATCHES__)) {
+      for (const batch of window.__STATE_PATCHES__) {
+        if (Array.isArray(batch)) {
+          for (const patch of batch) {
+            const path = patch?.path || '';
+            if (path.includes('blocks/0/data') || path.includes('/landing/tabs/data/1/blocks/0/data')) {
+              const items = patch.value?.items;
+              if (Array.isArray(items) && items.length > 0 && items.some(it => it && it.title)) {
+                return items;
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  function parseMixesFromLandingHtml(html) {
+    if (!html || typeof html !== 'string') return null;
+    const needle1 = '/landing/tabs/data/1/blocks/0/data';
+    const needle2 = '\\u002Flanding\\u002Ftabs\\u002Fdata\\u002F1\\u002Fblocks\\u002F0\\u002Fdata';
+    let idx = html.indexOf(needle1);
+    if (idx === -1) idx = html.indexOf(needle2);
+    if (idx === -1) {
+      const moodIdx = html.indexOf('music_moods');
+      if (moodIdx !== -1) {
+        const itemsBefore = html.lastIndexOf('"items":', moodIdx);
+        if (itemsBefore !== -1) idx = itemsBefore;
+      }
+    }
+    if (idx === -1) return null;
+
+    const itemsIdx = html.indexOf('"items":', idx);
+    if (itemsIdx === -1) return null;
+
+    const arrStart = html.indexOf('[', itemsIdx);
+    if (arrStart === -1) return null;
+
+    let depth = 0;
+    let arrEnd = -1;
+    for (let i = arrStart; i < html.length; i++) {
+      if (html[i] === '[') depth++;
+      else if (html[i] === ']') {
+        depth--;
+        if (depth === 0) {
+          arrEnd = i + 1;
+          break;
+        }
+      }
+    }
+
+    if (arrEnd !== -1) {
+      try {
+        const parsed = JSON.parse(html.slice(arrStart, arrEnd));
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed.some(it => it && it.title)) {
+          return parsed;
+        }
+      } catch (e) {
+        console.warn('[BYM] Error parsing mixes JSON from HTML:', e);
+      }
+    }
+    return null;
+  }
+
+  async function fetchMixesData() {
+    const fromPatches = extractMixesFromStatePatches();
+    if (fromPatches) return fromPatches;
+
+    try {
+      const res = await fetch('/landing/main?tab=popular', { credentials: 'include' });
+      if (res.ok) {
+        const html = await res.text();
+        const fromHtml = parseMixesFromLandingHtml(html);
+        if (fromHtml) return fromHtml;
+      }
+    } catch (e) {
+      console.warn('[BYM] Error fetching mixes from landing page:', e);
+    }
+
+    return null;
   }
 
   function spaNavigate(url, e) {
@@ -61,7 +149,7 @@
     isFetchingFeed = true;
 
     try {
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, mmData] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
@@ -69,7 +157,8 @@
         fetch('https://api.music.yandex.ru/landing-blocks/new-releases', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
-        fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
+        fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetchMixesData()
       ]);
 
       if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
@@ -83,6 +172,9 @@
       }
       if (amRes.status === 'fulfilled' && amRes.value) {
         landingFeedCache.albumsMonth = amRes.value?.result || amRes.value;
+      }
+      if (mmData.status === 'fulfilled' && mmData.value) {
+        landingFeedCache.mixesMusic = mmData.value?.items ? mmData.value.items : mmData.value;
       }
 
       landingFeedCache.timestamp = now;
@@ -176,7 +268,12 @@
         renderPremiereSection(feed, data.premiere);
       }
     } else if (activeLandingTab === 'trends') {
-      // Вкладка "Тренды": рендерим только секцию "Альбомы месяца", все остальное пока пустое
+      // 1. Секция 1: Подборки музыки
+      if (typeof renderMixesMusicSection === 'function') {
+        renderMixesMusicSection(feed, data.mixesMusic);
+      }
+
+      // 2. Секция 2: Альбомы месяца
       if (typeof renderAlbumsOfTheMonthSection === 'function') {
         renderAlbumsOfTheMonthSection(feed, data.albumsMonth);
       }

@@ -15,6 +15,7 @@ const vibeModuleFiles = [
   'shared/vibe/vibe-section-releases.js',
   'shared/vibe/vibe-section-concerts.js',
   'shared/vibe/vibe-section-premiere.js',
+  'shared/vibe/vibe-section-mixes.js',
   'shared/vibe/vibe-section-albums-month.js',
   'shared/vibe/vibe-button-debugger.js',
   'shared/vibe/vibe-init.js'
@@ -31,6 +32,7 @@ function bundleVibeStyles() {
     'vibe-releases.css',
     'vibe-concerts.css',
     'vibe-premiere.css',
+    'vibe-mixes.css',
     'vibe-albums-month.css',
     'vibe-context-menu.css'
   ];
