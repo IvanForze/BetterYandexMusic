@@ -13,6 +13,7 @@
     inStyle: null,
     newReleases: null,
     concerts: null,
+    premiere: null,
     timestamp: 0
   };
   let activeAiCategory = 'mix';
@@ -58,13 +59,14 @@
     isFetchingFeed = true;
 
     try {
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/in-style', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/new-releases', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
-        fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
+        fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
       ]);
 
       if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
@@ -73,6 +75,9 @@
       if (inStyleRes.status === 'fulfilled' && inStyleRes.value) landingFeedCache.inStyle = inStyleRes.value;
       if (nrRes.status === 'fulfilled' && nrRes.value) landingFeedCache.newReleases = nrRes.value;
       if (cRes.status === 'fulfilled' && cRes.value) landingFeedCache.concerts = cRes.value;
+      if (premRes.status === 'fulfilled' && premRes.value) {
+        landingFeedCache.premiere = premRes.value?.result || premRes.value;
+      }
 
       landingFeedCache.timestamp = now;
     } catch (e) {
@@ -144,22 +149,27 @@
     // 2. Exact 1-to-1 Native Likes and History cards (Мне нравится / История)
     renderLikesAndHistorySection(feed, data.likesHistory);
 
-    // 3. Exact 1-to-1 Section: Свели в AI-сет
+    // 3. Section 1: Свели в AI-сет
     renderAiSetsSection(feed, data.mixesWaves);
 
-    // 4. Exact 1-to-1 Section: Больше открытий (WAVES)
-    renderMoreDiscoveriesSection(feed, data.waves);
-
-    // 5. Exact 1-to-1 Section: В стиле (IN_STYLE)
-    renderInStyleSection(feed, data.inStyle);
-
-    // 6. Exact 1-to-1 Section: Новые релизы
+    // 4. Section 2: Новые релизы
     renderNewReleasesSection(feed, data.newReleases);
 
-    // 7. Exact 1-to-1 Section: Концерты для вас
+    // 5. Section 3: Больше открытий (WAVES)
+    renderMoreDiscoveriesSection(feed, data.waves);
+
+    // 6. Section 4: В стиле (IN_STYLE)
+    renderInStyleSection(feed, data.inStyle);
+
+    // 7. Section 5: Концерты для вас
     renderConcertsSection(feed, data.concerts);
 
-    // 8. Update initial playback indicators for all cards (Play/Pause states)
+    // 8. Section 6: Премьера (SMART_OPEN_PLAYLIST)
+    if (typeof renderPremiereSection === 'function') {
+      renderPremiereSection(feed, data.premiere);
+    }
+
+    // 9. Update initial playback indicators for all cards (Play/Pause states)
     updateLandingPlaybackIndicators();
   }
 

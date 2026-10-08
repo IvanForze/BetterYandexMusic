@@ -552,23 +552,60 @@ function syncPlayerControls(activePlayer, serverState) {
 window.addEventListener('message', async (event) => {
   if (event.source !== window || !event.data) return;
   if (event.data.type === 'BYM_PLAY_VIBE_STATION') {
-    const { seeds, stationId } = event.data;
+    const { seeds, stationId, title } = event.data;
     console.log('[SYNC] Received BYM_PLAY_VIBE_STATION:', stationId, seeds);
     const core = getSonataCore();
-    const player = getActivePlayer();
-    if (core?.factory?.createContext && player?.playContext) {
+    const pc = core?.playbackController;
+    const player = (pc?.getPlayback ? (pc.getPlayback('MAIN') || pc.getPlayback()) : null) ||
+                   pc?.activePlayback?.value ||
+                   getActivePlayer();
+    if (core?.factory?.createContext && player) {
       try {
+        const itemSeeds = Array.isArray(seeds) ? seeds.filter(Boolean).map(String) : [];
+        const sId = String(stationId || (itemSeeds.length > 0 ? itemSeeds[0] : '')).trim();
+        const finalSeeds = itemSeeds.length > 0 ? itemSeeds : (sId ? [sId] : ['user:onyourwave']);
+        const finalStationId = sId || finalSeeds[0] || 'user:onyourwave';
+
         const ctx = core.factory.createContext({
           data: {
             type: 'vibe',
-            meta: { id: stationId || (seeds && seeds[0]) || '' },
-            seeds: seeds || (stationId ? [stationId] : []),
+            meta: {
+              id: finalStationId,
+              session: {
+                wave: {
+                  name: title || finalStationId,
+                  stationId: finalStationId,
+                  seeds: finalSeeds
+                }
+              }
+            },
+            seeds: finalSeeds,
             from: 'web-landing-discovery_block-sets_by_waves-radio-default',
             includeTracksInResponse: true,
             interactive: true
           }
         });
-        await player.playContext({ context: ctx, loadContextMeta: true });
+
+        const doPlay = async () => {
+          if (pc) {
+            if (typeof pc.beforePlayHandler === 'function') {
+              try { pc.beforePlayHandler(player); } catch (_) {}
+            }
+            if (pc.activePlayback) {
+              try { pc.activePlayback.value = player; } catch (_) {}
+            }
+          }
+          await player.playContext({ context: ctx, loadContextMeta: true });
+          if (pc && typeof pc.afterPlayHandler === 'function') {
+            try { pc.afterPlayHandler(player); } catch (_) {}
+          }
+        };
+
+        if (pc && typeof pc.callIfUnblocked === 'function') {
+          await pc.callIfUnblocked(doPlay);
+        } else {
+          await doPlay();
+        }
         console.log('[SYNC] Handled BYM_PLAY_VIBE_STATION successfully via factory + playContext');
       } catch (err) {
         console.error('[SYNC] Error executing BYM_PLAY_VIBE_STATION:', err);

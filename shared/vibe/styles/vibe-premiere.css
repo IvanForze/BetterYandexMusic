@@ -1,0 +1,43 @@
+/* =========================================================================
+   BetterYandexMusic: Native 1-to-1 Premiere Section (Smart Open Playlist)
+   Clean stylesheet: preserves all native Yandex Music CSS & responsive breakpoints (including <1060px)
+   ========================================================================= */
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL {
+  width: 100% !important;
+  box-sizing: border-box !important;
+  margin-bottom: 24px !important;
+  position: relative !important;
+}
+
+/* Scrollable carousel container */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg {
+  display: flex !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Carousel navigation arrows reveal on section hover */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL:hover .CarouselControls_root__E_hwc {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* BYM track download button inside native track row */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP .ym-track-row-download-btn {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP:hover .ym-track-row-download-btn {
+  opacity: 1;
+}

@@ -338,3 +338,227 @@
     });
   }
 
+  function openTrackContextMenu(buttonEl, track, playlist) {
+    if (!buttonEl || !track) return;
+    closeAlbumContextMenu();
+
+    const trackId = String(track.id || track.realId || '');
+    const album = (track.albums && track.albums[0]) || {};
+    const albumId = album.id || '';
+    const artists = track.artists || [];
+    const firstArtist = artists[0] || {};
+
+    const trackRow = buttonEl.closest('.HorizontalCardContainer_root__YoAAP') || buttonEl.closest('.ym-vibe-premiere-track');
+    const likeBtn = trackRow?.querySelector('.ym-track-like-btn');
+    const isLiked = likeBtn ? likeBtn.getAttribute('aria-pressed') === 'true' : false;
+
+    const menu = document.createElement('div');
+    menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-track-menu';
+    menu.setAttribute('tabindex', '0');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-orientation', 'vertical');
+
+    menu.innerHTML = `
+      <div class="ggP7WX2_erziDHFOo32s">
+        <!-- 1. Нравится -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitemcheckbox" aria-checked="${isLiked ? 'true' : 'false'}" tabindex="-1" data-action="like">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isLiked ? 'liked_xxs' : 'dislike_xxs'}"></use>
+            </svg>
+            ${isLiked ? 'Удалить из «Мне нравится»' : 'Нравится'}
+          </span>
+        </button>
+
+        ${albumId ? `
+        <!-- 2. Трейлер -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+            </svg>
+            Трейлер
+          </span>
+        </button>` : ''}
+
+        <!-- 3. Моя волна по треку -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="wave">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#vibe_xxs"></use>
+            </svg>
+            Моя волна по треку
+          </span>
+        </button>
+
+        ${albumId ? `
+        <!-- 4. Перейти к альбому -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="album">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#disc_xxs"></use>
+            </svg>
+            Перейти к альбому
+          </span>
+        </button>` : ''}
+
+        ${firstArtist.id ? `
+        <!-- 5. Перейти к артисту -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="artist">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#artist_xxs"></use>
+            </svg>
+            Перейти к артисту
+          </span>
+        </button>` : ''}
+
+        <!-- 6. Поделиться -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="share">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+            </svg>
+            Поделиться
+            <svg class="KNLFZ4Jd_xKFInxHox4i l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" style="margin-left: auto;">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
+
+        <!-- 7. Скачать трек -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="download">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Скачать трек
+          </span>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(menu);
+    activeContextMenuEl = menu;
+
+    buttonEl.setAttribute('aria-expanded', 'true');
+
+    const rect = buttonEl.getBoundingClientRect();
+    const menuWidth = 230;
+    const menuHeight = 280;
+
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - 6;
+    }
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.zIndex = '999999';
+
+    function openTrackSubmenu() {
+      closeSubmenu(true);
+      const shareBtn = menu.querySelector('button[data-action="share"]');
+      if (!shareBtn) return;
+      shareBtn.setAttribute('aria-expanded', 'true');
+
+      const sub = document.createElement('div');
+      sub.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-submenu';
+      sub.setAttribute('tabindex', '0');
+      sub.setAttribute('role', 'menu');
+
+      sub.innerHTML = `
+        <div class="ggP7WX2_erziDHFOo32s">
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="copy-link">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#link_xxs"></use>
+              </svg>
+              Скопировать ссылку
+            </span>
+          </button>
+        </div>
+      `;
+
+      document.body.appendChild(sub);
+      activeSubmenuEl = sub;
+
+      const sRect = shareBtn.getBoundingClientRect();
+      const subWidth = 200;
+      let sLeft = sRect.right + 6;
+      if (sLeft + subWidth > window.innerWidth - 10) {
+        sLeft = sRect.left - subWidth - 6;
+      }
+      sub.style.position = 'fixed';
+      sub.style.left = `${sLeft}px`;
+      sub.style.top = `${sRect.top}px`;
+      sub.style.zIndex = '1000000';
+
+      sub.querySelector('button[data-action="copy-link"]')?.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeAlbumContextMenu();
+        const trackUrl = albumId ? `https://music.yandex.ru/album/${albumId}/track/${trackId}` : `https://music.yandex.ru/track/${trackId}`;
+        try {
+          await navigator.clipboard.writeText(trackUrl);
+          showMenuToast('Ссылка на трек скопирована');
+        } catch (_) {
+          showMenuToast('Не удалось скопировать ссылку');
+        }
+      });
+    }
+
+    const shareBtn = menu.querySelector('button[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('mouseenter', openTrackSubmenu);
+      shareBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openTrackSubmenu();
+      });
+    }
+
+    menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      itemBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemBtn.getAttribute('data-action');
+        if (action === 'share') return;
+
+        closeAlbumContextMenu();
+
+        if (action === 'like') {
+          if (likeBtn) {
+            likeBtn.click();
+          } else {
+            await toggleLikeTrack(trackId, isLiked);
+            showMenuToast(!isLiked ? 'Добавлено в коллекцию' : 'Удалено из коллекции');
+          }
+        } else if (action === 'trailer') {
+          if (albumId && typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(albumId);
+          }
+        } else if (action === 'wave') {
+          if (typeof playVibeStation === 'function') {
+            await playVibeStation({
+              stationId: `track:${trackId}`,
+              seeds: [`track:${trackId}`],
+              title: track.title ? `Моя волна: ${track.title}` : 'Моя волна по треку'
+            });
+          }
+        } else if (action === 'album') {
+          if (albumId) spaNavigate(`/album/${albumId}`);
+        } else if (action === 'artist') {
+          if (firstArtist.id) spaNavigate(`/artist/${firstArtist.id}`);
+        } else if (action === 'download') {
+          const dlBtn = trackRow?.querySelector('.ym-track-row-download-btn');
+          if (dlBtn) dlBtn.click();
+        }
+      });
+    });
+  }
+

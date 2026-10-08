@@ -148,13 +148,67 @@
   }
 
   function getSafeActivePlayer() {
-    if (typeof window !== 'undefined' && typeof window.getActivePlayer === 'function') {
-      const p = window.getActivePlayer();
-      if (p) return p;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    if (core?.playbackController) {
+      if (typeof core.playbackController.getPlayback === 'function') {
+        try {
+          const mainPlayer = core.playbackController.getPlayback('MAIN') || core.playbackController.getPlayback();
+          if (mainPlayer && typeof mainPlayer.playContext === 'function') return mainPlayer;
+        } catch (_) {}
+      }
+      const val = core.playbackController.activePlayback?.value;
+      if (val && typeof val.playContext === 'function') return val;
     }
-    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || findSonataCoreFallback();
-    const wrapper = core?.playbackController?.activePlayback;
-    return (wrapper && wrapper.value) || wrapper || null;
+    if (typeof window !== 'undefined' && typeof window.getActivePlayer === 'function') {
+      try {
+        const p = window.getActivePlayer();
+        if (p && typeof p.playContext === 'function') return p;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  async function safePlaySonataContext(core, player, ctx, playOptions = { loadContextMeta: true }) {
+    if (!player || !ctx) return false;
+    const pc = core?.playbackController;
+
+    const doPlay = async () => {
+      if (pc) {
+        if (typeof pc.beforePlayHandler === 'function') {
+          try { pc.beforePlayHandler(player); } catch (_) {}
+        }
+        if (pc.activePlayback) {
+          try { pc.activePlayback.value = player; } catch (_) {}
+        }
+      }
+
+      await player.playContext({ context: ctx, ...playOptions });
+
+      try {
+        if (!isPlayerPlaying(player)) {
+          if (typeof player.play === 'function') await player.play();
+          else if (typeof player.resume === 'function') await player.resume();
+        }
+      } catch (_) {}
+
+      if (pc && typeof pc.afterPlayHandler === 'function') {
+        try { pc.afterPlayHandler(player); } catch (_) {}
+      }
+      return true;
+    };
+
+    if (pc && typeof pc.callIfUnblocked === 'function') {
+      try {
+        return await pc.callIfUnblocked(doPlay);
+      } catch (e) {
+        console.warn('[BYM] pc.callIfUnblocked warning, falling back to direct play:', e);
+        return await doPlay();
+      }
+    }
+
+    return await doPlay();
   }
 
   function isPlayerPlaying(player) {
@@ -215,6 +269,21 @@
     const targetIdStr = String(albumId);
     const metaId = String(ctxData?.meta?.id || ctx?.meta?.id || '');
     return isTrailer && metaId === targetIdStr && isPlayerPlaying(player);
+  }
+
+  function isTrackCurrentlyPlaying(trackId) {
+    if (!trackId) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const track = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
+    const currentTrackId = String(track?.id || track?.realId || '');
+    const isMatch = currentTrackId === String(trackId);
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
   }
 
   function isStationCurrentlyPlaying(item) {
@@ -373,43 +442,80 @@
         btn.setAttribute('aria-label', 'Запустить трейлер');
       }
     });
+
+    // 6. Треки "Премьера"
+    const premiereTrackButtons = feed.querySelectorAll('.ym-premiere-play-btn');
+    premiereTrackButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      const state = isTrackCurrentlyPlaying(trackId);
+      const svgUse = btn.querySelector('svg use');
+      const trackEl = btn.closest('.ym-vibe-premiere-track');
+      const animEl = trackEl?.querySelector('.PlayingAnimation_root__YrWz7');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (animEl) animEl.classList.remove('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.add('HorizontalCardContainer_playing__vP91g');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (animEl) animEl.classList.add('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.remove('HorizontalCardContainer_playing__vP91g');
+      }
+    });
   }
 
   async function playVibeStation(item) {
     if (!item) return false;
-    const seeds = item.seeds || (item.stationId ? [item.stationId] : []);
-    const stationId = item.stationId || (seeds && seeds[0]) || '';
-    if (!seeds || seeds.length === 0) {
-      console.warn('[BYM Vibe] No seeds found for station:', item);
-      return false;
-    }
+    const itemSeeds = Array.isArray(item.seeds) ? item.seeds.filter(Boolean).map(String) : [];
+    const stationId = String(item.stationId || (itemSeeds.length > 0 ? itemSeeds[0] : '')).trim();
+    const finalSeeds = itemSeeds.length > 0 ? itemSeeds : (stationId ? [stationId] : ['user:onyourwave']);
+    const finalStationId = stationId || finalSeeds[0] || 'user:onyourwave';
 
-    console.log('[BYM Vibe] Playing station:', item.title || stationId, seeds);
+    console.log('[BYM Vibe] Playing station:', item.title || finalStationId, finalSeeds);
 
     const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
                  (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
                  findSonataCoreFallback();
     const player = getSafeActivePlayer();
 
-    // 1. Прямой запуск через Sonata Core factory + player.playContext (100% нативный способ)
-    if (core?.factory?.createContext && player?.playContext) {
+    // 1. Прямой запуск через Sonata Core factory + safePlaySonataContext (100% нативный способ)
+    if (core?.factory?.createContext && player) {
       try {
         const ctx = core.factory.createContext({
           data: {
             type: 'vibe',
-            meta: { id: stationId },
-            seeds: seeds,
+            meta: {
+              id: finalStationId,
+              session: {
+                wave: {
+                  name: item.title || finalStationId,
+                  stationId: finalStationId,
+                  seeds: finalSeeds
+                }
+              }
+            },
+            seeds: finalSeeds,
             from: 'web-landing-discovery_block-sets_by_waves-radio-default',
             includeTracksInResponse: true,
             interactive: true
           }
         });
         console.log('[BYM Vibe] Created Vibe context:', ctx);
-        await player.playContext({ context: ctx, loadContextMeta: true });
-        console.log('[BYM Vibe] Station started successfully via core.factory.createContext + player.playContext!');
-        return true;
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) {
+          console.log('[BYM Vibe] Station started successfully via safePlaySonataContext!');
+          return true;
+        }
       } catch (err) {
-        console.error('[BYM Vibe] Error in createContext / playContext:', err);
+        console.error('[BYM Vibe] Error in createContext / safePlaySonataContext:', err);
       }
     }
 
@@ -418,11 +524,11 @@
       const qc = player?.queueController;
       if (qc) {
         if (typeof qc.playRadio === 'function') {
-          await qc.playRadio({ seeds, autoPlay: true });
+          await qc.playRadio({ seeds: finalSeeds, autoPlay: true });
           return true;
         }
         if (typeof qc.setRadioQueue === 'function') {
-          await qc.setRadioQueue({ seeds, autoPlay: true });
+          await qc.setRadioQueue({ seeds: finalSeeds, autoPlay: true });
           return true;
         }
       }
@@ -430,18 +536,13 @@
       console.warn('[BYM Vibe] queueController radio error:', qcErr);
     }
 
-    // 3. Fallback через postMessage для изолированных контекстов
+    // 3. Fallback через React Fiber нативного колеса/волны (если доступно в DOM)
     try {
-      window.postMessage({
-        type: 'BYM_PLAY_VIBE_STATION',
-        stationId: stationId,
-        seeds: seeds,
-        title: item.title
-      }, '*');
-      return true;
-    } catch (postErr) {
-      console.warn('[BYM Vibe] postMessage error:', postErr);
-    }
+      if (typeof triggerWheelFiberSelect === 'function') {
+        triggerWheelFiberSelect(item);
+        return true;
+      }
+    } catch (_) {}
 
     return false;
   }
@@ -489,7 +590,7 @@
                  findSonataCoreFallback();
     const player = getSafeActivePlayer();
 
-    if (core?.factory?.createContext && player?.playContext) {
+    if (core?.factory?.createContext && player) {
       try {
         const ctx = core.factory.createContext({
           data: {
@@ -500,8 +601,8 @@
             interactive: true
           }
         });
-        await player.playContext({ context: ctx, loadContextMeta: true });
-        return true;
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
       } catch (err) {
         console.warn('[BYM] Error playing album context via Sonata:', err);
       }
@@ -509,15 +610,175 @@
     return false;
   }
 
+  async function playPlaylistTrackContext(playlistData, trackId, trackObj) {
+    if (!playlistData && !trackId) return false;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+    const root = getYmRootModel();
+
+    const playlistObj = (typeof playlistData === 'object' && playlistData !== null) ? playlistData : {};
+    const uuid = playlistObj.playlistUuid || playlistObj.uuid || (typeof playlistData === 'string' ? playlistData : '');
+    const uid = playlistObj.uid || playlistObj.owner?.uid || window.__ym_user_id || root?.user?.uid || root?.userState?.uid || null;
+    const kind = playlistObj.kind || playlistObj.playlistKind || null;
+    const albumId = trackObj?.albums?.[0]?.id || trackObj?.albumId || null;
+
+    if (core?.factory?.createContext && player) {
+      // 1. Попытка через нативный контекст плейлиста
+      if ((uid && kind) || uuid) {
+        try {
+          const playlistIdStr = (uid && kind) ? `${uid}:${kind}` : String(uuid);
+          const meta = {
+            id: playlistIdStr,
+            playlistId: playlistIdStr,
+            key: playlistIdStr
+          };
+          if (uuid) {
+            meta.uuid = String(uuid);
+            meta.playlistUuid = String(uuid);
+          }
+          if (uid) meta.uid = Number(uid) || uid;
+          if (kind) meta.kind = Number(kind) || kind;
+
+          const ctx = core.factory.createContext({
+            data: {
+              type: 'playlist',
+              meta: meta,
+              from: 'web-landing-discovery_block-premiere-default',
+              includeTracksInResponse: true,
+              interactive: true
+            }
+          });
+
+          console.log('[BYM] Playing Premiere playlist context via Sonata:', { meta, trackId });
+
+          const queueParams = trackId ? {
+            initialTrackId: String(trackId),
+            trackId: String(trackId),
+            entityId: String(trackId)
+          } : undefined;
+
+          const played = await safePlaySonataContext(core, player, ctx, {
+            loadContextMeta: true,
+            queueParams
+          });
+          if (played) return true;
+        } catch (err) {
+          console.warn('[BYM] Playlist context play failed, trying fallbacks:', err);
+        }
+      }
+
+      // 2. Фоллбэк: воспроизведение через контекст альбома трека (если у трека есть albumId)
+      if (albumId) {
+        try {
+          console.log('[BYM] Playing track via Album context fallback:', { albumId, trackId });
+          const albumCtx = core.factory.createContext({
+            data: {
+              type: 'album',
+              meta: { id: String(albumId) },
+              from: 'web-landing-discovery_block-premiere-default',
+              includeTracksInResponse: true,
+              interactive: true
+            }
+          });
+          const played = await safePlaySonataContext(core, player, albumCtx, {
+            loadContextMeta: true,
+            queueParams: trackId ? {
+              initialTrackId: String(trackId),
+              trackId: String(trackId),
+              entityId: String(trackId)
+            } : undefined
+          });
+          if (played) return true;
+        } catch (aErr) {
+          console.warn('[BYM] Album context fallback failed:', aErr);
+        }
+      }
+
+      // 3. Фоллбэк: воспроизведение через контекст отдельного трека
+      if (trackId) {
+        try {
+          console.log('[BYM] Playing track via Track context fallback:', trackId);
+          const trackCtx = core.factory.createContext({
+            data: {
+              type: 'track',
+              meta: { id: String(trackId) },
+              from: 'web-landing-discovery_block-premiere-default',
+              includeTracksInResponse: true,
+              interactive: true
+            }
+          });
+          const played = await safePlaySonataContext(core, player, trackCtx, {
+            loadContextMeta: true
+          });
+          if (played) return true;
+        } catch (tErr) {
+          console.warn('[BYM] Track context fallback failed:', tErr);
+        }
+      }
+    }
+
+    // 4. Фоллбэк через очередь плеера, если трек уже загружен
+    if (player && trackId && typeof player.setEntityByIndex === 'function') {
+      try {
+        const list = player.queueController?.queue?.state?.entityList?.value;
+        if (Array.isArray(list)) {
+          const idx = list.findIndex(e => String(e?.entity?.id || e?.id || e?.entity?.data?.id) === String(trackId));
+          if (idx !== -1) {
+            player.setEntityByIndex(idx);
+            if (typeof player.play === 'function') player.play();
+            return true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return false;
+  }
+
+  async function handleTrailerPlay(albumId, trackIndex = 0) {
+    if (!albumId) return false;
+    const targetIdStr = String(albumId);
+    const root = getYmRootModel();
+    const svc = getTrailerService() || root?.services?.trailerService;
+
+    if (svc) {
+      if (typeof svc.openAlbumTrailer === 'function') {
+        try {
+          svc.openAlbumTrailer(targetIdStr);
+          updateLandingPlaybackIndicators();
+          return true;
+        } catch (e) { }
+      }
+      if (typeof svc.playTrailer === 'function') {
+        try {
+          await svc.playTrailer({ albumId: Number(albumId) || albumId, startTrackIndex: trackIndex });
+          updateLandingPlaybackIndicators();
+          return true;
+        } catch (e) { }
+      }
+    }
+
+    const res = await playAlbumTrailer(albumId);
+    updateLandingPlaybackIndicators();
+    return res;
+  }
+
   let cachedRootModel = null;
 
   function getYmRootModel() {
-    if (cachedRootModel?.isRootModel || cachedRootModel?.pinsCollection) {
+    if (cachedRootModel?.isRootModel || cachedRootModel?.pinsCollection || cachedRootModel?.likesCollection || cachedRootModel?.collections) {
       return cachedRootModel;
     }
 
-    if (window.__ym_root_model?.isRootModel || window.__ym_root_model?.pinsCollection) {
+    if (window.__ym_root_model?.isRootModel || window.__ym_root_model?.pinsCollection || window.__ym_root_model?.likesCollection) {
       cachedRootModel = window.__ym_root_model;
+      return cachedRootModel;
+    }
+
+    if (window.__ym?.rootModel) {
+      cachedRootModel = window.__ym.rootModel;
       return cachedRootModel;
     }
 
@@ -531,7 +792,7 @@
       let cur = anchor[fiberKey];
       while (cur) {
         const val = cur.memoizedProps?.value;
-        if (val?.isRootModel || val?.pinsCollection) {
+        if (val?.isRootModel || val?.pinsCollection || val?.likesCollection || val?.collections) {
           cachedRootModel = val;
           window.__ym_root_model = val;
           return val;
@@ -551,7 +812,7 @@
         count++;
         if (!cur) continue;
         const val = cur.memoizedProps?.value;
-        if (val?.isRootModel || val?.pinsCollection) {
+        if (val?.isRootModel || val?.pinsCollection || val?.likesCollection || val?.collections) {
           cachedRootModel = val;
           window.__ym_root_model = val;
           return val;
@@ -566,7 +827,66 @@
 
   function getPinsCollection() {
     const root = getYmRootModel();
-    return root?.pinsCollection || null;
+    return root?.pinsCollection || root?.collections?.pins || null;
+  }
+
+  function getLikesCollection() {
+    const root = getYmRootModel();
+    return root?.likesCollection ||
+           root?.collections?.likes ||
+           root?.library?.likes ||
+           root?.library?.tracks ||
+           root?.library ||
+           root?.tracksCollection ||
+           null;
+  }
+
+  function isTrackLiked(trackId) {
+    if (!trackId) return false;
+    const idStr = String(trackId);
+    const likes = getLikesCollection();
+    if (!likes) return false;
+
+    try {
+      if (typeof likes.isLiked === 'function') {
+        const res = likes.isLiked(idStr) || likes.isLiked({ id: idStr, type: 'track' });
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof likes.hasTrack === 'function') {
+        if (likes.hasTrack(idStr)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof likes.has === 'function') {
+        if (likes.has(idStr)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (likes.index?.has && (likes.index.has(idStr) || likes.index.has(Number(trackId)))) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (likes.tracksIndex?.has && (likes.tracksIndex.has(idStr) || likes.tracksIndex.has(Number(trackId)))) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      const items = Array.from(likes.items || likes.tracks || likes.tracksList || []);
+      return items.some(it => {
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.track?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
   }
 
   function getTrailerService() {
@@ -628,7 +948,7 @@
                  findSonataCoreFallback();
     const player = getSafeActivePlayer();
 
-    if (core?.factory?.createContext && player?.playContext) {
+    if (core?.factory?.createContext && player) {
       try {
         const ctx = core.factory.createContext({
           data: {
@@ -640,8 +960,8 @@
             interactive: true
           }
         });
-        await player.playContext({ context: ctx, loadContextMeta: true });
-        return true;
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
       } catch (err) {
         console.warn('[BYM] Error playing album trailer via Sonata:', err);
       }
@@ -690,22 +1010,155 @@
 
   async function toggleLikeAlbum(albumId, isCurrentlyLiked) {
     if (!albumId) return false;
-    const uid = window.__ym_user_id || '857786338';
+    const root = getYmRootModel();
+    const likes = getLikesCollection();
+    const numId = Number(albumId) || albumId;
+    const idStr = String(albumId);
+
+    // 1. Попытка через нативный MobX Root Model / likesCollection
+    if (likes) {
+      const toggleFn = likes.toggleAlbumLike || likes.toggleAlbum || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          console.log('[BYM] Toggling album like via MobX:', albumId);
+          await toggleFn.call(likes, { id: numId, type: 'album' });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+
+      if (isCurrentlyLiked) {
+        const removeFn = likes.removeAlbumLike || likes.removeAlbum || likes.remove;
+        if (typeof removeFn === 'function') {
+          try {
+            await removeFn.call(likes, { id: numId, type: 'album' });
+            return true;
+          } catch (_) {}
+        }
+      } else {
+        const addFn = likes.addAlbumLike || likes.addAlbum || likes.add;
+        if (typeof addFn === 'function') {
+          try {
+            await addFn.call(likes, { id: numId, type: 'album' });
+            return true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 2. Фоллбэк: прямой сетевой запрос без 400 sync
+    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    if (!uid) return false;
     const action = isCurrentlyLiked ? 'remove' : 'add';
     try {
-      await fetch(`https://api.music.yandex.ru/users/${uid}/likes/albums/${action}?album-id=${albumId}`, {
+      const res = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/albums/${action}?album-id=${encodeURIComponent(idStr)}`, {
         method: 'POST',
         credentials: 'include'
       });
-      fetch('https://api.music.yandex.ru/collection/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ likedAlbums: { revision: Date.now() } }),
-        credentials: 'include'
-      }).catch(() => {});
-      return true;
+      if (likes && typeof likes.getData === 'function') {
+        likes.getData().catch(() => {});
+      }
+      return res.ok;
     } catch (err) {
-      console.warn('[BYM] Like error:', err);
+      console.warn('[BYM] Like album error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikeTrack(trackId, isCurrentlyLiked) {
+    if (!trackId) return false;
+    const root = getYmRootModel();
+    const likes = getLikesCollection();
+    const numId = Number(trackId) || trackId;
+    const idStr = String(trackId);
+
+    // 1. Приоритетный путь: нативный MobX вызов через RootModel / likesCollection
+    if (likes) {
+      const toggleFn = likes.toggleTrackLike || likes.toggleTrack || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          console.log('[BYM] Toggling track like via MobX collection:', trackId);
+          await toggleFn.call(likes, { id: numId, type: 'track' });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+
+      if (isCurrentlyLiked) {
+        const removeFn = likes.removeTrackLike || likes.removeTrack || likes.remove || likes.unlikeTrack || likes.dislikeTrack;
+        if (typeof removeFn === 'function') {
+          try {
+            await removeFn.call(likes, { id: numId, type: 'track' });
+            return true;
+          } catch (_) {
+            try {
+              await removeFn.call(likes, idStr);
+              return true;
+            } catch (_) {}
+          }
+        }
+      } else {
+        const addFn = likes.addTrackLike || likes.addTrack || likes.add || likes.likeTrack;
+        if (typeof addFn === 'function') {
+          try {
+            await addFn.call(likes, { id: numId, type: 'track' });
+            return true;
+          } catch (_) {
+            try {
+              await addFn.call(likes, idStr);
+              return true;
+            } catch (_) {}
+          }
+        }
+      }
+    }
+
+    // 2. Сервис библиотеки root.library / root.services.libraryService
+    const lib = root?.library || root?.services?.libraryService;
+    if (lib) {
+      const libToggle = lib.toggleTrackLike || lib.toggleLike || lib.likeTrack;
+      if (typeof libToggle === 'function') {
+        try {
+          await libToggle.call(lib, idStr);
+          return true;
+        } catch (_) {}
+      }
+    }
+
+    // 3. Фоллбэк: правильный REST API Яндекса (POST application/x-www-form-urlencoded с body: track-ids=...)
+    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    if (!uid) {
+      console.warn('[BYM] Cannot toggle track like: UID unavailable');
+      return false;
+    }
+    const action = isCurrentlyLiked ? 'remove' : 'add';
+    try {
+      console.log(`[BYM] Track like REST fallback: /users/${uid}/likes/tracks/${action} (track-ids: ${idStr})`);
+      const resp = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/tracks/${action}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: `track-ids=${encodeURIComponent(idStr)}`,
+        credentials: 'include'
+      });
+
+      if (likes && typeof likes.getData === 'function') {
+        likes.getData().catch(() => {});
+      } else if (likes && typeof likes.sync === 'function') {
+        likes.sync().catch(() => {});
+      }
+      return resp.ok;
+    } catch (err) {
+      console.warn('[BYM] Like track error:', err);
       return false;
     }
   }
