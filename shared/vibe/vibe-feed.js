@@ -14,8 +14,10 @@
     newReleases: null,
     concerts: null,
     premiere: null,
+    albumsMonth: null,
     timestamp: 0
   };
+  let activeLandingTab = 'for_you'; // 'for_you' | 'trends'
   let activeAiCategory = 'mix';
   let activeWavesCategory = 'mix';
   let activeInStyleArtistId = null;
@@ -59,14 +61,15 @@
     isFetchingFeed = true;
 
     try {
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/in-style', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/new-releases', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
-        fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
+        fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null)
       ]);
 
       if (lhRes.status === 'fulfilled' && lhRes.value) landingFeedCache.likesHistory = lhRes.value;
@@ -77,6 +80,9 @@
       if (cRes.status === 'fulfilled' && cRes.value) landingFeedCache.concerts = cRes.value;
       if (premRes.status === 'fulfilled' && premRes.value) {
         landingFeedCache.premiere = premRes.value?.result || premRes.value;
+      }
+      if (amRes.status === 'fulfilled' && amRes.value) {
+        landingFeedCache.albumsMonth = amRes.value?.result || amRes.value;
       }
 
       landingFeedCache.timestamp = now;
@@ -144,36 +150,43 @@
     feed.replaceChildren();
 
     // 1. Exact 1-to-1 Native Tabs (Для вас / Тренды)
-    renderLandingTabs(feed, data.likesHistory, data.newReleases);
+    renderLandingTabs(feed, data.likesHistory, data.newReleases, data.albumsMonth);
 
-    // 2. Exact 1-to-1 Native Likes and History cards (Мне нравится / История)
-    renderLikesAndHistorySection(feed, data.likesHistory);
+    if (activeLandingTab === 'for_you') {
+      // 2. Exact 1-to-1 Native Likes and History cards (Мне нравится / История)
+      renderLikesAndHistorySection(feed, data.likesHistory);
 
-    // 3. Section 1: Свели в AI-сет
-    renderAiSetsSection(feed, data.mixesWaves);
+      // 3. Section 1: Свели в AI-сет
+      renderAiSetsSection(feed, data.mixesWaves);
 
-    // 4. Section 2: Новые релизы
-    renderNewReleasesSection(feed, data.newReleases);
+      // 4. Section 2: Новые релизы
+      renderNewReleasesSection(feed, data.newReleases);
 
-    // 5. Section 3: Больше открытий (WAVES)
-    renderMoreDiscoveriesSection(feed, data.waves);
+      // 5. Section 3: Больше открытий (WAVES)
+      renderMoreDiscoveriesSection(feed, data.waves);
 
-    // 6. Section 4: В стиле (IN_STYLE)
-    renderInStyleSection(feed, data.inStyle);
+      // 6. Section 4: В стиле (IN_STYLE)
+      renderInStyleSection(feed, data.inStyle);
 
-    // 7. Section 5: Концерты для вас
-    renderConcertsSection(feed, data.concerts);
+      // 7. Section 5: Концерты для вас
+      renderConcertsSection(feed, data.concerts);
 
-    // 8. Section 6: Премьера (SMART_OPEN_PLAYLIST)
-    if (typeof renderPremiereSection === 'function') {
-      renderPremiereSection(feed, data.premiere);
+      // 8. Section 6: Премьера (SMART_OPEN_PLAYLIST)
+      if (typeof renderPremiereSection === 'function') {
+        renderPremiereSection(feed, data.premiere);
+      }
+    } else if (activeLandingTab === 'trends') {
+      // Вкладка "Тренды": рендерим только секцию "Альбомы месяца", все остальное пока пустое
+      if (typeof renderAlbumsOfTheMonthSection === 'function') {
+        renderAlbumsOfTheMonthSection(feed, data.albumsMonth);
+      }
     }
 
     // 9. Update initial playback indicators for all cards (Play/Pause states)
     updateLandingPlaybackIndicators();
   }
 
-  function renderLandingTabs(feedContainer, lhData, newReleasesData) {
+  function renderLandingTabs(feedContainer, lhData, newReleasesData, albumsMonthData) {
     const lh = lhData?.result || lhData || {};
     const favTracks = lh.favorites?.trackCovers || [];
     const histArtists = lh.history?.subtitleElements || [];
@@ -184,16 +197,35 @@
     const forYouImg1 = favTracks[0]?.uri ? formatYandexImg(favTracks[0].uri, '50x50') : '';
     const forYouImg2 = favTracks[1]?.uri ? formatYandexImg(favTracks[1].uri, '50x50') : '';
 
-    const releases = newReleasesData?.result?.newReleases || newReleasesData?.newReleases || [];
-    const trendsImg1 = releases[0]?.cover?.uri ? formatYandexImg(releases[0].cover.uri, '50x50') : '';
-    const trendsImg2 = releases[1]?.cover?.uri ? formatYandexImg(releases[1].cover.uri, '50x50') : '';
+    // Данные для таба "Тренды": из секции ALL_albums_of_the_month (например: Женя Трофимов, КлоуКома)
+    const amReleases = albumsMonthData?.newReleases || albumsMonthData?.result?.newReleases || [];
+    const am0 = amReleases[0];
+    const am1 = amReleases[1];
+
+    const trendsArtist0 = am0?.artists?.[0]?.name || 'Женя Трофимов';
+    const trendsArtist1 = am1?.artists?.[0]?.name || 'КлоуКома';
+    const trendsSub = `${trendsArtist0}, ${trendsArtist1}`;
+
+    const trendsImgRaw1 = am0?.cover?.uri || am0?.artists?.[0]?.cover?.uri;
+    const trendsImgRaw2 = am1?.cover?.uri || am1?.artists?.[0]?.cover?.uri;
+
+    const releasesFallback = newReleasesData?.result?.newReleases || newReleasesData?.newReleases || [];
+    const trendsImg1 = trendsImgRaw1
+      ? formatYandexImg(trendsImgRaw1, '50x50')
+      : (releasesFallback[0]?.cover?.uri ? formatYandexImg(releasesFallback[0].cover.uri, '50x50') : '');
+    const trendsImg2 = trendsImgRaw2
+      ? formatYandexImg(trendsImgRaw2, '50x50')
+      : (releasesFallback[1]?.cover?.uri ? formatYandexImg(releasesFallback[1].cover.uri, '50x50') : '');
+
+    const isForYouActive = activeLandingTab === 'for_you';
+    const isTrendsActive = activeLandingTab === 'trends';
 
     const header = document.createElement('header');
     header.className = 'Skeleton_header__Ir5f4 ym-landing-tabs-header';
     header.innerHTML = `
       <ol class="TjoCDDIf5PrIGU4w8G6Z TabCarousel_root__8DoRy Skeleton_tabCarousel__E2kLf" role="tablist">
         <li class="d50IqTKJZhJIMd5aTqAn">
-          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t cBxrIXbcPeS3kSzdJdhS Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-0-tab" aria-controls="_r_b2d_-0-tabpanel" aria-selected="true" aria-label="Для вас" aria-hidden="false" tabindex="0" aria-live="off" aria-busy="false">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t ${isForYouActive ? 'cBxrIXbcPeS3kSzdJdhS' : ''} Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-0-tab" aria-controls="_r_b2d_-0-tabpanel" aria-selected="${isForYouActive ? 'true' : 'false'}" aria-label="Для вас" aria-hidden="false" tabindex="${isForYouActive ? '0' : '-1'}" aria-live="off" aria-busy="false">
             <span class="Tab_covers__cvYeI">
               ${forYouImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(forYouImg1)}, ${escapeHtml(forYouImg1.replace('50x50', '100x100'))} 2x" src="${escapeHtml(forYouImg1)}">` : ''}
               ${forYouImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(forYouImg2)}, ${escapeHtml(forYouImg2.replace('50x50', '100x100'))} 2x" src="${escapeHtml(forYouImg2)}">` : ''}
@@ -205,14 +237,14 @@
           </button>
         </li>
         <li class="d50IqTKJZhJIMd5aTqAn">
-          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-1-tab" aria-controls="_r_b2d_-1-tabpanel" aria-selected="false" aria-label="Тренды" aria-hidden="false" tabindex="-1" aria-live="off" aria-busy="false">
+          <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 qU2apWBO1yyEK0lZ3lPO Yqh9GVOagMQpvymD877t ${isTrendsActive ? 'cBxrIXbcPeS3kSzdJdhS' : ''} Tab_root__LUukY Tab_tab_size_m__c7tVg Skeleton_tab__Jn6By" type="button" role="tab" id="_r_b2d_-1-tab" aria-controls="_r_b2d_-1-tabpanel" aria-selected="${isTrendsActive ? 'true' : 'false'}" aria-label="Тренды" aria-hidden="false" tabindex="${isTrendsActive ? '0' : '-1'}" aria-live="off" aria-busy="false">
             <span class="Tab_covers__cvYeI">
               ${trendsImg1 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(trendsImg1)}, ${escapeHtml(trendsImg1.replace('50x50', '100x100'))} 2x" src="${escapeHtml(trendsImg1)}">` : ''}
               ${trendsImg2 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG Tab_image__Hen3_" alt="" loading="eager" srcset="${escapeHtml(trendsImg2)}, ${escapeHtml(trendsImg2.replace('50x50', '100x100'))} 2x" src="${escapeHtml(trendsImg2)}">` : ''}
             </span>
             <span class="Tab_description__p1fTO">
               <div title="Тренды" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA Vi7Rd0SZWqD17F0872TB Tab_title__hAYZk" style="-webkit-line-clamp: 1;">Тренды</div>
-              <div title="Чарт и Открытия" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI _oBLf5gprWsKjCw4Ce58 _3_Mxw7Si7j2g4kWjlpR Tab_subtitle__fLp9S" style="-webkit-line-clamp: 1;">Чарт и Открытия</div>
+              <div title="${escapeHtml(trendsSub)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI _oBLf5gprWsKjCw4Ce58 _3_Mxw7Si7j2g4kWjlpR Tab_subtitle__fLp9S" style="-webkit-line-clamp: 1;">${escapeHtml(trendsSub)}</div>
             </span>
           </button>
         </li>
@@ -224,22 +256,15 @@
     if (tabForYou && tabTrends) {
       tabForYou.addEventListener('click', (e) => {
         e.preventDefault();
-        tabForYou.classList.add('cBxrIXbcPeS3kSzdJdhS');
-        tabForYou.setAttribute('aria-selected', 'true');
-        tabForYou.setAttribute('tabindex', '0');
-        tabTrends.classList.remove('cBxrIXbcPeS3kSzdJdhS');
-        tabTrends.setAttribute('aria-selected', 'false');
-        tabTrends.setAttribute('tabindex', '-1');
+        if (activeLandingTab === 'for_you') return;
+        activeLandingTab = 'for_you';
+        renderLandingFeedUI(landingFeedCache);
       });
       tabTrends.addEventListener('click', (e) => {
         e.preventDefault();
-        tabTrends.classList.add('cBxrIXbcPeS3kSzdJdhS');
-        tabTrends.setAttribute('aria-selected', 'true');
-        tabTrends.setAttribute('tabindex', '0');
-        tabForYou.classList.remove('cBxrIXbcPeS3kSzdJdhS');
-        tabForYou.setAttribute('aria-selected', 'false');
-        tabForYou.setAttribute('tabindex', '-1');
-        spaNavigate('/chart');
+        if (activeLandingTab === 'trends') return;
+        activeLandingTab = 'trends';
+        renderLandingFeedUI(landingFeedCache);
       });
     }
 

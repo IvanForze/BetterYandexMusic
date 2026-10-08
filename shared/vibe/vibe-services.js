@@ -470,6 +470,53 @@
         if (trackEl) trackEl.classList.remove('HorizontalCardContainer_playing__vP91g');
       }
     });
+
+    // 7. Карточки "Альбомы месяца" (Тренды)
+    const albumMonthPlayButtons = feed.querySelectorAll('.ym-album-month-play-btn');
+    albumMonthPlayButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+      }
+    });
+
+    const albumMonthTrailerButtons = feed.querySelectorAll('.ym-album-month-trailer-btn');
+    albumMonthTrailerButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+      const trailerIcon = '/icons/sprite.svg#trailer_xs';
+      const pauseIcon = '/icons/sprite.svg#pause_xs';
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', pauseIcon);
+          svgUse.setAttribute('href', pauseIcon);
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+        btn.setAttribute('title', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', trailerIcon);
+          svgUse.setAttribute('href', trailerIcon);
+        }
+        btn.setAttribute('aria-label', 'Слушать трейлер');
+        btn.setAttribute('title', 'Слушать трейлер');
+      }
+    });
   }
 
   async function playVibeStation(item) {
