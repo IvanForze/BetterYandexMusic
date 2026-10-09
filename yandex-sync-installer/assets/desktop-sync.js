@@ -5205,7 +5205,7 @@ function injectVibeStyles() {
 
   const style = document.createElement('style');
   style.id = 'ym-vibe-styles';
-  style.textContent = "/* === vibe-base.css === */\n/* =========================================================================\n       My Vibe Carousel Redesign & Vibe Popover\n       ========================================================================= */\n\n    /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */\n    body.ym-vibe-no-wheel [class*=\"WheelDesktop_root\"],\n    body.ym-vibe-no-wheel [class*=\"VibePage_wheel\"],\n    body.ym-vibe-with-landing [class*=\"WheelDesktop_root\"],\n    body.ym-vibe-with-landing [class*=\"VibePage_wheel\"] {\n      position: absolute !important;\n      left: -9999px !important;\n      top: -9999px !important;\n      width: 320px !important;\n      height: 600px !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      overflow: hidden !important;\n      z-index: -999 !important;\n    }\n\n    /* Bulletproof Transparent sidebar in No Wheel mode and Vibe With Landing mode */\n    html.ym-vibe-no-wheel aside,\n    body.ym-vibe-no-wheel aside,\n    html.ym-vibe-with-landing aside,\n    body.ym-vibe-with-landing aside,\n    html.ym-vibe-no-wheel aside[class*=\"Navbar\"],\n    body.ym-vibe-no-wheel aside[class*=\"Navbar\"],\n    html.ym-vibe-with-landing aside[class*=\"Navbar\"],\n    body.ym-vibe-with-landing aside[class*=\"Navbar\"],\n    html.ym-vibe-no-wheel [class*=\"Navbar_root\"],\n    body.ym-vibe-no-wheel [class*=\"Navbar_root\"],\n    html.ym-vibe-with-landing [class*=\"Navbar_root\"],\n    body.ym-vibe-with-landing [class*=\"Navbar_root\"],\n    html.ym-vibe-no-wheel [class*=\"DefaultLayout_navbar\"],\n    body.ym-vibe-no-wheel [class*=\"DefaultLayout_navbar\"],\n    html.ym-vibe-with-landing [class*=\"DefaultLayout_navbar\"],\n    body.ym-vibe-with-landing [class*=\"DefaultLayout_navbar\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_root\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_root\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_root\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_root\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_logoWrapper\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_logoWrapper\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_logoWrapper\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_logoWrapper\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContainer\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContainer\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContainer\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContainer\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContent\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContent\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContent\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContent\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation_new\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation_new\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation_new\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation_new\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigationGroup\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigationGroup\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigationGroup\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigationGroup\"],\n    html.ym-vibe-no-wheel [class*=\"SidebarDesktop\"],\n    body.ym-vibe-no-wheel [class*=\"SidebarDesktop\"],\n    html.ym-vibe-with-landing [class*=\"SidebarDesktop\"],\n    body.ym-vibe-with-landing [class*=\"SidebarDesktop\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_pinsList\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_pinsList\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_pinsList\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_pinsList\"],\n    html.ym-vibe-no-wheel [class*=\"PinsList_root\"],\n    body.ym-vibe-no-wheel [class*=\"PinsList_root\"],\n    html.ym-vibe-with-landing [class*=\"PinsList_root\"],\n    body.ym-vibe-with-landing [class*=\"PinsList_root\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktopUserWidget\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktopUserWidget\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktopUserWidget\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktopUserWidget\"],\n    html.ym-vibe-no-wheel [class*=\"UserProfile_root\"],\n    body.ym-vibe-no-wheel [class*=\"UserProfile_root\"],\n    html.ym-vibe-with-landing [class*=\"UserProfile_root\"],\n    body.ym-vibe-with-landing [class*=\"UserProfile_root\"],\n    html.ym-vibe-no-wheel aside.Navbar_root__chF4R,\n    body.ym-vibe-no-wheel aside.Navbar_root__chF4R,\n    html.ym-vibe-with-landing aside.Navbar_root__chF4R,\n    body.ym-vibe-with-landing aside.Navbar_root__chF4R,\n    html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,\n    body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,\n    html.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,\n    body.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,\n    html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,\n    body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,\n    html.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,\n    body.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,\n    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,\n    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,\n    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,\n    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,\n    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,\n    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,\n    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,\n    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,\n    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,\n    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,\n    html.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,\n    body.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,\n    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,\n    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,\n    html.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,\n    body.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,\n    html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    html.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    body.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,\n    body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,\n    html.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,\n    body.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,\n    html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,\n    body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,\n    html.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,\n    body.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,\n    html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,\n    body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,\n    html.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,\n    body.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,\n    html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,\n    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,\n    html.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS,\n    body.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS {\n      background: transparent !important;\n      background-color: transparent !important;\n      border: none !important;\n      border-right: none !important;\n      box-shadow: none !important;\n    }\n    html.ym-vibe-no-wheel aside::before,\n    body.ym-vibe-no-wheel aside::before,\n    html.ym-vibe-with-landing aside::before,\n    body.ym-vibe-with-landing aside::before,\n    html.ym-vibe-no-wheel aside::after,\n    body.ym-vibe-no-wheel aside::after,\n    html.ym-vibe-with-landing aside::after,\n    body.ym-vibe-with-landing aside::after,\n    html.ym-vibe-no-wheel [class*=\"Navbar\"]::before,\n    body.ym-vibe-no-wheel [class*=\"Navbar\"]::before,\n    html.ym-vibe-with-landing [class*=\"Navbar\"]::before,\n    body.ym-vibe-with-landing [class*=\"Navbar\"]::before,\n    html.ym-vibe-no-wheel [class*=\"Navbar\"]::after,\n    body.ym-vibe-no-wheel [class*=\"Navbar\"]::after,\n    html.ym-vibe-with-landing [class*=\"Navbar\"]::after,\n    body.ym-vibe-with-landing [class*=\"Navbar\"]::after {\n      display: none !important;\n      background: transparent !important;\n    }\n\n    /* Only show trigger button in no_wheel and vibe_with_landing modes */\n    body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {\n      display: none !important;\n    }\n\n    /* Context container (Мне нравится ✕) */\n    [class*=\"VibePage_context\"] {\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin-bottom: 6px !important;\n    }\n\n    /* Ensure Vibe Meta stacks vertically centered */\n    body.ym-vibe-no-wheel [class*=\"VibePage_meta\"],\n    body.ym-vibe-with-landing [class*=\"VibePage_meta\"] {\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n    }\n\n    /* Trigger Button (Clean, no border, placed vertically UNDER the context button) */\n    .ym-vibe-settings-trigger-btn {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      align-self: center !important;\n      margin: 4px auto 12px auto !important;\n      padding: 7px 18px;\n      border-radius: 9999px;\n      border: none !important;\n      outline: none !important;\n      background: rgba(255, 255, 255, 0.08);\n      color: #ffffff;\n      font-size: 13px;\n      font-weight: 600;\n      font-family: inherit;\n      cursor: pointer;\n      backdrop-filter: blur(16px);\n      -webkit-backdrop-filter: blur(16px);\n      box-shadow: none !important;\n      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);\n      user-select: none;\n      z-index: 10;\n    }\n    .ym-vibe-settings-trigger-btn:hover {\n      background: rgba(255, 255, 255, 0.14);\n      border: none !important;\n      color: #ffffff !important;\n      box-shadow: none !important;\n      transform: translateY(-1px);\n    }\n    .ym-vibe-settings-trigger-btn:active {\n      transform: translateY(0) scale(0.98);\n    }\n\n\n/* === vibe-popover.css === */\n/* Popover Container */\n    .ym-vibe-popover {\n      position: fixed;\n      z-index: 999999;\n      width: 380px;\n      max-height: 500px;\n      display: flex;\n      flex-direction: column;\n      background: rgba(20, 20, 24, 0.92);\n      backdrop-filter: blur(28px) saturate(190%);\n      -webkit-backdrop-filter: blur(28px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.12);\n      border-radius: 20px;\n      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);\n      color: #ffffff;\n      font-family: \"YS Text\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n      box-sizing: border-box;\n      overflow: hidden;\n      animation: ymVibePopoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;\n      transform-origin: top center;\n    }\n    .ym-vibe-popover.closing {\n      animation: ymVibePopoverOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards;\n    }\n    @keyframes ymVibePopoverIn {\n      from {\n        opacity: 0;\n        transform: scale(0.95) translateY(-6px);\n      }\n      to {\n        opacity: 1;\n        transform: scale(1) translateY(0);\n      }\n    }\n    @keyframes ymVibePopoverOut {\n      from {\n        opacity: 1;\n        transform: scale(1) translateY(0);\n      }\n      to {\n        opacity: 0;\n        transform: scale(0.95) translateY(-6px);\n      }\n    }\n\n    /* Popover Header */\n    .ym-vibe-popover-header {\n      padding: 16px 18px 10px 18px;\n      border-bottom: 1px solid rgba(255, 255, 255, 0.08);\n      display: flex;\n      flex-direction: column;\n      gap: 12px;\n    }\n    .ym-vibe-popover-title-row {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n    }\n    .ym-vibe-popover-title {\n      font-size: 15px;\n      font-weight: 700;\n      color: #ffffff;\n      font-family: \"YSMusic Headline\", sans-serif;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n    }\n    .ym-vibe-popover-close-btn {\n      background: none;\n      border: none;\n      color: rgba(255, 255, 255, 0.4);\n      font-size: 15px;\n      cursor: pointer;\n      padding: 4px;\n      border-radius: 6px;\n      transition: color 0.15s, background 0.15s;\n      line-height: 1;\n    }\n    .ym-vibe-popover-close-btn:hover {\n      color: #ffffff;\n      background: rgba(255, 255, 255, 0.1);\n    }\n\n    /* Categories Bar */\n    .ym-vibe-categories-bar {\n      display: flex;\n      align-items: center;\n      gap: 7px;\n      overflow-x: auto;\n      overflow-y: hidden;\n      padding: 4px 2px 6px 2px;\n      scrollbar-width: none;\n      -ms-overflow-style: none;\n      cursor: grab;\n      user-select: none;\n    }\n    .ym-vibe-categories-bar::-webkit-scrollbar {\n      display: none;\n    }\n    .ym-vibe-cat-chip {\n      background: rgba(255, 255, 255, 0.06);\n      border: 1px solid rgba(255, 255, 255, 0.08);\n      border-radius: 9999px;\n      padding: 4px 11px;\n      font-size: 11.5px;\n      font-weight: 600;\n      color: rgba(255, 255, 255, 0.7);\n      cursor: pointer;\n      white-space: nowrap;\n      transition: all 0.15s ease;\n      font-family: inherit;\n    }\n    .ym-vibe-cat-chip:hover {\n      background: rgba(255, 255, 255, 0.12);\n      color: #ffffff;\n    }\n    .ym-vibe-cat-chip.active {\n      background: #ffdb4d;\n      border-color: #ffdb4d;\n      color: #000000;\n      font-weight: 700;\n      box-shadow: 0 2px 8px rgba(255, 219, 77, 0.3);\n    }\n\n    /* List Container */\n    .ym-vibe-popover-list {\n      flex: 1;\n      overflow-y: auto;\n      max-height: 330px;\n      padding: 8px 10px 12px 14px;\n      display: flex;\n      flex-direction: column;\n      gap: 4px;\n      scrollbar-width: thin;\n      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar {\n      width: 5px;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-track {\n      background: transparent;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-thumb {\n      background: rgba(255, 255, 255, 0.18);\n      border-radius: 9999px;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-thumb:hover {\n      background: rgba(255, 219, 77, 0.6);\n    }\n\n    /* Item Card */\n    .ym-vibe-item-card {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      padding: 8px 10px;\n      border-radius: 12px;\n      cursor: pointer;\n      background: transparent;\n      border: 1px solid transparent;\n      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);\n      position: relative;\n    }\n    .ym-vibe-item-card:hover {\n      background: rgba(255, 255, 255, 0.08);\n      border-color: rgba(255, 255, 255, 0.1);\n      transform: translateX(2px);\n    }\n    .ym-vibe-item-card:hover .ym-vibe-item-play-btn {\n      opacity: 1;\n      transform: scale(1);\n    }\n    .ym-vibe-item-left {\n      display: flex;\n      align-items: center;\n      gap: 12px;\n      min-width: 0;\n      flex: 1;\n    }\n    .ym-vibe-item-cover {\n      width: 40px;\n      height: 40px;\n      border-radius: 10px;\n      object-fit: cover;\n      flex-shrink: 0;\n      background: rgba(255, 255, 255, 0.05);\n      border: 1px solid rgba(255, 255, 255, 0.08);\n    }\n    .ym-vibe-item-cover-placeholder {\n      width: 40px;\n      height: 40px;\n      border-radius: 10px;\n      flex-shrink: 0;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .ym-vibe-item-info {\n      display: flex;\n      flex-direction: column;\n      min-width: 0;\n      gap: 2px;\n    }\n    .ym-vibe-item-name {\n      font-size: 13.5px;\n      font-weight: 600;\n      color: #ffffff;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n    .ym-vibe-item-desc {\n      font-size: 11px;\n      color: rgba(255, 255, 255, 0.45);\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n    .ym-vibe-item-play-btn {\n      width: 28px;\n      height: 28px;\n      border-radius: 50%;\n      background: #ffdb4d;\n      color: #000000;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      opacity: 0;\n      transform: scale(0.85);\n      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);\n      flex-shrink: 0;\n      margin-left: 8px;\n      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);\n    }\n    .ym-vibe-item-play-btn svg {\n      margin-left: 2px;\n    }\n\n    .ym-vibe-empty {\n      padding: 30px 16px;\n      text-align: center;\n      color: rgba(255, 255, 255, 0.45);\n      font-size: 13px;\n      line-height: 1.5;\n    }\n\n\n/* === vibe-feed.css === */\n/* =========================================================================\n       Mode 3: Vibe with Live Landing Feed (Hybrid Mode)\n       ========================================================================= */\n\n    /* Scrollable main container in Mode 3 (vibe_with_landing) while keeping original body / layout paddings */\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"]) {\n      overflow-y: auto !important;\n      overflow-x: hidden !important;\n      height: 100% !important;\n      max-height: 100% !important;\n      box-sizing: border-box !important;\n      scroll-behavior: smooth;\n      scrollbar-width: thin;\n      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;\n      background: transparent !important;\n      pointer-events: auto !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar {\n      width: 6px;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-track {\n      background: transparent;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-thumb {\n      background: rgba(255, 255, 255, 0.15);\n      border-radius: 9999px;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-thumb:hover {\n      background: rgba(255, 255, 255, 0.25);\n    }\n\n    /* Vibe Widget container and hero section - Constrain width to prevent 10688px blowout (ONLY on Vibe page) */\n    html.ym-vibe-with-landing:has([class*=\"VibePage_root\"]) [class*=\"MainPage_actionsBar\"],\n    body.ym-vibe-with-landing:has([class*=\"VibePage_root\"]) [class*=\"MainPage_actionsBar\"] {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n      overflow: hidden !important;\n      pointer-events: none !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"] main[class*=\"Content_main\"],\n    body.ym-vibe-with-landing [class*=\"CommonLayout_content\"] main[class*=\"Content_main\"],\n    html.ym-vibe-with-landing [class*=\"MainPage_vibeWidgetContainer\"],\n    body.ym-vibe-with-landing [class*=\"MainPage_vibeWidgetContainer\"] {\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      overflow-x: hidden !important;\n      box-sizing: border-box !important;\n      height: auto !important;\n      min-height: auto !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: stretch !important;\n      overflow-y: visible !important;\n      border: none !important;\n      border-radius: 0 !important;\n      background: transparent !important;\n      box-shadow: none !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_root\"] {\n      height: 100vh !important;\n      min-height: 100vh !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      position: relative !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      padding: 0 !important;\n      margin: 0 !important;\n      box-sizing: border-box !important;\n      overflow: visible !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_meta\"] {\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      height: auto !important;\n      width: 100% !important;\n      max-width: 900px !important;\n      margin: 0 auto !important;\n      position: relative !important;\n      z-index: 5 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_context\"] {\n      order: 1 !important;\n      margin-bottom: 6px !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_entityMeta\"] {\n      order: 2 !important;\n      height: auto !important;\n      min-height: auto !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin-bottom: 110px !important;\n      position: relative !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_entityMetaBody\"] {\n      height: auto !important;\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      position: relative !important;\n      margin: 0 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_textContainer\"] {\n      height: auto !important;\n      padding-bottom: 0 !important;\n      margin: 0 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_playerBlock\"] {\n      order: 3 !important;\n      position: relative !important;\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin: 0 auto 12px auto !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-settings-btn {\n      order: 4 !important;\n      margin: 6px auto 16px auto !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-quick-block {\n      display: none !important;\n    }\n\n    /* Center the animated fluid canvas behind vibe player */\n    html.ym-vibe-with-landing [class*=\"VibePage_root\"] [class*=\"VibeWidgetAnimation_root\"] {\n      position: absolute !important;\n      left: 50% !important;\n      top: 38% !important;\n      transform: translate(-50%, -50%) !important;\n      pointer-events: none !important;\n    }\n\n    /* ========================================================\n       NATIVE 1-TO-1 LANDING FEED (STRICTLY SCOPED TO MODE 3 ONLY)\n       Never leaks to https://music.yandex.ru/landing/main\n       ======================================================== */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed {\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      margin: 16px 0 0 0 !important;\n      padding-top: 0 !important;\n      padding-bottom: 80px !important;\n      padding-right: 24px !important;\n      padding-left: calc(var(--ym-aside-width, 200px) + 24px) !important;\n      box-sizing: border-box !important;\n      display: flex !important;\n      flex-direction: column !important;\n      flex-shrink: 0 !important;\n      gap: 24px !important;\n      z-index: 2 !important;\n      overflow-x: hidden !important;\n      transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);\n      pointer-events: auto !important;\n    }\n\n    html.ym-vibe-with-landing.ym-navbar-collapsed #ym-vibe-live-landing-feed,\n    html.ym-vibe-with-landing:has(aside [class*=\"title_collapsed\"]) #ym-vibe-live-landing-feed,\n    html.ym-vibe-with-landing:has(aside.ym-collapsed) #ym-vibe-live-landing-feed {\n      padding-left: calc(64px + 24px) !important;\n    }\n\n    /* --- Tabs Row (Для вас / Тренды) --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {\n      padding: 0 !important;\n      margin: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy {\n      display: flex !important;\n      align-items: center !important;\n      gap: 8px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      margin: 0 !important;\n      padding: 0 !important;\n      list-style: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    /* --- Likes & History Section (Exact 1-to-1) --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {\n      padding: 0 !important;\n      margin: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD {\n      display: flex !important;\n      gap: 16px !important;\n      padding: 0 !important;\n      margin: 0 !important;\n      list-style: none !important;\n      overflow-x: auto !important;\n      scrollbar-width: none !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD::-webkit-scrollbar {\n      display: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carouselItem__Yq5Xw {\n      width: 392px !important;\n      max-width: calc(50vw - 32px) !important;\n      min-width: 280px !important;\n      height: 82px !important;\n      flex-shrink: 0 !important;\n      scroll-snap-align: start !important;\n      list-style: none !important;\n    }\n\n    /* --- Common Section Styles & Headers --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section {\n      display: flex !important;\n      flex-direction: column !important;\n      gap: 16px !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      box-sizing: border-box !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {\n      gap: 0 !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_root__j3mbg,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {\n      display: flex !important;\n      align-items: center !important;\n      justify-content: space-between !important;\n      padding: 12px 0 8px 0 !important;\n      padding-bottom: 8px !important;\n      padding-block-end: 8px !important;\n      margin: 0 !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_start__ZrGP5 {\n      width: auto !important;\n      flex: 1 1 auto !important;\n      min-width: 0 !important;\n      display: flex !important;\n      align-items: center !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {\n      align-items: center !important;\n      display: flex !important;\n      gap: var(--ym-spacer-size-s, 8px) !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      transition: opacity var(--ym-duration-transition, 0.2s ease) !important;\n      margin-left: auto !important;\n    }\n    @media only screen and (max-width: 767.98px) {\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {\n        display: none !important;\n      }\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc:hover {\n      opacity: 1 !important;\n      pointer-events: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {\n      font-family: \"YSMusic Headline\", \"YS Text\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif !important;\n      font-size: 24px !important;\n      font-weight: 700 !important;\n      line-height: 26px !important;\n      color: #ffffff !important;\n      margin: 0 !important;\n      letter-spacing: normal !important;\n      text-decoration: none !important;\n      display: inline-flex !important;\n      align-items: center !important;\n      gap: 6px !important;\n      cursor: pointer !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link svg {\n      width: 14px !important;\n      height: 14px !important;\n      opacity: 0.5 !important;\n      transition: transform 0.15s ease, opacity 0.15s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {\n      transform: translateX(3px) !important;\n      opacity: 1 !important;\n    }\n\n\n/* === vibe-ai-waves.css === */\n/* --- Robust AI Set & Waves Category Filter Chips --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {\n      display: flex !important;\n      align-items: center !important;\n      flex-direction: row !important;\n      gap: 8px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      margin: 0 !important;\n      margin-bottom: 0 !important;\n      margin-block-end: 0 !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      padding-inline-start: 0 !important;\n      padding-bottom: 16px !important;\n      padding-block-end: 16px !important;\n      list-style: none !important;\n      box-sizing: border-box !important;\n      height: auto !important;\n      min-height: 48px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-item {\n      list-style: none !important;\n      flex-shrink: 0 !important;\n      display: inline-flex !important;\n      align-items: center !important;\n      margin: 0 !important;\n      padding: 0 !important;\n      height: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      height: 36px !important;\n      min-height: 36px !important;\n      max-height: 36px !important;\n      padding: 0 16px !important;\n      border-radius: 9999px !important;\n      border: none !important;\n      outline: none !important;\n      background: transparent !important;\n      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;\n      font-family: \"YS Text\", sans-serif !important;\n      font-style: normal !important;\n      font-size: 14px !important;\n      font-weight: 500 !important;\n      line-height: 20px !important;\n      letter-spacing: normal !important;\n      white-space: nowrap !important;\n      cursor: pointer !important;\n      flex-shrink: 0 !important;\n      box-sizing: border-box !important;\n      transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;\n      text-decoration: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover {\n      background: rgba(255, 255, 255, 0.08) !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover .Tab_title__hAYZk {\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected=\"true\"] {\n      background: var(--ym-controls-color-secondary-default-enabled, rgba(255, 255, 255, 0.2)) !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n      font-weight: 700 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_description__p1fTO {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      line-height: normal !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_title__hAYZk {\n      font-family: \"YS Text\", sans-serif !important;\n      font-style: normal !important;\n      font-size: 14px !important;\n      font-weight: 500 !important;\n      line-height: 20px !important;\n      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;\n      white-space: nowrap !important;\n      transition: color 0.15s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active .Tab_title__hAYZk,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS .Tab_title__hAYZk,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected=\"true\"] .Tab_title__hAYZk {\n      font-weight: 700 !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n\n    /* --- Native 1-to-1 AI Set & Waves Cards Carousel --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 12px 0 !important;\n      padding-left: 0 !important;\n      padding-top: 0 !important;\n      padding-block-start: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .VibesCarousel_item__AupL0 {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n      display: flex !important;\n      align-items: center !important;\n    }\n\n\n/* === vibe-instyle.css === */\n/* --- Native 1-to-1 In Style Section & Album Cards --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE {\n      position: relative !important;\n      display: flex !important;\n      flex-direction: column !important;\n      gap: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_item__e5_Qz {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n      width: 190px !important;\n      min-width: 170px !important;\n      max-width: 210px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_root__vP6k4 {\n      display: flex !important;\n      flex-direction: column !important;\n      width: 100% !important;\n      text-decoration: none !important;\n      position: relative !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY {\n      position: relative !important;\n      border-radius: var(--ym-radius-size-m, 12px) !important;\n      overflow: hidden !important;\n      cursor: pointer !important;\n      aspect-ratio: 1 !important;\n      width: 100% !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_image__Mm55s {\n      width: 100% !important;\n      height: 100% !important;\n      object-fit: cover !important;\n      display: block !important;\n      transition: transform 0.2s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_image__Mm55s {\n      transform: scale(1.03) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_controls__yuO40 {\n      position: absolute !important;\n      inset: 0 !important;\n      display: flex !important;\n      flex-direction: column !important;\n      justify-content: space-between !important;\n      padding: 8px !important;\n      box-sizing: border-box !important;\n      background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      transition: opacity 0.2s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_controls__yuO40,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:focus-within .AlbumCard_controls__yuO40 {\n      opacity: 1 !important;\n      pointer-events: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_control__qx7Xh {\n      cursor: pointer !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_tab_withCovers__dJzMH {\n      display: inline-flex !important;\n      align-items: center !important;\n      gap: 8px !important;\n      padding: 4px 14px 4px 6px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {\n      display: flex !important;\n      align-items: center !important;\n      flex-shrink: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {\n      width: 28px !important;\n      height: 28px !important;\n      border-radius: 50% !important;\n      object-fit: cover !important;\n      display: block !important;\n    }\n\n\n/* === vibe-releases.css === */\n/* --- Native 1-to-1 New Releases Section --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw {\n      gap: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_item__Gv0iR {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n    }\n\n\n/* === vibe-concerts.css === */\n/* =========================================================================\n   BetterYandexMusic: Native 1-to-1 Concerts Carousel & Cards\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .Concerts_root__12jay {\n  --concert-card-aspect-ratio: 0.701;\n  width: 100% !important;\n  box-sizing: border-box !important;\n  margin-bottom: 24px !important;\n  position: relative !important;\n}\n\n/* Горизонтальный скролл контейнера карусели */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  margin: 0 !important;\n  list-style: none !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\n/* Элемент списка карусели */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .Concerts_item__jetvg {\n  width: 210px !important;\n  min-width: 190px !important;\n  max-width: 230px !important;\n  flex-shrink: 0 !important;\n  scroll-snap-align: start !important;\n  list-style: none !important;\n  margin: 0 !important;\n  padding: 0 !important;\n  height: auto !important;\n}\n\n/* Карточка концерта — оригинальный контейнер без фиксации высоты через aspect-ratio */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertCardWithImage_root__NHF59 {\n  cursor: pointer;\n  display: flex !important;\n  flex-direction: column !important;\n  width: 100% !important;\n  height: auto !important;\n  aspect-ratio: auto !important;\n  text-decoration: none;\n  user-select: none;\n  position: relative;\n  overflow: visible !important;\n}\n\n/* Обложка-постер со строгим оригинальным aspect-ratio 0.701 */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertCardWithImage_cover__3V2fk {\n  position: relative !important;\n  aspect-ratio: 0.701 !important;\n  width: 100% !important;\n  border-radius: var(--ym-radius-size-m, 16px) !important;\n  overflow: hidden !important;\n  flex-shrink: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertImage_root__gZpOa {\n  height: 100%;\n  width: 100%;\n  position: relative;\n  overflow: hidden;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertImage_image__xtZCZ {\n  border-radius: var(--ym-radius-size-m, 16px);\n  height: 100%;\n  width: 100%;\n  object-fit: cover;\n  display: block;\n}\n\n\n/* Метаданные (название, дата, город) под постером — гарантированно видны без обрезания */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertMeta_root__CkKU3 {\n  display: flex !important;\n  flex-direction: column !important;\n  width: 100% !important;\n  margin-top: 8px !important;\n  overflow: visible !important;\n  flex-shrink: 0 !important;\n  gap: 2px !important;\n}\n\n/* Скрытый для скринридеров тег внутри карточки (нативный класс Яндекса) */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .eaYyesBmJL_NbkgoYR1c {\n  position: absolute !important;\n  border: 0 !important;\n  clip: rect(0, 0, 0, 0) !important;\n  height: 1px !important;\n  margin: -1px !important;\n  overflow: hidden !important;\n  padding: 0 !important;\n  width: 1px !important;\n  white-space: nowrap !important;\n}\n\n\n\n\n/* === vibe-premiere.css === */\n/* =========================================================================\n   BetterYandexMusic: Native 1-to-1 Premiere Section (Smart Open Playlist)\n   Clean stylesheet: preserves all native Yandex Music CSS & responsive breakpoints (including <1060px)\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL {\n  width: 100% !important;\n  box-sizing: border-box !important;\n  margin-bottom: 24px !important;\n  position: relative !important;\n}\n\n/* Scrollable carousel container */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg {\n  display: flex !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\n/* Carousel navigation arrows reveal on section hover */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL:hover .CarouselControls_root__E_hwc {\n  opacity: 1 !important;\n  pointer-events: auto !important;\n}\n\n/* BYM track download button inside native track row */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP .ym-track-row-download-btn {\n  opacity: 0;\n  transition: opacity 0.15s ease;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP:hover .ym-track-row-download-btn {\n  opacity: 1;\n}\n\n\n/* === vibe-mixes.css === */\n/* =========================================================================\n   BetterYandexMusic: Mixes Music Section (Подборки музыки - Тренды)\n   Exact 1-to-1 Native Layout matching Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-mixes-music-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-mixes-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-mixes-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-mixes-music-section .CarouselBlock_item__DatZ2 {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n}\n\n\n/* === vibe-albums-month.css === */\n/* =========================================================================\n   BetterYandexMusic: Albums of the Month Section (Тренды)\n   Exact 1-to-1 Native Style matching New Releases from Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-albums-month-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-albums-month-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section .NewReleases_item__Gv0iR {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n}\n\n\n/* === vibe-editorial.css === */\n/* =========================================================================\n   BetterYandexMusic: Editorial Compilations Sections (Тренды)\n   Exact 1-to-1 Native Layout matching Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section .CarouselBlock_item__DatZ2 {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n  width: 172px !important;\n  min-width: 172px !important;\n  max-width: 172px !important;\n}\n\n\n/* === vibe-context-menu.css === */\n/* =========================================================================\n       BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)\n       ========================================================================= */\n    .ym-native-album-menu,\n    .ym-native-album-submenu,\n    .ym-native-sub-menu {\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;\n      user-select: none !important;\n    }\n    .ym-native-album-menu button,\n    .ym-native-album-submenu button,\n    .ym-native-sub-menu button {\n      width: 100% !important;\n      text-align: left !important;\n      cursor: pointer !important;\n    }\n\n    .ym-album-context-menu {\n      position: fixed;\n      z-index: 9999999;\n      min-width: 210px;\n      padding: 6px;\n      background: rgba(30, 26, 28, 0.78);\n      backdrop-filter: blur(32px) saturate(190%);\n      -webkit-backdrop-filter: blur(32px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.1);\n      border-radius: 18px;\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);\n      color: #ffffff;\n      font-family: 'YS Text', 'Yandex Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;\n      font-size: 14px;\n      font-weight: 500;\n      opacity: 0;\n      transform: scale(0.95);\n      transform-origin: top left;\n      transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);\n      pointer-events: none;\n      user-select: none;\n      box-sizing: border-box;\n    }\n\n    body.ym-light-theme .ym-album-context-menu {\n      background: rgba(255, 255, 255, 0.82);\n      border: 1px solid rgba(0, 0, 0, 0.08);\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);\n      color: #121212;\n    }\n\n    .ym-album-context-menu.ym-menu-visible {\n      opacity: 1;\n      transform: scale(1);\n      pointer-events: auto;\n    }\n\n    .ym-album-context-menu .ym-menu-item {\n      display: flex;\n      align-items: center;\n      gap: 12px;\n      padding: 10px 12px;\n      border-radius: 12px;\n      cursor: pointer;\n      color: inherit;\n      transition: background 0.12s ease;\n      position: relative;\n    }\n\n    .ym-album-context-menu .ym-menu-item:hover {\n      background: rgba(255, 255, 255, 0.1);\n    }\n\n    body.ym-light-theme .ym-album-context-menu .ym-menu-item:hover {\n      background: rgba(0, 0, 0, 0.06);\n    }\n\n    .ym-album-context-menu .ym-menu-item-icon {\n      width: 16px;\n      height: 16px;\n      flex-shrink: 0;\n      fill: currentColor;\n      opacity: 0.85;\n    }\n\n    .ym-album-context-menu .ym-menu-item-text {\n      flex: 1;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n\n    .ym-album-context-menu .ym-menu-arrow {\n      width: 12px;\n      height: 12px;\n      opacity: 0.6;\n      margin-left: auto;\n      fill: currentColor;\n    }\n\n    /* Submenu for Share */\n    .ym-album-context-menu .ym-submenu {\n      position: absolute;\n      top: -6px;\n      left: calc(100% + 6px);\n      min-width: 200px;\n      padding: 6px;\n      background: rgba(30, 26, 28, 0.88);\n      backdrop-filter: blur(32px) saturate(190%);\n      -webkit-backdrop-filter: blur(32px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.1);\n      border-radius: 18px;\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);\n      opacity: 0;\n      visibility: hidden;\n      transform: translateX(-4px);\n      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;\n      pointer-events: none;\n    }\n\n    body.ym-light-theme .ym-album-context-menu .ym-submenu {\n      background: rgba(255, 255, 255, 0.9);\n      border: 1px solid rgba(0, 0, 0, 0.08);\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);\n    }\n\n    .ym-album-context-menu .ym-menu-item-share:hover .ym-submenu {\n      opacity: 1;\n      visibility: visible;\n      transform: translateX(0);\n      pointer-events: auto;\n    }\n\n    .ym-menu-toast {\n      position: fixed;\n      bottom: 40px;\n      left: 50%;\n      transform: translateX(-50%) translateY(20px);\n      padding: 10px 20px;\n      border-radius: 30px;\n      background: rgba(24, 24, 28, 0.92);\n      backdrop-filter: blur(20px);\n      color: #ffffff;\n      font-size: 13px;\n      font-weight: 600;\n      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);\n      z-index: 10000000;\n      opacity: 0;\n      transition: all 0.25s ease;\n      pointer-events: none;\n    }\n\n    .ym-menu-toast.show {\n      opacity: 1;\n      transform: translateX(-50%) translateY(0);\n    }\n\n\n";
+  style.textContent = "/* === vibe-base.css === */\n/* =========================================================================\n       My Vibe Carousel Redesign & Vibe Popover\n       ========================================================================= */\n\n    /* Mode: Hide Wheel Carousel without breaking Swiper/MobX virtualization */\n    body.ym-vibe-no-wheel [class*=\"WheelDesktop_root\"],\n    body.ym-vibe-no-wheel [class*=\"VibePage_wheel\"],\n    body.ym-vibe-with-landing [class*=\"WheelDesktop_root\"],\n    body.ym-vibe-with-landing [class*=\"VibePage_wheel\"] {\n      position: absolute !important;\n      left: -9999px !important;\n      top: -9999px !important;\n      width: 320px !important;\n      height: 600px !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      overflow: hidden !important;\n      z-index: -999 !important;\n    }\n\n    /* Bulletproof Transparent sidebar in No Wheel mode and Vibe With Landing mode */\n    html.ym-vibe-no-wheel aside,\n    body.ym-vibe-no-wheel aside,\n    html.ym-vibe-with-landing aside,\n    body.ym-vibe-with-landing aside,\n    html.ym-vibe-no-wheel aside[class*=\"Navbar\"],\n    body.ym-vibe-no-wheel aside[class*=\"Navbar\"],\n    html.ym-vibe-with-landing aside[class*=\"Navbar\"],\n    body.ym-vibe-with-landing aside[class*=\"Navbar\"],\n    html.ym-vibe-no-wheel [class*=\"Navbar_root\"],\n    body.ym-vibe-no-wheel [class*=\"Navbar_root\"],\n    html.ym-vibe-with-landing [class*=\"Navbar_root\"],\n    body.ym-vibe-with-landing [class*=\"Navbar_root\"],\n    html.ym-vibe-no-wheel [class*=\"DefaultLayout_navbar\"],\n    body.ym-vibe-no-wheel [class*=\"DefaultLayout_navbar\"],\n    html.ym-vibe-with-landing [class*=\"DefaultLayout_navbar\"],\n    body.ym-vibe-with-landing [class*=\"DefaultLayout_navbar\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_root\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_root\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_root\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_root\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_logoWrapper\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_logoWrapper\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_logoWrapper\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_logoWrapper\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContainer\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContainer\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContainer\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContainer\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContent\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_scrollableContent\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContent\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_scrollableContent\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation_new\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigation_new\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation_new\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigation_new\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigationGroup\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_navigationGroup\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_navigationGroup\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_navigationGroup\"],\n    html.ym-vibe-no-wheel [class*=\"SidebarDesktop\"],\n    body.ym-vibe-no-wheel [class*=\"SidebarDesktop\"],\n    html.ym-vibe-with-landing [class*=\"SidebarDesktop\"],\n    body.ym-vibe-with-landing [class*=\"SidebarDesktop\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktop_pinsList\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktop_pinsList\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktop_pinsList\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktop_pinsList\"],\n    html.ym-vibe-no-wheel [class*=\"PinsList_root\"],\n    body.ym-vibe-no-wheel [class*=\"PinsList_root\"],\n    html.ym-vibe-with-landing [class*=\"PinsList_root\"],\n    body.ym-vibe-with-landing [class*=\"PinsList_root\"],\n    html.ym-vibe-no-wheel [class*=\"NavbarDesktopUserWidget\"],\n    body.ym-vibe-no-wheel [class*=\"NavbarDesktopUserWidget\"],\n    html.ym-vibe-with-landing [class*=\"NavbarDesktopUserWidget\"],\n    body.ym-vibe-with-landing [class*=\"NavbarDesktopUserWidget\"],\n    html.ym-vibe-no-wheel [class*=\"UserProfile_root\"],\n    body.ym-vibe-no-wheel [class*=\"UserProfile_root\"],\n    html.ym-vibe-with-landing [class*=\"UserProfile_root\"],\n    body.ym-vibe-with-landing [class*=\"UserProfile_root\"],\n    html.ym-vibe-no-wheel aside.Navbar_root__chF4R,\n    body.ym-vibe-no-wheel aside.Navbar_root__chF4R,\n    html.ym-vibe-with-landing aside.Navbar_root__chF4R,\n    body.ym-vibe-with-landing aside.Navbar_root__chF4R,\n    html.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,\n    body.ym-vibe-no-wheel aside.DefaultLayout_navbar__LIQWG,\n    html.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,\n    body.ym-vibe-with-landing aside.DefaultLayout_navbar__LIQWG,\n    html.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,\n    body.ym-vibe-no-wheel div.NavbarDesktop_root__scYzp,\n    html.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,\n    body.ym-vibe-with-landing div.NavbarDesktop_root__scYzp,\n    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,\n    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContainer__HLc9D,\n    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,\n    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContainer__HLc9D,\n    html.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,\n    body.ym-vibe-no-wheel div.NavbarDesktop_scrollableContent__OyU4P,\n    html.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,\n    body.ym-vibe-with-landing div.NavbarDesktop_scrollableContent__OyU4P,\n    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,\n    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation__dLUGW,\n    html.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,\n    body.ym-vibe-with-landing nav.NavbarDesktop_navigation__dLUGW,\n    html.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,\n    body.ym-vibe-no-wheel nav.NavbarDesktop_navigation_new__0j8W5,\n    html.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,\n    body.ym-vibe-with-landing nav.NavbarDesktop_navigation_new__0j8W5,\n    html.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    body.ym-vibe-no-wheel nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    html.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    body.ym-vibe-with-landing nav.NGdj0oZ2Bt8qdZhP2Tzt,\n    html.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,\n    body.ym-vibe-no-wheel nav.QilmoKKJwk6f0BdkYgrA,\n    html.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,\n    body.ym-vibe-with-landing nav.QilmoKKJwk6f0BdkYgrA,\n    html.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,\n    body.ym-vibe-no-wheel ol.NavbarDesktop_navigationGroup__eexLF,\n    html.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,\n    body.ym-vibe-with-landing ol.NavbarDesktop_navigationGroup__eexLF,\n    html.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,\n    body.ym-vibe-no-wheel ol.yuyI2hMAT7qyL1N14MAQ,\n    html.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,\n    body.ym-vibe-with-landing ol.yuyI2hMAT7qyL1N14MAQ,\n    html.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,\n    body.ym-vibe-no-wheel ol.xfFtKQpgAYvC2jI1tBtS,\n    html.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS,\n    body.ym-vibe-with-landing ol.xfFtKQpgAYvC2jI1tBtS {\n      background: transparent !important;\n      background-color: transparent !important;\n      border: none !important;\n      border-right: none !important;\n      box-shadow: none !important;\n    }\n    html.ym-vibe-no-wheel aside::before,\n    body.ym-vibe-no-wheel aside::before,\n    html.ym-vibe-with-landing aside::before,\n    body.ym-vibe-with-landing aside::before,\n    html.ym-vibe-no-wheel aside::after,\n    body.ym-vibe-no-wheel aside::after,\n    html.ym-vibe-with-landing aside::after,\n    body.ym-vibe-with-landing aside::after,\n    html.ym-vibe-no-wheel [class*=\"Navbar\"]::before,\n    body.ym-vibe-no-wheel [class*=\"Navbar\"]::before,\n    html.ym-vibe-with-landing [class*=\"Navbar\"]::before,\n    body.ym-vibe-with-landing [class*=\"Navbar\"]::before,\n    html.ym-vibe-no-wheel [class*=\"Navbar\"]::after,\n    body.ym-vibe-no-wheel [class*=\"Navbar\"]::after,\n    html.ym-vibe-with-landing [class*=\"Navbar\"]::after,\n    body.ym-vibe-with-landing [class*=\"Navbar\"]::after {\n      display: none !important;\n      background: transparent !important;\n    }\n\n    /* Only show trigger button in no_wheel and vibe_with_landing modes */\n    body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {\n      display: none !important;\n    }\n\n    /* Context container (Мне нравится ✕) */\n    [class*=\"VibePage_context\"] {\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin-bottom: 6px !important;\n    }\n\n    /* Ensure Vibe Meta stacks vertically centered */\n    body.ym-vibe-no-wheel [class*=\"VibePage_meta\"],\n    body.ym-vibe-with-landing [class*=\"VibePage_meta\"] {\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n    }\n\n    /* Trigger Button (Clean, no border, placed vertically UNDER the context button) */\n    .ym-vibe-settings-trigger-btn {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      align-self: center !important;\n      margin: 4px auto 12px auto !important;\n      padding: 7px 18px;\n      border-radius: 9999px;\n      border: none !important;\n      outline: none !important;\n      background: rgba(255, 255, 255, 0.08);\n      color: #ffffff;\n      font-size: 13px;\n      font-weight: 600;\n      font-family: inherit;\n      cursor: pointer;\n      backdrop-filter: blur(16px);\n      -webkit-backdrop-filter: blur(16px);\n      box-shadow: none !important;\n      transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);\n      user-select: none;\n      z-index: 10;\n    }\n    .ym-vibe-settings-trigger-btn:hover {\n      background: rgba(255, 255, 255, 0.14);\n      border: none !important;\n      color: #ffffff !important;\n      box-shadow: none !important;\n      transform: translateY(-1px);\n    }\n    .ym-vibe-settings-trigger-btn:active {\n      transform: translateY(0) scale(0.98);\n    }\n\n\n/* === vibe-popover.css === */\n/* Popover Container */\n    .ym-vibe-popover {\n      position: fixed;\n      z-index: 999999;\n      width: 380px;\n      max-height: 500px;\n      display: flex;\n      flex-direction: column;\n      background: rgba(20, 20, 24, 0.92);\n      backdrop-filter: blur(28px) saturate(190%);\n      -webkit-backdrop-filter: blur(28px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.12);\n      border-radius: 20px;\n      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);\n      color: #ffffff;\n      font-family: \"YS Text\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;\n      box-sizing: border-box;\n      overflow: hidden;\n      animation: ymVibePopoverIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;\n      transform-origin: top center;\n    }\n    .ym-vibe-popover.closing {\n      animation: ymVibePopoverOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards;\n    }\n    @keyframes ymVibePopoverIn {\n      from {\n        opacity: 0;\n        transform: scale(0.95) translateY(-6px);\n      }\n      to {\n        opacity: 1;\n        transform: scale(1) translateY(0);\n      }\n    }\n    @keyframes ymVibePopoverOut {\n      from {\n        opacity: 1;\n        transform: scale(1) translateY(0);\n      }\n      to {\n        opacity: 0;\n        transform: scale(0.95) translateY(-6px);\n      }\n    }\n\n    /* Popover Header */\n    .ym-vibe-popover-header {\n      padding: 16px 18px 10px 18px;\n      border-bottom: 1px solid rgba(255, 255, 255, 0.08);\n      display: flex;\n      flex-direction: column;\n      gap: 12px;\n    }\n    .ym-vibe-popover-title-row {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n    }\n    .ym-vibe-popover-title {\n      font-size: 15px;\n      font-weight: 700;\n      color: #ffffff;\n      font-family: \"YSMusic Headline\", sans-serif;\n      display: flex;\n      align-items: center;\n      gap: 8px;\n    }\n    .ym-vibe-popover-close-btn {\n      background: none;\n      border: none;\n      color: rgba(255, 255, 255, 0.4);\n      font-size: 15px;\n      cursor: pointer;\n      padding: 4px;\n      border-radius: 6px;\n      transition: color 0.15s, background 0.15s;\n      line-height: 1;\n    }\n    .ym-vibe-popover-close-btn:hover {\n      color: #ffffff;\n      background: rgba(255, 255, 255, 0.1);\n    }\n\n    /* Categories Bar */\n    .ym-vibe-categories-bar {\n      display: flex;\n      align-items: center;\n      gap: 7px;\n      overflow-x: auto;\n      overflow-y: hidden;\n      padding: 4px 2px 6px 2px;\n      scrollbar-width: none;\n      -ms-overflow-style: none;\n      cursor: grab;\n      user-select: none;\n    }\n    .ym-vibe-categories-bar::-webkit-scrollbar {\n      display: none;\n    }\n    .ym-vibe-cat-chip {\n      background: rgba(255, 255, 255, 0.06);\n      border: 1px solid rgba(255, 255, 255, 0.08);\n      border-radius: 9999px;\n      padding: 4px 11px;\n      font-size: 11.5px;\n      font-weight: 600;\n      color: rgba(255, 255, 255, 0.7);\n      cursor: pointer;\n      white-space: nowrap;\n      transition: all 0.15s ease;\n      font-family: inherit;\n    }\n    .ym-vibe-cat-chip:hover {\n      background: rgba(255, 255, 255, 0.12);\n      color: #ffffff;\n    }\n    .ym-vibe-cat-chip.active {\n      background: #ffdb4d;\n      border-color: #ffdb4d;\n      color: #000000;\n      font-weight: 700;\n      box-shadow: 0 2px 8px rgba(255, 219, 77, 0.3);\n    }\n\n    /* List Container */\n    .ym-vibe-popover-list {\n      flex: 1;\n      overflow-y: auto;\n      max-height: 330px;\n      padding: 8px 10px 12px 14px;\n      display: flex;\n      flex-direction: column;\n      gap: 4px;\n      scrollbar-width: thin;\n      scrollbar-color: rgba(255, 255, 255, 0.22) transparent;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar {\n      width: 5px;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-track {\n      background: transparent;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-thumb {\n      background: rgba(255, 255, 255, 0.18);\n      border-radius: 9999px;\n    }\n    .ym-vibe-popover-list::-webkit-scrollbar-thumb:hover {\n      background: rgba(255, 219, 77, 0.6);\n    }\n\n    /* Item Card */\n    .ym-vibe-item-card {\n      display: flex;\n      align-items: center;\n      justify-content: space-between;\n      padding: 8px 10px;\n      border-radius: 12px;\n      cursor: pointer;\n      background: transparent;\n      border: 1px solid transparent;\n      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);\n      position: relative;\n    }\n    .ym-vibe-item-card:hover {\n      background: rgba(255, 255, 255, 0.08);\n      border-color: rgba(255, 255, 255, 0.1);\n      transform: translateX(2px);\n    }\n    .ym-vibe-item-card:hover .ym-vibe-item-play-btn {\n      opacity: 1;\n      transform: scale(1);\n    }\n    .ym-vibe-item-left {\n      display: flex;\n      align-items: center;\n      gap: 12px;\n      min-width: 0;\n      flex: 1;\n    }\n    .ym-vibe-item-cover {\n      width: 40px;\n      height: 40px;\n      border-radius: 10px;\n      object-fit: cover;\n      flex-shrink: 0;\n      background: rgba(255, 255, 255, 0.05);\n      border: 1px solid rgba(255, 255, 255, 0.08);\n    }\n    .ym-vibe-item-cover-placeholder {\n      width: 40px;\n      height: 40px;\n      border-radius: 10px;\n      flex-shrink: 0;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n    }\n    .ym-vibe-item-info {\n      display: flex;\n      flex-direction: column;\n      min-width: 0;\n      gap: 2px;\n    }\n    .ym-vibe-item-name {\n      font-size: 13.5px;\n      font-weight: 600;\n      color: #ffffff;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n    .ym-vibe-item-desc {\n      font-size: 11px;\n      color: rgba(255, 255, 255, 0.45);\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n    .ym-vibe-item-play-btn {\n      width: 28px;\n      height: 28px;\n      border-radius: 50%;\n      background: #ffdb4d;\n      color: #000000;\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      opacity: 0;\n      transform: scale(0.85);\n      transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);\n      flex-shrink: 0;\n      margin-left: 8px;\n      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);\n    }\n    .ym-vibe-item-play-btn svg {\n      margin-left: 2px;\n    }\n\n    .ym-vibe-empty {\n      padding: 30px 16px;\n      text-align: center;\n      color: rgba(255, 255, 255, 0.45);\n      font-size: 13px;\n      line-height: 1.5;\n    }\n\n\n/* === vibe-feed.css === */\n/* =========================================================================\n       Mode 3: Vibe with Live Landing Feed (Hybrid Mode)\n       ========================================================================= */\n\n    /* Scrollable main container in Mode 3 (vibe_with_landing) while keeping original body / layout paddings */\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"]) {\n      overflow-y: auto !important;\n      overflow-x: hidden !important;\n      height: 100% !important;\n      max-height: 100% !important;\n      box-sizing: border-box !important;\n      scroll-behavior: smooth;\n      scrollbar-width: thin;\n      scrollbar-color: rgba(255, 255, 255, 0.15) transparent;\n      background: transparent !important;\n      pointer-events: auto !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar {\n      width: 6px;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-track {\n      background: transparent;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-thumb {\n      background: rgba(255, 255, 255, 0.15);\n      border-radius: 9999px;\n    }\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"]:has([class*=\"VibePage_root\"])::-webkit-scrollbar-thumb:hover {\n      background: rgba(255, 255, 255, 0.25);\n    }\n\n    /* Vibe Widget container and hero section - Constrain width to prevent 10688px blowout (ONLY on Vibe page) */\n    html.ym-vibe-with-landing:has([class*=\"VibePage_root\"]) [class*=\"MainPage_actionsBar\"],\n    body.ym-vibe-with-landing:has([class*=\"VibePage_root\"]) [class*=\"MainPage_actionsBar\"] {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n      overflow: hidden !important;\n      pointer-events: none !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"CommonLayout_content\"] main[class*=\"Content_main\"],\n    body.ym-vibe-with-landing [class*=\"CommonLayout_content\"] main[class*=\"Content_main\"],\n    html.ym-vibe-with-landing [class*=\"MainPage_vibeWidgetContainer\"],\n    body.ym-vibe-with-landing [class*=\"MainPage_vibeWidgetContainer\"] {\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      overflow-x: hidden !important;\n      box-sizing: border-box !important;\n      height: auto !important;\n      min-height: auto !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: stretch !important;\n      overflow-y: visible !important;\n      border: none !important;\n      border-radius: 0 !important;\n      background: transparent !important;\n      box-shadow: none !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_root\"] {\n      height: 100vh !important;\n      min-height: 100vh !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      position: relative !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      padding: 0 !important;\n      margin: 0 !important;\n      box-sizing: border-box !important;\n      overflow: visible !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_meta\"] {\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      height: auto !important;\n      width: 100% !important;\n      max-width: 900px !important;\n      margin: 0 auto !important;\n      position: relative !important;\n      z-index: 5 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_context\"] {\n      order: 1 !important;\n      margin-bottom: 6px !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_entityMeta\"] {\n      order: 2 !important;\n      height: auto !important;\n      min-height: auto !important;\n      display: flex !important;\n      flex-direction: column !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin-bottom: 110px !important;\n      position: relative !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_entityMetaBody\"] {\n      height: auto !important;\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      position: relative !important;\n      margin: 0 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_textContainer\"] {\n      height: auto !important;\n      padding-bottom: 0 !important;\n      margin: 0 !important;\n    }\n\n    html.ym-vibe-with-landing [class*=\"VibePage_playerBlock\"] {\n      order: 3 !important;\n      position: relative !important;\n      display: flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      margin: 0 auto 12px auto !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-settings-btn {\n      order: 4 !important;\n      margin: 6px auto 16px auto !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-quick-block {\n      display: none !important;\n    }\n\n    /* Center the animated fluid canvas behind vibe player */\n    html.ym-vibe-with-landing [class*=\"VibePage_root\"] [class*=\"VibeWidgetAnimation_root\"] {\n      position: absolute !important;\n      left: 50% !important;\n      top: 38% !important;\n      transform: translate(-50%, -50%) !important;\n      pointer-events: none !important;\n    }\n\n    /* ========================================================\n       NATIVE 1-TO-1 LANDING FEED (STRICTLY SCOPED TO MODE 3 ONLY)\n       Never leaks to https://music.yandex.ru/landing/main\n       ======================================================== */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed {\n      width: 100% !important;\n      max-width: 100% !important;\n      min-width: 0 !important;\n      margin: 16px 0 0 0 !important;\n      padding-top: 0 !important;\n      padding-bottom: 80px !important;\n      padding-right: 24px !important;\n      padding-left: calc(var(--ym-aside-width, 200px) + 24px) !important;\n      box-sizing: border-box !important;\n      display: flex !important;\n      flex-direction: column !important;\n      flex-shrink: 0 !important;\n      gap: 24px !important;\n      z-index: 2 !important;\n      overflow-x: hidden !important;\n      transition: padding-left 0.2s cubic-bezier(0.2, 0, 0, 1);\n      pointer-events: auto !important;\n    }\n\n    html.ym-vibe-with-landing.ym-navbar-collapsed #ym-vibe-live-landing-feed,\n    html.ym-vibe-with-landing:has(aside [class*=\"title_collapsed\"]) #ym-vibe-live-landing-feed,\n    html.ym-vibe-with-landing:has(aside.ym-collapsed) #ym-vibe-live-landing-feed {\n      padding-left: calc(64px + 24px) !important;\n    }\n\n    /* --- Tabs Row (Для вас / Тренды) --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header {\n      padding: 0 !important;\n      margin: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy {\n      display: flex !important;\n      align-items: center !important;\n      gap: 8px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      margin: 0 !important;\n      padding: 0 !important;\n      list-style: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-landing-tabs-header .TabCarousel_root__8DoRy::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    /* --- Likes & History Section (Exact 1-to-1) --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_root__KCuz_ {\n      padding: 0 !important;\n      margin: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD {\n      display: flex !important;\n      gap: 16px !important;\n      padding: 0 !important;\n      margin: 0 !important;\n      list-style: none !important;\n      overflow-x: auto !important;\n      scrollbar-width: none !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carousel__579RD::-webkit-scrollbar {\n      display: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .LikesAndHistory_carouselItem__Yq5Xw {\n      width: 392px !important;\n      max-width: calc(50vw - 32px) !important;\n      min-width: 280px !important;\n      height: 82px !important;\n      flex-shrink: 0 !important;\n      scroll-snap-align: start !important;\n      list-style: none !important;\n    }\n\n    /* --- Common Section Styles & Headers --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section {\n      display: flex !important;\n      flex-direction: column !important;\n      gap: 16px !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      box-sizing: border-box !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF {\n      gap: 0 !important;\n    }\n\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_root__j3mbg,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_header__L5F6H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-header {\n      display: flex !important;\n      align-items: center !important;\n      justify-content: space-between !important;\n      padding: 12px 0 8px 0 !important;\n      padding-bottom: 8px !important;\n      padding-block-end: 8px !important;\n      margin: 0 !important;\n      width: 100% !important;\n      max-width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .BlockHeader_start__ZrGP5 {\n      width: auto !important;\n      flex: 1 1 auto !important;\n      min-width: 0 !important;\n      display: flex !important;\n      align-items: center !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {\n      align-items: center !important;\n      display: flex !important;\n      gap: var(--ym-spacer-size-s, 8px) !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      transition: opacity var(--ym-duration-transition, 0.2s ease) !important;\n      margin-left: auto !important;\n    }\n    @media only screen and (max-width: 767.98px) {\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_controls__zlJZF,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_controls__mGqhj,\n      html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_controls__bUp2H {\n        display: none !important;\n      }\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-section:hover .Vibes_controls__bUp2H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_root__Bk6PF:hover .Vibes_controls__bUp2H,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE:hover .InStyle_controls__mGqhj,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw:hover .NewReleases_controls__zlJZF,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-concerts-section:hover .CarouselControls_root__E_hwc,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselControls_root__E_hwc:hover {\n      opacity: 1 !important;\n      pointer-events: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Vibes_heading__4i5bM,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link {\n      font-family: \"YSMusic Headline\", \"YS Text\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif !important;\n      font-size: 24px !important;\n      font-weight: 700 !important;\n      line-height: 26px !important;\n      color: #ffffff !important;\n      margin: 0 !important;\n      letter-spacing: normal !important;\n      text-decoration: none !important;\n      display: inline-flex !important;\n      align-items: center !important;\n      gap: 6px !important;\n      cursor: pointer !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link svg {\n      width: 14px !important;\n      height: 14px !important;\n      opacity: 0.5 !important;\n      transition: transform 0.15s ease, opacity 0.15s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-title-link:hover svg {\n      transform: translateX(3px) !important;\n      opacity: 1 !important;\n    }\n\n\n/* === vibe-ai-waves.css === */\n/* --- Robust AI Set & Waves Category Filter Chips --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy {\n      display: flex !important;\n      align-items: center !important;\n      flex-direction: row !important;\n      gap: 8px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      margin: 0 !important;\n      margin-bottom: 0 !important;\n      margin-block-end: 0 !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      padding-inline-start: 0 !important;\n      padding-bottom: 16px !important;\n      padding-block-end: 16px !important;\n      list-style: none !important;\n      box-sizing: border-box !important;\n      height: auto !important;\n      min-height: 48px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chips-row::-webkit-scrollbar,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .TabCarousel_root__8DoRy::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-item {\n      list-style: none !important;\n      flex-shrink: 0 !important;\n      display: inline-flex !important;\n      align-items: center !important;\n      margin: 0 !important;\n      padding: 0 !important;\n      height: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      height: 36px !important;\n      min-height: 36px !important;\n      max-height: 36px !important;\n      padding: 0 16px !important;\n      border-radius: 9999px !important;\n      border: none !important;\n      outline: none !important;\n      background: transparent !important;\n      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;\n      font-family: \"YS Text\", sans-serif !important;\n      font-style: normal !important;\n      font-size: 14px !important;\n      font-weight: 500 !important;\n      line-height: 20px !important;\n      letter-spacing: normal !important;\n      white-space: nowrap !important;\n      cursor: pointer !important;\n      flex-shrink: 0 !important;\n      box-sizing: border-box !important;\n      transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;\n      text-decoration: none !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover {\n      background: rgba(255, 255, 255, 0.08) !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn:not(.is-active):hover .Tab_title__hAYZk {\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected=\"true\"] {\n      background: var(--ym-controls-color-secondary-default-enabled, rgba(255, 255, 255, 0.2)) !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n      font-weight: 700 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_description__p1fTO {\n      display: inline-flex !important;\n      align-items: center !important;\n      justify-content: center !important;\n      line-height: normal !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn .Tab_title__hAYZk {\n      font-family: \"YS Text\", sans-serif !important;\n      font-style: normal !important;\n      font-size: 14px !important;\n      font-weight: 500 !important;\n      line-height: 20px !important;\n      color: var(--color-text-secondary, var(--yp-color-text-secondary, rgba(255, 255, 255, 0.65))) !important;\n      white-space: nowrap !important;\n      transition: color 0.15s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.is-active .Tab_title__hAYZk,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn.cBxrIXbcPeS3kSzdJdhS .Tab_title__hAYZk,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-filter-chip-btn[aria-selected=\"true\"] .Tab_title__hAYZk {\n      font-weight: 700 !important;\n      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;\n    }\n\n    /* --- Native 1-to-1 AI Set & Waves Cards Carousel --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 12px 0 !important;\n      padding-left: 0 !important;\n      padding-top: 0 !important;\n      padding-block-start: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-ai-carousel::-webkit-scrollbar,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-waves-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .VibesCarousel_item__AupL0 {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n      display: flex !important;\n      align-items: center !important;\n    }\n\n\n/* === vibe-instyle.css === */\n/* --- Native 1-to-1 In Style Section & Album Cards --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_root__ZsdXE {\n      position: relative !important;\n      display: flex !important;\n      flex-direction: column !important;\n      gap: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-instyle-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .InStyle_item__e5_Qz {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n      width: 190px !important;\n      min-width: 170px !important;\n      max-width: 210px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_root__vP6k4 {\n      display: flex !important;\n      flex-direction: column !important;\n      width: 100% !important;\n      text-decoration: none !important;\n      position: relative !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY {\n      position: relative !important;\n      border-radius: var(--ym-radius-size-m, 12px) !important;\n      overflow: hidden !important;\n      cursor: pointer !important;\n      aspect-ratio: 1 !important;\n      width: 100% !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_image__Mm55s {\n      width: 100% !important;\n      height: 100% !important;\n      object-fit: cover !important;\n      display: block !important;\n      transition: transform 0.2s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_image__Mm55s {\n      transform: scale(1.03) !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_controls__yuO40 {\n      position: absolute !important;\n      inset: 0 !important;\n      display: flex !important;\n      flex-direction: column !important;\n      justify-content: space-between !important;\n      padding: 8px !important;\n      box-sizing: border-box !important;\n      background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;\n      opacity: 0 !important;\n      pointer-events: none !important;\n      transition: opacity 0.2s ease !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:hover .AlbumCard_controls__yuO40,\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_coverBlock__94ZzY:focus-within .AlbumCard_controls__yuO40 {\n      opacity: 1 !important;\n      pointer-events: auto !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .AlbumCard_control__qx7Xh {\n      cursor: pointer !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_tab_withCovers__dJzMH {\n      display: inline-flex !important;\n      align-items: center !important;\n      gap: 8px !important;\n      padding: 4px 14px 4px 6px !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_covers__cvYeI {\n      display: flex !important;\n      align-items: center !important;\n      flex-shrink: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .Tab_image__Hen3_ {\n      width: 28px !important;\n      height: 28px !important;\n      border-radius: 50% !important;\n      object-fit: cover !important;\n      display: block !important;\n    }\n\n\n/* === vibe-releases.css === */\n/* --- Native 1-to-1 New Releases Section --- */\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_root__4ONiw {\n      gap: 0 !important;\n      width: 100% !important;\n      box-sizing: border-box !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel {\n      display: flex !important;\n      flex-direction: row !important;\n      gap: 16px !important;\n      overflow-x: auto !important;\n      overflow-y: hidden !important;\n      scrollbar-width: none !important;\n      padding: 0 0 16px 0 !important;\n      padding-left: 0 !important;\n      scroll-snap-type: x mandatory !important;\n      scroll-behavior: smooth !important;\n      -webkit-overflow-scrolling: touch !important;\n      box-sizing: border-box !important;\n      list-style: none !important;\n      margin: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-releases-carousel::-webkit-scrollbar {\n      display: none !important;\n      width: 0 !important;\n      height: 0 !important;\n    }\n    html.ym-vibe-with-landing #ym-vibe-live-landing-feed .NewReleases_item__Gv0iR {\n      flex-shrink: 0 !important;\n      list-style: none !important;\n      scroll-snap-align: start !important;\n    }\n\n\n/* === vibe-concerts.css === */\n/* =========================================================================\n   BetterYandexMusic: Native 1-to-1 Concerts Carousel & Cards\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .Concerts_root__12jay {\n  --concert-card-aspect-ratio: 0.701;\n  width: 100% !important;\n  box-sizing: border-box !important;\n  margin-bottom: 24px !important;\n  position: relative !important;\n}\n\n/* Горизонтальный скролл контейнера карусели */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  margin: 0 !important;\n  list-style: none !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-concerts-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\n/* Элемент списка карусели */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .Concerts_item__jetvg {\n  width: 210px !important;\n  min-width: 190px !important;\n  max-width: 230px !important;\n  flex-shrink: 0 !important;\n  scroll-snap-align: start !important;\n  list-style: none !important;\n  margin: 0 !important;\n  padding: 0 !important;\n  height: auto !important;\n}\n\n/* Карточка концерта — оригинальный контейнер без фиксации высоты через aspect-ratio */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertCardWithImage_root__NHF59 {\n  cursor: pointer;\n  display: flex !important;\n  flex-direction: column !important;\n  width: 100% !important;\n  height: auto !important;\n  aspect-ratio: auto !important;\n  text-decoration: none;\n  user-select: none;\n  position: relative;\n  overflow: visible !important;\n}\n\n/* Обложка-постер со строгим оригинальным aspect-ratio 0.701 */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertCardWithImage_cover__3V2fk {\n  position: relative !important;\n  aspect-ratio: 0.701 !important;\n  width: 100% !important;\n  border-radius: var(--ym-radius-size-m, 16px) !important;\n  overflow: hidden !important;\n  flex-shrink: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertImage_root__gZpOa {\n  height: 100%;\n  width: 100%;\n  position: relative;\n  overflow: hidden;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertImage_image__xtZCZ {\n  border-radius: var(--ym-radius-size-m, 16px);\n  height: 100%;\n  width: 100%;\n  object-fit: cover;\n  display: block;\n}\n\n\n/* Метаданные (название, дата, город) под постером — гарантированно видны без обрезания */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ConcertMeta_root__CkKU3 {\n  display: flex !important;\n  flex-direction: column !important;\n  width: 100% !important;\n  margin-top: 8px !important;\n  overflow: visible !important;\n  flex-shrink: 0 !important;\n  gap: 2px !important;\n}\n\n/* Скрытый для скринридеров тег внутри карточки (нативный класс Яндекса) */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .eaYyesBmJL_NbkgoYR1c {\n  position: absolute !important;\n  border: 0 !important;\n  clip: rect(0, 0, 0, 0) !important;\n  height: 1px !important;\n  margin: -1px !important;\n  overflow: hidden !important;\n  padding: 0 !important;\n  width: 1px !important;\n  white-space: nowrap !important;\n}\n\n\n\n\n/* === vibe-premiere.css === */\n/* =========================================================================\n   BetterYandexMusic: Native 1-to-1 Premiere Section (Smart Open Playlist)\n   Clean stylesheet: preserves all native Yandex Music CSS & responsive breakpoints (including <1060px)\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL {\n  width: 100% !important;\n  box-sizing: border-box !important;\n  margin-bottom: 24px !important;\n  position: relative !important;\n}\n\n/* Scrollable carousel container */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg {\n  display: flex !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .SkeletonBlock_tracksContainer__uF8Tg::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\n/* Carousel navigation arrows reveal on section hover */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistWithTracks_root__jchZL:hover .CarouselControls_root__E_hwc {\n  opacity: 1 !important;\n  pointer-events: auto !important;\n}\n\n/* BYM track download button inside native track row */\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP .ym-track-row-download-btn {\n  opacity: 0;\n  transition: opacity 0.15s ease;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP:hover .ym-track-row-download-btn {\n  opacity: 1;\n}\n\n\n/* === vibe-mixes.css === */\n/* =========================================================================\n   BetterYandexMusic: Mixes Music Section (Подборки музыки - Тренды)\n   Exact 1-to-1 Native Layout matching Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-mixes-music-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-mixes-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-mixes-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-mixes-music-section .CarouselBlock_item__DatZ2 {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n}\n\n\n/* === vibe-albums-month.css === */\n/* =========================================================================\n   BetterYandexMusic: Albums of the Month Section (Тренды)\n   Exact 1-to-1 Native Style matching New Releases from Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-albums-month-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-albums-month-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section .NewReleases_item__Gv0iR {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n}\n\n\n/* === vibe-chart.css === */\n/* =========================================================================\n   BetterYandexMusic: Chart Section (Чарт - Тренды)\n   Exact 1-to-1 Native Layout matching Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chart-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 24px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chart-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_item__RBGs4 {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n  width: calc(50% - 12px) !important;\n  min-width: 340px !important;\n  box-sizing: border-box !important;\n}\n\n@media (max-width: 1060px) {\n  html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_item__RBGs4 {\n    width: 100% !important;\n    min-width: 280px !important;\n  }\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_column__oMRES {\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0 !important;\n  width: 100% !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .TrackChart_chartCell__33_al {\n  display: flex !important;\n  flex-direction: column !important;\n  align-items: center !important;\n  justify-content: center !important;\n  min-width: 28px !important;\n  width: 28px !important;\n  margin-right: 8px !important;\n  text-align: center !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .Chart_position__7UNY9 {\n  font-size: 14px !important;\n  font-weight: 700 !important;\n  line-height: 16px !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .Chart_progress__sGj4s {\n  width: 12px !important;\n  height: 12px !important;\n  margin-top: 2px !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselWithColumnsBlock_root__v_qoo:hover .CarouselControls_root__E_hwc {\n  opacity: 1 !important;\n  pointer-events: auto !important;\n}\n\n\n/* === vibe-editorial.css === */\n/* =========================================================================\n   BetterYandexMusic: Editorial Compilations Sections (Тренды)\n   Exact 1-to-1 Native Layout matching Yandex Music\n   ========================================================================= */\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section {\n  gap: 0 !important;\n  width: 100% !important;\n  box-sizing: border-box !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel {\n  display: flex !important;\n  flex-direction: row !important;\n  gap: 16px !important;\n  overflow-x: auto !important;\n  overflow-y: hidden !important;\n  scrollbar-width: none !important;\n  padding: 0 0 16px 0 !important;\n  padding-left: 0 !important;\n  scroll-snap-type: x mandatory !important;\n  scroll-behavior: smooth !important;\n  -webkit-overflow-scrolling: touch !important;\n  box-sizing: border-box !important;\n  list-style: none !important;\n  margin: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel::-webkit-scrollbar {\n  display: none !important;\n  width: 0 !important;\n  height: 0 !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section .CarouselBlock_item__DatZ2 {\n  flex-shrink: 0 !important;\n  list-style: none !important;\n  scroll-snap-align: start !important;\n  width: 172px !important;\n  min-width: 172px !important;\n  max-width: 172px !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section:hover .CarouselControls_root__E_hwc {\n  opacity: 1 !important;\n  pointer-events: auto !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_controls__Ej8Rz,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI {\n  position: absolute !important;\n  inset: 0 !important;\n  display: flex !important;\n  flex-direction: column !important;\n  justify-content: space-between !important;\n  padding: 8px !important;\n  box-sizing: border-box !important;\n  background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;\n  opacity: 0 !important;\n  pointer-events: none !important;\n  transition: opacity 0.2s ease !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:hover .PlaylistCard_controls__Ej8Rz,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:focus-within .PlaylistCard_controls__Ej8Rz,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .ArtistCard_controls__jsqqI,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .ArtistCard_controls__jsqqI,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l.is-playing .PlaylistCard_controls__Ej8Rz,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l.is-playing .ArtistCard_controls__jsqqI {\n  opacity: 1 !important;\n  pointer-events: auto !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x {\n  position: relative !important;\n  overflow: hidden !important;\n  aspect-ratio: 1 !important;\n  width: 100% !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN {\n  border-radius: var(--ym-radius-size-m, 12px) !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x {\n  border-radius: 50% !important;\n}\n\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_image__Li6oy,\nhtml.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_image__pONJx {\n  width: 100% !important;\n  height: 100% !important;\n  object-fit: cover !important;\n  display: block !important;\n}\n\n\n/* === vibe-context-menu.css === */\n/* =========================================================================\n       BetterYandexMusic: Album Context Menu (Exact 1-to-1 Yandex Glassmorphism)\n       ========================================================================= */\n    .ym-native-album-menu,\n    .ym-native-album-submenu,\n    .ym-native-sub-menu {\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.2) !important;\n      user-select: none !important;\n    }\n    .ym-native-album-menu button,\n    .ym-native-album-submenu button,\n    .ym-native-sub-menu button {\n      width: 100% !important;\n      text-align: left !important;\n      cursor: pointer !important;\n    }\n\n    .ym-album-context-menu {\n      position: fixed;\n      z-index: 9999999;\n      min-width: 210px;\n      padding: 6px;\n      background: rgba(30, 26, 28, 0.78);\n      backdrop-filter: blur(32px) saturate(190%);\n      -webkit-backdrop-filter: blur(32px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.1);\n      border-radius: 18px;\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 2px 6px rgba(0, 0, 0, 0.2);\n      color: #ffffff;\n      font-family: 'YS Text', 'Yandex Sans', -apple-system, BlinkMacSystemFont, Arial, sans-serif;\n      font-size: 14px;\n      font-weight: 500;\n      opacity: 0;\n      transform: scale(0.95);\n      transform-origin: top left;\n      transition: opacity 0.14s ease, transform 0.14s cubic-bezier(0.16, 1, 0.3, 1);\n      pointer-events: none;\n      user-select: none;\n      box-sizing: border-box;\n    }\n\n    body.ym-light-theme .ym-album-context-menu {\n      background: rgba(255, 255, 255, 0.82);\n      border: 1px solid rgba(0, 0, 0, 0.08);\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14), 0 2px 6px rgba(0, 0, 0, 0.06);\n      color: #121212;\n    }\n\n    .ym-album-context-menu.ym-menu-visible {\n      opacity: 1;\n      transform: scale(1);\n      pointer-events: auto;\n    }\n\n    .ym-album-context-menu .ym-menu-item {\n      display: flex;\n      align-items: center;\n      gap: 12px;\n      padding: 10px 12px;\n      border-radius: 12px;\n      cursor: pointer;\n      color: inherit;\n      transition: background 0.12s ease;\n      position: relative;\n    }\n\n    .ym-album-context-menu .ym-menu-item:hover {\n      background: rgba(255, 255, 255, 0.1);\n    }\n\n    body.ym-light-theme .ym-album-context-menu .ym-menu-item:hover {\n      background: rgba(0, 0, 0, 0.06);\n    }\n\n    .ym-album-context-menu .ym-menu-item-icon {\n      width: 16px;\n      height: 16px;\n      flex-shrink: 0;\n      fill: currentColor;\n      opacity: 0.85;\n    }\n\n    .ym-album-context-menu .ym-menu-item-text {\n      flex: 1;\n      white-space: nowrap;\n      overflow: hidden;\n      text-overflow: ellipsis;\n    }\n\n    .ym-album-context-menu .ym-menu-arrow {\n      width: 12px;\n      height: 12px;\n      opacity: 0.6;\n      margin-left: auto;\n      fill: currentColor;\n    }\n\n    /* Submenu for Share */\n    .ym-album-context-menu .ym-submenu {\n      position: absolute;\n      top: -6px;\n      left: calc(100% + 6px);\n      min-width: 200px;\n      padding: 6px;\n      background: rgba(30, 26, 28, 0.88);\n      backdrop-filter: blur(32px) saturate(190%);\n      -webkit-backdrop-filter: blur(32px) saturate(190%);\n      border: 1px solid rgba(255, 255, 255, 0.1);\n      border-radius: 18px;\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);\n      opacity: 0;\n      visibility: hidden;\n      transform: translateX(-4px);\n      transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;\n      pointer-events: none;\n    }\n\n    body.ym-light-theme .ym-album-context-menu .ym-submenu {\n      background: rgba(255, 255, 255, 0.9);\n      border: 1px solid rgba(0, 0, 0, 0.08);\n      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.14);\n    }\n\n    .ym-album-context-menu .ym-menu-item-share:hover .ym-submenu {\n      opacity: 1;\n      visibility: visible;\n      transform: translateX(0);\n      pointer-events: auto;\n    }\n\n    .ym-menu-toast {\n      position: fixed;\n      bottom: 40px;\n      left: 50%;\n      transform: translateX(-50%) translateY(20px);\n      padding: 10px 20px;\n      border-radius: 30px;\n      background: rgba(24, 24, 28, 0.92);\n      backdrop-filter: blur(20px);\n      color: #ffffff;\n      font-size: 13px;\n      font-weight: 600;\n      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);\n      z-index: 10000000;\n      opacity: 0;\n      transition: all 0.25s ease;\n      pointer-events: none;\n    }\n\n    .ym-menu-toast.show {\n      opacity: 1;\n      transform: translateX(-50%) translateY(0);\n    }\n\n\n";
   document.head.appendChild(style);
 }
 
@@ -21223,14 +21223,40 @@ let searchQuery = "";
 
   function isAlbumTrailerCurrentlyPlaying(albumId) {
     if (!albumId) return false;
+    const svc = getTrailerService();
+    const targetKey = typeof albumId === 'object'
+      ? (albumId.uid && albumId.kind ? `${albumId.uid}:${albumId.kind}` : String(albumId.id || albumId.uuid || albumId.kind || ''))
+      : String(albumId);
+
+    // 1. Проверяем нативное состояние trailerService (открытая шторка)
+    if (svc && svc.modal?.isOpened) {
+      const activeId = String(svc.id || '');
+      if (activeId && (activeId === targetKey || activeId === String(albumId.id || albumId.uuid || ''))) {
+        return true;
+      }
+      if (typeof albumId === 'object' && albumId.uid && albumId.kind && activeId === `${albumId.uid}:${albumId.kind}`) {
+        return true;
+      }
+    }
+
+    // 2. Проверяем Sonata Core контекст
     const player = getSafeActivePlayer();
     if (!player) return false;
     const ctx = player.contextController?.currentContext;
     const ctxData = ctx?.contextData || ctx?.data;
     const isTrailer = ctxData?.trailer === true || player.id === 'TRAILER';
-    const targetIdStr = String(albumId);
-    const metaId = String(ctxData?.meta?.id || ctx?.meta?.id || '');
-    return isTrailer && metaId === targetIdStr && isPlayerPlaying(player);
+    if (!isTrailer || !isPlayerPlaying(player)) return false;
+
+    const targetIdStr = typeof albumId === 'object' ? String(albumId.id || albumId.uuid || albumId.kind || '') : String(albumId);
+    const metaId = String(ctxData?.meta?.id || ctx?.meta?.id || ctxData?.meta?.uuid || ctx?.meta?.uuid || '');
+    if (metaId && (metaId === targetIdStr || metaId === targetKey)) return true;
+
+    if (typeof albumId === 'object' && albumId.uid && albumId.kind) {
+      const metaUid = String(ctxData?.meta?.uid || ctx?.meta?.uid || '');
+      const metaKind = String(ctxData?.meta?.kind || ctx?.meta?.kind || '');
+      if (metaUid === String(albumId.uid) && metaKind === String(albumId.kind)) return true;
+    }
+    return false;
   }
 
   function isTrackCurrentlyPlaying(trackId) {
@@ -21270,6 +21296,69 @@ let searchQuery = "";
       if (itemSeeds.some(s => ctxSeeds.includes(s))) {
         isMatch = true;
       }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isPlaylistCurrentlyPlaying(playlistId, playlistObj) {
+    if (!playlistId && !playlistObj) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const ctx = player.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    const uuid = String(playlistObj?.playlistUuid || playlistObj?.uuid || playlistId || '');
+    const kind = playlistObj?.kind ? String(playlistObj.kind) : null;
+    const uid = playlistObj?.uid ? String(playlistObj.uid) : null;
+    const key = (uid && kind) ? `${uid}:${kind}` : null;
+
+    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+    let isMatch = false;
+
+    if (ctxType === 'playlist') {
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+      const ctxUuid = String(ctx?.meta?.uuid || ctx?.meta?.playlistUuid || ctx?.data?.meta?.uuid || '');
+      if (uuid && (ctxMetaId === uuid || ctxUuid === uuid)) {
+        isMatch = true;
+      } else if (key && (ctxMetaId === key || ctxMetaId.includes(`:${kind}`))) {
+        isMatch = true;
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isArtistCurrentlyPlaying(artistId) {
+    if (!artistId) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const ctx = player.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    const targetIdStr = String(artistId);
+    let isMatch = false;
+    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+    const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+
+    if (ctxType === 'artist' && ctxMetaId === targetIdStr) {
+      isMatch = true;
+    } else if (ctxType === 'vibe' && (ctxMetaId.includes(`artist:${targetIdStr}`) || ctxMetaId === targetIdStr)) {
+      isMatch = true;
     }
 
     return {
@@ -21477,6 +21566,96 @@ let searchQuery = "";
         }
         btn.setAttribute('aria-label', 'Слушать трейлер');
         btn.setAttribute('title', 'Слушать трейлер');
+      }
+    });
+
+    // 8. Треки "Чарт" (Тренды)
+    const chartTrackButtons = feed.querySelectorAll('.ym-chart-play-btn');
+    chartTrackButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      const state = isTrackCurrentlyPlaying(trackId);
+      const svgUse = btn.querySelector('svg use');
+      const trackEl = btn.closest('.CommonTrack_root__i6shE');
+      const animEl = trackEl?.querySelector('.PlayingAnimation_root__YrWz7');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (animEl) animEl.classList.remove('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.add('HorizontalCardContainer_playing__vP91g');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (animEl) animEl.classList.add('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.remove('HorizontalCardContainer_playing__vP91g');
+      }
+    });
+
+    // 9. Редакционные карточки (альбомы, плейлисты, артисты на табе Тренды)
+    const editorialPlayButtons = feed.querySelectorAll('.ym-editorial-play-btn');
+    editorialPlayButtons.forEach(btn => {
+      const itemId = btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type');
+      let state = { isMatch: false, isPlaying: false };
+
+      if (itemType === 'album_item') {
+        state = isAlbumCurrentlyPlaying(itemId);
+      } else if (itemType === 'liked_playlist_item') {
+        state = isPlaylistCurrentlyPlaying(itemId);
+      } else if (itemType === 'artist_item') {
+        state = isArtistCurrentlyPlaying(itemId);
+      }
+
+      const svgUse = btn.querySelector('svg use');
+      const card = btn.closest('.laBJlJAaqEVS0i_4Ot3l');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (card) card.classList.add('is-playing');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (card) card.classList.remove('is-playing');
+      }
+    });
+
+    const editorialTrailerButtons = feed.querySelectorAll('.ym-editorial-trailer-btn');
+    editorialTrailerButtons.forEach(btn => {
+      const itemId = btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type');
+      const playlistUid = btn.getAttribute('data-playlist-uid');
+      const playlistKind = btn.getAttribute('data-playlist-kind');
+      const target = (itemType === 'liked_playlist_item' || (playlistUid && playlistKind))
+        ? { id: itemId, uuid: itemId, uid: playlistUid, kind: playlistKind }
+        : itemId;
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(target);
+      const svgUse = btn.querySelector('svg use');
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#trailer_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#trailer_xxs');
+        }
+        btn.setAttribute('aria-label', 'Запустить трейлер');
       }
     });
   }
@@ -21746,11 +21925,26 @@ let searchQuery = "";
     return false;
   }
 
-  async function handleTrailerPlay(albumId, trackIndex = 0) {
-    if (!albumId) return false;
-    const targetIdStr = String(albumId);
+  async function handleTrailerPlay(target, trackIndex = 0) {
+    if (!target) return false;
     const root = getYmRootModel();
     const svc = getTrailerService() || root?.services?.trailerService;
+
+    // Определяем, является ли цель плейлистом (объект или UUID)
+    const isPlaylist = (typeof target === 'object' && (target.type === 'liked_playlist_item' || target.playlist || target.kind || target.playlistUuid)) ||
+                       (typeof target === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target.trim()));
+
+    if (isPlaylist) {
+      console.log('[BYM] Starting playlist trailer:', target);
+      if (typeof playPlaylistTrailer === 'function') {
+        const res = await playPlaylistTrailer(target);
+        updateLandingPlaybackIndicators();
+        return res;
+      }
+    }
+
+    const albumId = (typeof target === 'object' && target !== null) ? (target.albumId || target.id || target.album?.id) : target;
+    const targetIdStr = String(albumId);
 
     if (svc) {
       if (typeof svc.openAlbumTrailer === 'function') {
@@ -21978,6 +22172,81 @@ let searchQuery = "";
     return false;
   }
 
+  async function playPlaylistTrailer(playlistTarget) {
+    if (!playlistTarget) return false;
+    const plObj = typeof playlistTarget === 'object' ? (playlistTarget.playlist || playlistTarget) : {};
+    let uuid = plObj.playlistUuid || plObj.uuid || (typeof playlistTarget === 'string' ? playlistTarget : '');
+    let uid = plObj.uid || null;
+    let kind = plObj.kind || null;
+
+    // Если uid или kind не переданы, пробуем найти их в DOM по uuid
+    if ((!uid || !kind) && uuid) {
+      const el = document.querySelector(`[data-item-id="${uuid}"][data-playlist-uid], [data-item-id="${uuid}"] [data-playlist-uid]`);
+      if (el) {
+        const targetEl = el.getAttribute('data-playlist-uid') ? el : el.querySelector('[data-playlist-uid]');
+        if (targetEl) {
+          uid = targetEl.getAttribute('data-playlist-uid') || uid;
+          kind = targetEl.getAttribute('data-playlist-kind') || kind;
+        }
+      }
+    }
+
+    const playlistKey = (uid && kind) ? `${uid}:${kind}` : String(uuid);
+    console.log('[BYM] playPlaylistTrailer key:', playlistKey, { uid, kind, uuid });
+
+    // 1. Приоритетный путь: нативный trailerService Яндекс Музыки
+    // Внимание: openPlaylistTrailer(a) принимает ровно одну строку формата "${uid}:${kind}"
+    // и вызывает e.modal.open(), открывая боковую шторку трейлера
+    try {
+      const svc = getTrailerService();
+      if (svc && typeof svc.openPlaylistTrailer === 'function') {
+        svc.openPlaylistTrailer(String(playlistKey));
+        return true;
+      }
+      if (svc && typeof svc.playPlaylistTrailer === 'function') {
+        await svc.playPlaylistTrailer({ uid: Number(uid) || uid, kind: Number(kind) || kind, uuid });
+        return true;
+      }
+      if (svc && typeof svc.playTrailer === 'function') {
+        await svc.playTrailer({ type: 'playlist', id: playlistKey, uid, kind, uuid });
+        return true;
+      }
+    } catch (err) {
+      console.warn('[BYM] Error playing playlist trailer via trailerService:', err);
+    }
+
+    // 2. Воспроизведение трейлера плейлиста через Sonata Core
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const meta = { id: key };
+        if (uid) meta.uid = Number(uid) || uid;
+        if (kind) meta.kind = Number(kind) || kind;
+        if (uuid) meta.uuid = String(uuid);
+
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'playlist',
+            trailer: true,
+            meta: meta,
+            from: 'web-playlist-trailer-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing playlist trailer via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
   async function togglePinAlbum(albumId, shouldBePinned) {
     if (!albumId) return false;
     const numId = Number(albumId) || albumId;
@@ -22078,8 +22347,117 @@ let searchQuery = "";
     }
   }
 
+  function isPlaylistPinned(playlistId, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const uuid = String(playlistObj?.playlistUuid || playlistObj?.uuid || playlistId || '');
+    const kind = playlistObj?.kind ? String(playlistObj.kind) : null;
+    const uid = playlistObj?.uid ? String(playlistObj.uid) : null;
+    const key = (uid && kind) ? `${uid}:${kind}` : null;
+
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (uuid && pins.isPinned(`playlist_item${uuid}`)) return true;
+        if (key && pins.isPinned(`playlist_item${key}`)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (pins.index?.has) {
+        if (uuid && pins.index.has(`playlist_item${uuid}`)) return true;
+        if (key && pins.index.has(`playlist_item${key}`)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = String(it?.data?.id || it?.data?.uuid || it?.id || it?.entityId || it?.meta?.id || '');
+        return (uuid && itId === uuid) || (key && itId === key);
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function togglePinPlaylist(playlistId, shouldBePinned, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isPlaylistPinned(playlistId, playlistObj);
+    const method = isCurrentlyPinned ? 'DELETE' : 'PUT';
+    const uuid = playlistObj?.playlistUuid || playlistObj?.uuid || playlistId;
+    const uid = playlistObj?.uid || window.__ym_user_id;
+    const kind = playlistObj?.kind;
+
+    if (!isCurrentlyPinned && pins && typeof pins.togglePlaylistPin === 'function') {
+      try {
+        await pins.togglePlaylistPin({ uuid, uid, kind });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Native playlist pin error, fallback to HTTP:', err);
+      }
+    }
+
+    try {
+      const bodyObj = (uid && kind) ? { uid: Number(uid) || uid, kind: Number(kind) || kind } : { uuid: String(uuid) };
+      await fetch('https://api.music.yandex.ru/pin/playlist', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj),
+        credentials: 'include'
+      });
+      if (pins && typeof pins.getData === 'function') {
+        pins.getData().catch(() => {});
+      }
+      return true;
+    } catch (err) {
+      console.warn('[BYM] Pin playlist HTTP error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikePlaylist(playlistId, isCurrentlyLiked, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const root = getYmRootModel();
+    const likes = getLikesCollection();
+    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    const plUid = playlistObj?.uid || uid;
+    const kind = playlistObj?.kind;
+    const uuid = playlistObj?.playlistUuid || playlistObj?.uuid || playlistId;
+
+    if (likes) {
+      const toggleFn = likes.togglePlaylistLike || likes.togglePlaylist || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          await toggleFn.call(likes, { uid: plUid, kind: kind, uuid });
+          return true;
+        } catch (_) {}
+      }
+    }
+
+    if (!uid || !kind) return false;
+    const action = isCurrentlyLiked ? 'remove' : 'add';
+    try {
+      const res = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/playlists/${action}?owner=${plUid}&kind=${kind}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (likes && typeof likes.getData === 'function') {
+        likes.getData().catch(() => {});
+      }
+      return res.ok;
+    } catch (err) {
+      console.warn('[BYM] Like playlist error:', err);
+      return false;
+    }
+  }
+
   async function toggleLikeTrack(trackId, isCurrentlyLiked) {
     if (!trackId) return false;
+    if (isCurrentlyLiked === undefined) {
+      isCurrentlyLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
+    }
     const root = getYmRootModel();
     const likes = getLikesCollection();
     const numId = Number(trackId) || trackId;
@@ -22087,20 +22465,6 @@ let searchQuery = "";
 
     // 1. Приоритетный путь: нативный MobX вызов через RootModel / likesCollection
     if (likes) {
-      const toggleFn = likes.toggleTrackLike || likes.toggleTrack || likes.toggleLike || likes.toggle;
-      if (typeof toggleFn === 'function') {
-        try {
-          console.log('[BYM] Toggling track like via MobX collection:', trackId);
-          await toggleFn.call(likes, { id: numId, type: 'track' });
-          return true;
-        } catch (_) {
-          try {
-            await toggleFn.call(likes, idStr);
-            return true;
-          } catch (_) {}
-        }
-      }
-
       if (isCurrentlyLiked) {
         const removeFn = likes.removeTrackLike || likes.removeTrack || likes.remove || likes.unlikeTrack || likes.dislikeTrack;
         if (typeof removeFn === 'function') {
@@ -22126,6 +22490,20 @@ let searchQuery = "";
               return true;
             } catch (_) {}
           }
+        }
+      }
+
+      const toggleFn = likes.toggleTrackLike || likes.toggleTrack || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          console.log('[BYM] Toggling track like via MobX collection:', trackId);
+          await toggleFn.call(likes, { id: numId, type: 'track' });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
         }
       }
     }
@@ -22480,7 +22858,10 @@ let searchQuery = "";
     if (
       !e.target.closest('.ym-native-album-menu') &&
       !e.target.closest('.ym-native-album-submenu') &&
-      !e.target.closest('.AlbumCard_menuButton__pxkA6')
+      !e.target.closest('.AlbumCard_menuButton__pxkA6') &&
+      !e.target.closest('.ym-editorial-menu-btn') &&
+      !e.target.closest('.ym-chart-menu-btn') &&
+      !e.target.closest('.CommonControlsBar_contextMenu__EAq_c')
     ) {
       closeAlbumContextMenu();
     }
@@ -22513,8 +22894,8 @@ let searchQuery = "";
   function openAlbumContextMenu(buttonEl, album, item) {
     closeAlbumContextMenu();
 
-    const card = buttonEl.closest('.AlbumCard_root__vP6k4');
-    const pinBtn = card?.querySelector('.AlbumCard_pinButton__Mdi_E');
+    const card = buttonEl?.closest?.('.AlbumCard_root__vP6k4') || buttonEl?.closest?.('.laBJlJAaqEVS0i_4Ot3l') || buttonEl?.closest?.('li');
+    const pinBtn = card?.querySelector('.AlbumCard_pinButton__Mdi_E, .ym-editorial-pin-btn');
     const isPinned = pinBtn ? pinBtn.getAttribute('aria-pressed') === 'true' : isAlbumPinned(album.id);
     const isLiked = Boolean(album._isLiked);
 
@@ -22773,8 +23154,150 @@ let searchQuery = "";
     });
   }
 
+  function openPlaylistContextMenu(buttonEl, playlist, itemWrapper) {
+    closeAlbumContextMenu();
+
+    const pl = playlist?.playlist || playlist || {};
+    const uuid = pl.playlistUuid || pl.uuid || pl.kind;
+    const plUid = pl.uid;
+    const kind = pl.kind;
+    const title = pl.title || '';
+    const isPinned = typeof isPlaylistPinned === 'function' ? isPlaylistPinned(uuid, pl) : false;
+    const hasTrailer = Boolean(pl.trailer?.available || itemWrapper?.data?.trailer?.available);
+
+    const menu = document.createElement('div');
+    menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-playlist-menu';
+    menu.setAttribute('tabindex', '0');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-orientation', 'vertical');
+
+    menu.innerHTML = `
+      <div class="ggP7WX2_erziDHFOo32s">
+        <!-- 1. Закрепить -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="pin">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isPinned ? 'pin_filled_xxs' : 'pin_xxs'}"></use>
+            </svg>
+            ${isPinned ? 'Открепить' : 'Закрепить'}
+          </span>
+        </button>
+
+        ${hasTrailer ? `
+        <!-- 2. Трейлер -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+            </svg>
+            Трейлер
+          </span>
+        </button>` : ''}
+
+        <!-- 3. Моя волна по плейлисту -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="wave">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#vibe_xxs"></use>
+            </svg>
+            Моя волна по плейлисту
+          </span>
+        </button>
+
+        <!-- 4. Поделиться -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="share">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+            </svg>
+            Поделиться
+          </span>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(menu);
+    activeContextMenuEl = menu;
+
+    const rect = buttonEl.getBoundingClientRect();
+    const menuWidth = 230;
+    const menuHeight = 200;
+
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - 6;
+    }
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.zIndex = '9999999';
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.96)';
+    menu.style.transformOrigin = 'top right';
+    menu.style.transition = 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+    });
+
+    const card = buttonEl.closest('.PlaylistCard_root__i3pR4') || buttonEl.closest('li');
+    const pinBtn = card?.querySelector('.ym-editorial-pin-btn');
+
+    menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      itemBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemBtn.getAttribute('data-action');
+        if (action === 'share') return;
+
+        closeAlbumContextMenu();
+
+        if (action === 'pin') {
+          if (pinBtn) pinBtn.click();
+          else if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(uuid, !isPinned, pl);
+        } else if (action === 'trailer') {
+          if (typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(uuid);
+          }
+        } else if (action === 'wave') {
+          if (typeof playVibeStation === 'function') {
+            const seed = (plUid && kind) ? `playlist:${plUid}:${kind}` : `playlist:${uuid}`;
+            await playVibeStation({
+              stationId: seed,
+              seeds: [seed],
+              title: title ? `Моя волна: ${title}` : 'Моя волна'
+            });
+          }
+        }
+      });
+    });
+
+    const shareBtn = menu.querySelector('button[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeAlbumContextMenu();
+        const playlistUrl = plUid && kind ? `https://music.yandex.ru/users/${plUid}/playlists/${kind}` : `https://music.yandex.ru/playlists/${uuid}`;
+        try {
+          await navigator.clipboard.writeText(playlistUrl);
+          showMenuToast('Ссылка на плейлист скопирована');
+        } catch (_) {
+          showMenuToast('Не удалось скопировать ссылку');
+        }
+      });
+    }
+  }
+
   function openTrackContextMenu(buttonEl, track, playlist) {
     if (!buttonEl || !track) return;
+    if (buttonEl.target) {
+      buttonEl = buttonEl.target.closest('button') || buttonEl.currentTarget || buttonEl.target;
+    }
     closeAlbumContextMenu();
 
     const trackId = String(track.id || track.realId || '');
@@ -22783,9 +23306,11 @@ let searchQuery = "";
     const artists = track.artists || [];
     const firstArtist = artists[0] || {};
 
-    const trackRow = buttonEl.closest('.HorizontalCardContainer_root__YoAAP') || buttonEl.closest('.ym-vibe-premiere-track');
-    const likeBtn = trackRow?.querySelector('.ym-track-like-btn');
-    const isLiked = likeBtn ? likeBtn.getAttribute('aria-pressed') === 'true' : false;
+    const trackRow = buttonEl?.closest?.('.HorizontalCardContainer_root__YoAAP') || buttonEl?.closest?.('.ym-track-row') || buttonEl?.closest?.('.ym-vibe-premiere-track');
+    const likeBtn = trackRow?.querySelector('.ym-track-like-btn, .ym-chart-like-btn');
+    const isLiked = likeBtn
+      ? (likeBtn.getAttribute('aria-pressed') === 'true' || likeBtn.classList.contains('zIMibMuH7wcqUoW7KH1B'))
+      : (typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false);
 
     const menu = document.createElement('div');
     menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-track-menu';
@@ -22997,6 +23522,12 @@ let searchQuery = "";
     });
   }
 
+  if (typeof window !== 'undefined') {
+    window.openAlbumContextMenu = openAlbumContextMenu;
+    window.openPlaylistContextMenu = openPlaylistContextMenu;
+    window.openTrackContextMenu = openTrackContextMenu;
+  }
+
 
 
 // --- Component: shared/vibe/vibe-feed.js ---
@@ -23018,6 +23549,7 @@ let searchQuery = "";
     premiere: null,
     albumsMonth: null,
     mixesMusic: null,
+    chart: null,
     editorialCompilations: {},
     timestamp: 0
   };
@@ -23225,7 +23757,7 @@ let searchQuery = "";
           .catch(() => null)
       );
 
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, mmData, ...editorialResults] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, chartRes, mmData, ...editorialResults] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
@@ -23234,6 +23766,7 @@ let searchQuery = "";
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing/block/chart', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetchMixesData(),
         ...editorialPromises
       ]);
@@ -23249,6 +23782,9 @@ let searchQuery = "";
       }
       if (amRes.status === 'fulfilled' && amRes.value) {
         landingFeedCache.albumsMonth = amRes.value?.result || amRes.value;
+      }
+      if (chartRes.status === 'fulfilled' && chartRes.value) {
+        landingFeedCache.chart = chartRes.value?.result || chartRes.value;
       }
       if (mmData.status === 'fulfilled' && mmData.value) {
         landingFeedCache.mixesMusic = mmData.value?.items ? mmData.value.items : mmData.value;
@@ -23362,6 +23898,11 @@ let searchQuery = "";
       // 2. Секция 2: Альбомы месяца
       if (typeof renderAlbumsOfTheMonthSection === 'function') {
         renderAlbumsOfTheMonthSection(feed, data.albumsMonth);
+      }
+
+      // 3. Секция 3: Чарт
+      if (typeof renderChartSection === 'function') {
+        renderChartSection(feed, data.chart);
       }
 
       // 3. Редакционные подборки:
@@ -25520,6 +26061,357 @@ function formatAlbumMonthReleaseDate(isoDateStr) {
 }
 
 
+// --- Component: shared/vibe/vibe-section-chart.js ---
+// =========================================================================
+// BetterYandexMusic: Chart Section (Чарт - Тренды)
+// Exact 1-to-1 Native Implementation from Yandex Music
+// API: GET https://api.music.yandex.ru/landing/block/chart
+// =========================================================================
+
+function formatDurationMs(ms) {
+  if (!ms || isNaN(ms)) return '00:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function renderChartSection(feedContainer, chartData) {
+  if (!chartData) return;
+  const rawTracks = chartData.chart?.tracks || chartData.chart || [];
+  if (!Array.isArray(rawTracks) || rawTracks.length === 0) return;
+
+  const section = document.createElement('section');
+  section.className = 'CarouselWithColumnsBlock_root__v_qoo ym-vibe-feed-section ym-chart-section';
+  section.setAttribute('data-intersection-property-id', 'ALL_chart');
+  section.setAttribute('data-test-id', 'CHART_TRACKS');
+
+  const header = document.createElement('div');
+  header.className = 'BlockHeader_root__j3mbg SkeletonBlock_headerContainer__fl8EX';
+  header.innerHTML = `
+    <div class="BlockHeader_start__ZrGP5">
+      <div class="BlockHeader_textContainer___2wn9">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB BlockHeader_title__5xlx6" href="/chart">
+          <div class="VUb2BxfgkGQhG1RDQGwF BlockHeader_linkContainer__EuW_L">
+            <span class="BlockHeader_linkText__Or6VB">
+              <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww BlockHeader_heading__4iqvS" id="_r_s1_">Чарт</h2>
+            </span>
+            <svg class="TXa2RKc_Hf0QPdmUDMwI BlockHeader_titleIcon__GQFEK UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
+            </svg>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="CarouselWithColumnsBlock_controlsContainer__4_1Ao">
+      <div class="CarouselControls_root__E_hwc CarouselWithColumnsBlock_controls__yCSFo">
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i CarouselWithColumnsBlock_backwardControl__b_uKR" type="button" tabindex="-1" aria-hidden="true" disabled="" data-disabled="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowLeft_xxs"></use>
+            </svg>
+          </span>
+        </button>
+        <button class="cpeagBA1_PblpJn8Xgtv pnM3iSP9keZOELI2oohr uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p i5WuBm5mfG0mflk_1jH_ eQt33MLDiQ6DRSuLaYEp qU2apWBO1yyEK0lZ3lPO undefined CarouselControls_control__L8t4i" type="button" tabindex="-1" aria-hidden="true" aria-live="off" aria-busy="false">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
+          </span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  const titleLink = header.querySelector('a.BlockHeader_title__5xlx6');
+  if (titleLink) {
+    titleLink.addEventListener('click', (e) => spaNavigate('/chart', e));
+  }
+  section.appendChild(header);
+
+  const carousel = document.createElement('ol');
+  carousel.className = 'IZnFMW4gXBshJODnvB1P SkeletonBlock_tracksContainer__uF8Tg ym-vibe-feed-chart-carousel';
+  carousel.setAttribute('aria-labelledby', '_r_s1_');
+  carousel.setAttribute('role', 'list');
+
+  // Разбиваем треки по 4 штуки в колонку (на каждый <li>)
+  const tracksPerColumn = 4;
+  for (let colIdx = 0; colIdx < rawTracks.length; colIdx += tracksPerColumn) {
+    const chunk = rawTracks.slice(colIdx, colIdx + tracksPerColumn);
+
+    const li = document.createElement('li');
+    li.className = 'VJ9IexhAEuYSCyGiMfN4 CarouselWithColumnsBlock_item__RBGs4 CarouselWithColumnsBlock_item_columns_two__46rgZ';
+
+    const colDiv = document.createElement('div');
+    colDiv.className = 'CarouselWithColumnsBlock_column__oMRES';
+
+    chunk.forEach((item, innerIdx) => {
+      const track = item.track || item;
+      const chartMeta = item.chart || {};
+      const pos = chartMeta.position || (colIdx + innerIdx + 1);
+      const progress = chartMeta.progress || 'same';
+
+      let progressIcon = '/icons/sprite.svg#chartSame_xxs';
+      let progressClass = 'Chart_progress_same__Cnbdb';
+      let progressLabel = 'Позиция в чарте не изменилась';
+
+      if (progress === 'up') {
+        progressIcon = '/icons/sprite.svg#chartUp_xxs';
+        progressClass = 'Chart_progress_up__bUfQz';
+        progressLabel = 'Позиция в чарте выросла';
+      } else if (progress === 'down') {
+        progressIcon = '/icons/sprite.svg#chartDown_xxs';
+        progressClass = 'Chart_progress_down__uXh_g';
+        progressLabel = 'Позиция в чарте снизилась';
+      } else if (progress === 'new') {
+        progressIcon = '/icons/sprite.svg#chartNew_xxs';
+        progressClass = 'Chart_progress_new__2j6Z_';
+        progressLabel = 'Новый трек в чарте';
+      }
+
+      const trackId = String(track.id || '');
+      const title = track.title || '';
+      const artists = Array.isArray(track.artists) ? track.artists : [];
+      const primaryArtist = artists[0] || {};
+      const artistsStr = artists.map(a => a.name).filter(Boolean).join(', ');
+
+      const album = track.albums?.[0] || {};
+      const albumId = album.id || '';
+      const trackUrl = albumId ? `/album/${albumId}/track/${trackId}` : `/track/${trackId}`;
+
+      const coverUri = track.coverUri || album.coverUri || primaryArtist.cover?.uri || '';
+      const cover100 = coverUri ? formatYandexImg(coverUri, '100x100') : '';
+      const cover200 = coverUri ? formatYandexImg(coverUri, '200x200') : '';
+
+      const isExplicit = Boolean(track.contentWarning === 'explicit');
+      const hasTrailer = Boolean(track.trailer?.available || item.trailer?.available);
+      const durationFormatted = formatDurationMs(track.durationMs);
+
+      const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
+
+      const artistsHtml = artists.map(art => `
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-chart-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+          <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_artistCaption__JESZi">${escapeHtml(art.name || '')}</span>
+        </a>
+      `).join(', ');
+
+      const trackRow = document.createElement('div');
+      trackRow.className = 'HorizontalCardContainer_root__YoAAP CommonTrack_root__i6shE ym-track-row';
+      trackRow.setAttribute('aria-label', `${escapeHtml(artistsStr)} ${escapeHtml(title)}`);
+      trackRow.setAttribute('data-intersection-property-id', `_r_chart_${pos}_`);
+      trackRow.setAttribute('data-track-id', trackId);
+
+      trackRow.innerHTML = `
+        <div class="Chart_root__ODed_ TrackChart_chartCell__33_al">
+          <div class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR ZYV27jeWd30QDXu4GhaH Chart_position__7UNY9">${pos}</div>
+          <svg class="Chart_progress__sGj4s ${progressClass} l3tE1hAMmBj2aoPPwU08" focusable="false" aria-label="${escapeHtml(progressLabel)}" aria-hidden="false">
+            <use xlink:href="${progressIcon}"></use>
+          </svg>
+        </div>
+        <div class="PlayButtonWithCover_root__s6Orw TrackChart_playButtonCell__cvY7u">
+          <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 PlayButtonWithCover_cover__5__Ms">
+            ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG PlayButtonWithCover_coverImage__DhS1R" alt="Трек ${escapeHtml(title)}" loading="eager" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
+            <div class="PlayButtonWithCover_control__iZy3t">
+              <div class="PlayingAnimation_root__YrWz7 PlayingAnimation_root_stopAnimation__qOw_g PlayButtonWithCover_playingAnimation__HWuOW"></div>
+              <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY PlayButtonWithCover_playButton__rV9pQ ym-chart-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-track-id="${trackId}">
+                <span class="JjlbHZ4FaP9EAcR_1DxF">
+                  <svg class="J9wTKytjOWG73QMoN5WP PlayButtonWithCover_playButtonIcon__DRjkN UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+                    <use xlink:href="/icons/sprite.svg#play_filled_xs"></use>
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="Meta_root__R8n1h">
+          <div class="Meta_metaContainer__7i2dp">
+            <div class="Meta_titleContainer__gDuXr">
+              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH" style="-webkit-line-clamp: 1;">
+                <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_albumLink__gASh6 ym-chart-track-link" aria-label="Трек ${escapeHtml(title)} " href="${escapeHtml(trackUrl)}">
+                  <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_title__GGBnH">${escapeHtml(title)}</span>
+                </a>
+              </div>
+              ${isExplicit ? `
+              <span class="Meta_explicitMarkContainer__BxMQg">
+                <svg class="ExplicitMarkIcon_explicitMark__0BPeQ Meta_explicitMark__ocnCV Rkdd2vKC_3xa1eUdRdHP" focusable="false" aria-label="Возрастное ограничение 18+" aria-hidden="false">
+                  <use xlink:href="/icons/sprite.svg#exclamation_xxxs"></use>
+                </svg>
+              </span>` : ''}
+            </div>
+            <div class="SeparatedArtists_root_variant_breakAll__34YbW SeparatedArtists_root_clamp__SyvjM Meta_text__Y5uYH Meta_artists__VnR52" style="-webkit-line-clamp: 1;">
+              ${artistsHtml}
+            </div>
+          </div>
+        </div>
+        <div class="CommonControlsBar_root__N8b0F CommonControlsBar_controls__QrogT TrackChart_controlsBarCell__Xd5pn">
+          <button type="button" class="ym-track-row-download-btn" aria-label="Скачать трек" title="Скачать трек" data-track-id="${trackId}">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O ${isLiked ? 'zIMibMuH7wcqUoW7KH1B' : ''} IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO undefined CommonControlsBar_item__qGErG CommonControlsBar_likeIcon__YqgZY ym-chart-like-btn" type="button" aria-label="Нравится" aria-pressed="${isLiked ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-track-id="${trackId}">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                <use xlink:href="${isLiked ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs'}"></use>
+              </svg>
+            </span>
+          </button>
+          ${hasTrailer ? `
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY CommonControlsBar_item__qGErG CommonControlsBar_trailerIcon__ZHSBo ym-chart-trailer-btn" type="button" aria-label="Запустить трейлер" data-track-id="${trackId}" aria-live="off" aria-busy="false">
+            <span class="JjlbHZ4FaP9EAcR_1DxF">
+              <svg class="J9wTKytjOWG73QMoN5WP UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+                <use xlink:href="/icons/sprite.svg#trailer_xs"></use>
+              </svg>
+            </span>
+          </button>` : ''}
+          <div class="CommonControlsBar_item__qGErG CommonControlsBar_contextMenuWrapper__XjkaL">
+            <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR CommonControlsBar_duration__un38A" role="text">
+              <span aria-hidden="true">${durationFormatted}</span>
+            </span>
+            <div>
+              <div>
+                <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO undefined zmtVwO34EPppZErNrlIC UOiSiy5boMAzphK1PFFN CommonControlsBar_contextMenu__EAq_c ym-chart-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" data-track-id="${trackId}" aria-live="off" aria-busy="false">
+                  <span class="JjlbHZ4FaP9EAcR_1DxF">
+                    <svg class="J9wTKytjOWG73QMoN5WP UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
+                      <use xlink:href="/icons/sprite.svg#more_xs"></use>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // Links navigation
+      trackRow.querySelectorAll('.ym-chart-track-link').forEach(a => {
+        a.addEventListener('click', (e) => spaNavigate(trackUrl, e));
+      });
+      trackRow.querySelectorAll('.ym-chart-artist-link').forEach(a => {
+        const href = a.getAttribute('href');
+        if (href) a.addEventListener('click', (e) => spaNavigate(href, e));
+      });
+
+      // Play button
+      const playBtn = trackRow.querySelector('.ym-chart-play-btn');
+      if (playBtn) {
+        playBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const state = typeof isTrackCurrentlyPlaying === 'function' ? isTrackCurrentlyPlaying(trackId) : { isMatch: false, isPlaying: false };
+          const p = getSafeActivePlayer();
+          if (state.isMatch) {
+            if (typeof p?.togglePause === 'function') {
+              p.togglePause();
+            } else if (state.isPlaying && typeof p?.pause === 'function') {
+              p.pause();
+            } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+              if (p.resume) p.resume();
+              else p.play();
+            }
+          } else {
+            if (typeof handlePremiereTrackPlay === 'function') {
+              await handlePremiereTrackPlay(trackId, track, playBtn);
+            } else if (typeof playPlaylistTrackContext === 'function') {
+              await playPlaylistTrackContext({ id: 'chart' }, trackId, track);
+            }
+          }
+          if (typeof updateLandingPlaybackIndicators === 'function') {
+            updateLandingPlaybackIndicators();
+            setTimeout(updateLandingPlaybackIndicators, 60);
+            setTimeout(updateLandingPlaybackIndicators, 250);
+          }
+        });
+      }
+
+      // Download button
+      const dlBtn = trackRow.querySelector('.ym-track-row-download-btn');
+      if (dlBtn) {
+        dlBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof downloadTrackDirectly === 'function') {
+            downloadTrackDirectly(trackId);
+          } else {
+            window.postMessage({ type: 'BYM_DOWNLOAD_TRACK', trackId }, '*');
+          }
+        });
+      }
+
+      // Like button
+      const likeBtn = trackRow.querySelector('.ym-chart-like-btn');
+      if (likeBtn) {
+        likeBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const isPressed = likeBtn.getAttribute('aria-pressed') === 'true' || likeBtn.classList.contains('zIMibMuH7wcqUoW7KH1B');
+          const next = !isPressed;
+          likeBtn.setAttribute('aria-pressed', next ? 'true' : 'false');
+          if (next) {
+            likeBtn.classList.add('zIMibMuH7wcqUoW7KH1B');
+          } else {
+            likeBtn.classList.remove('zIMibMuH7wcqUoW7KH1B');
+          }
+          const svgUse = likeBtn.querySelector('use');
+          if (svgUse) {
+            const iconHref = next ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs';
+            svgUse.setAttribute('xlink:href', iconHref);
+            svgUse.setAttribute('href', iconHref);
+          }
+          if (typeof toggleLikeTrack === 'function') {
+            await toggleLikeTrack(trackId, isPressed);
+          }
+        });
+      }
+
+      // Trailer button
+      const trailerBtn = trackRow.querySelector('.ym-chart-trailer-btn');
+      if (trailerBtn && hasTrailer) {
+        trailerBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (albumId && typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(albumId, innerIdx);
+          } else if (albumId && typeof playAlbumTrailer === 'function') {
+            await playAlbumTrailer(albumId);
+          }
+        });
+      }
+
+      // Context Menu button
+      const menuBtn = trackRow.querySelector('.ym-chart-menu-btn');
+      if (menuBtn) {
+        menuBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof openTrackContextMenu === 'function') {
+            openTrackContextMenu(menuBtn, track);
+          }
+        });
+        menuBtn.addEventListener('pointerdown', (e) => {
+          e.stopPropagation();
+        });
+      }
+
+      colDiv.appendChild(trackRow);
+    });
+
+    li.appendChild(colDiv);
+    carousel.appendChild(li);
+  }
+
+  const controls = header.querySelectorAll('.CarouselControls_control__L8t4i');
+  if (controls.length >= 2 && typeof setupCarouselControls === 'function') {
+    setupCarouselControls(carousel, controls[0], controls[1]);
+  }
+
+  section.appendChild(carousel);
+  feedContainer.appendChild(section);
+}
+
+
 // --- Component: shared/vibe/vibe-section-editorial.js ---
 // =========================================================================
 // BetterYandexMusic: Editorial Compilations Sections (Тренды)
@@ -25659,27 +26551,44 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     const cover100 = coverUri ? formatYandexImg(coverUri, '200x200') : '';
     const cover200 = coverUri ? formatYandexImg(coverUri, '400x400') : '';
 
+    const isPinnedInitially = itemType === 'album_item'
+      ? (typeof isAlbumPinned === 'function' ? isAlbumPinned(itemId) : false)
+      : (itemType === 'liked_playlist_item' ? (typeof isPlaylistPinned === 'function' ? isPlaylistPinned(itemId, itemData.playlist) : false) : false);
+    const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+
     const li = document.createElement('li');
     li.className = 'VJ9IexhAEuYSCyGiMfN4 CarouselBlock_item__DatZ2 CarouselBlock_important__AARmP';
+    li.setAttribute('data-item-id', itemId);
+    li.setAttribute('data-item-type', itemType);
+    if (itemData.playlist?.uid) li.setAttribute('data-playlist-uid', String(itemData.playlist.uid));
+    if (itemData.playlist?.kind) li.setAttribute('data-playlist-kind', String(itemData.playlist.kind));
 
     li.innerHTML = `
-      <div class="laBJlJAaqEVS0i_4Ot3l ${isRound ? 'ArtistCard_root__x67BK' : 'PlaylistCard_root__i3pR4'}" data-test-id="${itemType === 'artist_item' ? 'ARTIST_ITEM' : (itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM')}">
+      <div class="laBJlJAaqEVS0i_4Ot3l ${isRound ? 'ArtistCard_root__x67BK' : 'PlaylistCard_root__i3pR4'}" data-test-id="${itemType === 'artist_item' ? 'ARTIST_ITEM' : (itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM')}" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
         <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI ${isRound ? 'ArtistCard_cover__29ShU' : 'PlaylistCard_cover__tpK5L withShadow'}">
           <div class="${isRound ? 'ArtistCard_coverBlock__dBL4x' : 'PlaylistCard_coverBlock__1slsN'}">
             ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ${isRound ? 'ArtistCard_image__pONJx' : 'PlaylistCard_image__Li6oy'}" alt="${escapeHtml(title)}" loading="lazy" aria-hidden="true" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
             <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE cSCPJSa6Lx6OnpM4ljX9 ${isRound ? 'ArtistCard_controls__jsqqI' : 'PlaylistCard_controls__Ej8Rz'}">
-              <div class="P6gOmyFtXyetUz0dqhF3"></div>
+              <div class="P6gOmyFtXyetUz0dqhF3">
+                <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} ${isRound ? 'ArtistCard_pinButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_pinButton__Mdi_E AlbumCard_control__qx7Xh'} ym-editorial-pin-btn" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
+                  <span class="JjlbHZ4FaP9EAcR_1DxF">
+                    <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                      <use xlink:href="${initialPinIcon}"></use>
+                    </svg>
+                  </span>
+                </button>
+              </div>
               <div class="bL0wE1Bui8zpIZbvMVL3">
                 <div class="RvWjZle1erRBXzJEF9Zj">
                   ${hasTrailer ? `
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j' : 'PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq'} ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j' : 'PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq'} ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
                         <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
                       </svg>
                     </span>
                   </button>` : ''}
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
                         <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
@@ -25688,10 +26597,10 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
                   </button>
                 </div>
                 <div class="bBh7lvgdfF7bqNqlK78Q">
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isRound ? 'ArtistCard_likeButton__LU9TL ArtistCard_control___qv5j' : 'PlaylistCard_likeButton__RYXJz PlaylistCard_control__73YUq'} ym-editorial-like-btn" type="button" aria-label="Нравится" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO zmtVwO34EPppZErNrlIC ${isRound ? 'ArtistCard_menuButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_menuButton__pxkA6 AlbumCard_control__qx7Xh'} ym-editorial-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                        <use xlink:href="/icons/sprite.svg#heart_xxs"></use>
+                        <use xlink:href="/icons/sprite.svg#more_xxs"></use>
                       </svg>
                     </span>
                   </button>
@@ -25731,16 +26640,68 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       });
     }
 
+    // Pin button
+    const pinBtn = li.querySelector('.ym-editorial-pin-btn');
+    if (pinBtn) {
+      pinBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isCurrentlyPinned = pinBtn.getAttribute('aria-pressed') === 'true';
+        const nextState = !isCurrentlyPinned;
+        pinBtn.setAttribute('aria-pressed', nextState ? 'true' : 'false');
+        pinBtn.setAttribute('aria-label', nextState ? 'Открепить' : 'Закрепить');
+        pinBtn.classList.remove('PinButton_animation_scaled__Aj6LA', 'PinButton_animation_unscaled__QM3sC');
+        pinBtn.classList.add(nextState ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC');
+
+        const svgUse = pinBtn.querySelector('use');
+        if (svgUse) {
+          const nextIcon = nextState ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+          svgUse.setAttribute('xlink:href', nextIcon);
+          svgUse.setAttribute('href', nextIcon);
+        }
+
+        if (itemType === 'album_item') {
+          if (typeof togglePinAlbum === 'function') await togglePinAlbum(itemId, nextState);
+        } else if (itemType === 'liked_playlist_item') {
+          if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(itemId, nextState, itemData.playlist);
+        }
+      });
+    }
+
     // Play button
     const playBtn = li.querySelector('.ym-editorial-play-btn');
-    if (playBtn && typeof onPlay === 'function') {
+    if (playBtn) {
       playBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        try {
+        const p = getSafeActivePlayer();
+        let state = { isMatch: false, isPlaying: false };
+        if (itemType === 'album_item' && typeof isAlbumCurrentlyPlaying === 'function') {
+          state = isAlbumCurrentlyPlaying(itemId);
+        } else if (itemType === 'liked_playlist_item' && typeof isPlaylistCurrentlyPlaying === 'function') {
+          state = isPlaylistCurrentlyPlaying(itemId, itemData.playlist);
+        } else if (itemType === 'artist_item' && typeof isArtistCurrentlyPlaying === 'function') {
+          state = isArtistCurrentlyPlaying(itemId);
+        }
+
+        if (state.isMatch) {
+          if (typeof p?.togglePause === 'function') {
+            p.togglePause();
+          } else if (state.isPlaying && typeof p?.pause === 'function') {
+            p.pause();
+          } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+            if (p.resume) p.resume();
+            else p.play();
+          }
+        } else if (typeof onPlay === 'function') {
           await onPlay();
-        } catch (err) {
-          console.warn('[BYM] Error playing editorial item:', err);
+        }
+
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+          setTimeout(updateLandingPlaybackIndicators, 600);
         }
       });
     }
@@ -25748,12 +26709,55 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     // Trailer button
     const trailerBtn = li.querySelector('.ym-editorial-trailer-btn');
     if (trailerBtn && hasTrailer) {
-      trailerBtn.addEventListener('click', (e) => {
+      trailerBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (typeof openTrailer === 'function') {
-          openTrailer(itemId);
+        const trailerTarget = itemType === 'album_item'
+          ? itemId
+          : {
+              type: itemType,
+              id: itemId,
+              uuid: itemId,
+              uid: itemData.playlist?.uid,
+              kind: itemData.playlist?.kind,
+              playlist: itemData.playlist
+            };
+        const isPlaying = typeof isAlbumTrailerCurrentlyPlaying === 'function' && isAlbumTrailerCurrentlyPlaying(trailerTarget);
+        const p = getSafeActivePlayer();
+        if (isPlaying) {
+          if (typeof p?.togglePause === 'function') p.togglePause();
+          else if (typeof p?.pause === 'function') p.pause();
+        } else {
+          if (typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(trailerTarget);
+          } else if (typeof playAlbumTrailer === 'function') {
+            await playAlbumTrailer(trailerTarget);
+          }
         }
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+        }
+      });
+    }
+
+    // Context menu button (троеточие)
+    const menuBtn = li.querySelector('.ym-editorial-menu-btn');
+    if (menuBtn) {
+      menuBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (itemType === 'album_item' && typeof openAlbumContextMenu === 'function') {
+          openAlbumContextMenu(menuBtn, itemData.album || { id: itemId, title }, itemWrapper);
+        } else if (itemType === 'liked_playlist_item' && typeof openPlaylistContextMenu === 'function') {
+          openPlaylistContextMenu(menuBtn, itemData.playlist || { id: itemId, title }, itemWrapper);
+        } else if (typeof openAlbumContextMenu === 'function') {
+          openAlbumContextMenu(menuBtn, { id: itemId, title }, itemWrapper);
+        }
+      });
+      menuBtn.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
       });
     }
 
@@ -25992,12 +26996,215 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     console.log('%c🛑 [BYM Inspector] ВЫКЛЮЧЕН.', 'color: #ef4444; font-weight: bold;');
   }
 
+  // =========================================================================
+  // 5. Специализированный отладчик трейлеров (Trailer Service Debugger)
+  // =========================================================================
+  async function debugTrailer(targetOrId, options = {}) {
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym?.rootModel;
+    const svc = (typeof getTrailerService === 'function' ? getTrailerService() : null) || root?.services?.trailerService || root?.trailer;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || window.getSonataCore?.();
+
+    console.group('%c🎬 [BYM TRAILER DEBUGGER] Анализ сервиса трейлеров и сущности', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
+
+    // 1. Анализ trailerService
+    let svcMethods = [];
+    if (svc) {
+      try {
+        const protoMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(svc));
+        const directKeys = Object.keys(svc);
+        svcMethods = Array.from(new Set([...protoMethods, ...directKeys])).filter(k => typeof svc[k] === 'function');
+      } catch (_) {}
+    }
+
+    console.log('%c1. Состояние TrailerService:', 'color: #38bdf8; font-weight: bold;', {
+      available: Boolean(svc),
+      instance: svc,
+      methods: svcMethods,
+      properties: svc ? Object.keys(svc) : [],
+      isPlaying: svc?.isPlaying,
+      currentTrailer: svc?.currentTrailer,
+      status: svc?.status
+    });
+
+    // 2. Если передан DOM-элемент или селектор
+    let domElement = null;
+    let extractedData = null;
+    if (typeof targetOrId === 'string' && (targetOrId.startsWith('.') || targetOrId.startsWith('#') || targetOrId.startsWith('['))) {
+      domElement = document.querySelector(targetOrId);
+    } else if (targetOrId instanceof Element) {
+      domElement = targetOrId;
+    }
+
+    if (domElement) {
+      const btn = domElement.closest('button, [role="button"]') || domElement;
+      const card = domElement.closest('.laBJlJAaqEVS0i_4Ot3l, [class*="Card"], [class*="Track"], [class*="NewRelease"]') || domElement;
+      const props = getReactProps(btn) || getReactProps(card);
+      const fiber = getReactFiber(btn) || getReactFiber(card);
+
+      console.log('%c2. DOM и React Fiber элемента:', 'color: #10b981; font-weight: bold;', {
+        element: btn,
+        cardElement: card,
+        reactProps: props,
+        fiber
+      });
+
+      // Ищем данные трейлера в Fiber
+      let curF = fiber;
+      while (curF && !extractedData) {
+        const p = curF.memoizedProps;
+        if (p) {
+          if (p.album || p.playlist || p.track || p.item || p.trailer) {
+            extractedData = {
+              album: p.album,
+              playlist: p.playlist,
+              track: p.track,
+              item: p.item,
+              trailer: p.trailer
+            };
+          }
+        }
+        curF = curF.return;
+      }
+      if (extractedData) {
+        console.log('%c3. Данные из React Fiber:', 'color: #ec4899; font-weight: bold;', extractedData);
+      }
+    }
+
+    // 3. Анализ входных данных ID/объекта
+    let testEntity = targetOrId;
+    if (!testEntity && extractedData) {
+      testEntity = extractedData.album || extractedData.playlist || extractedData.track || extractedData.item;
+    }
+    if (!testEntity && typeof $0 !== 'undefined' && $0) {
+      return debugTrailer($0, options);
+    }
+
+    console.log('%c4. Тестируемая сущность:', 'color: #a855f7; font-weight: bold;', testEntity);
+
+    // 4. Определение типа сущности
+    if ((testEntity instanceof Element || testEntity?.nodeType) && !extractedData) {
+      const el = testEntity;
+      const itemId = el.getAttribute('data-item-id') || el.querySelector('[data-item-id]')?.getAttribute('data-item-id') ||
+                     el.getAttribute('data-album-id') || el.querySelector('[data-album-id]')?.getAttribute('data-album-id') ||
+                     el.getAttribute('data-track-id') || el.querySelector('[data-track-id]')?.getAttribute('data-track-id') || '';
+      const itemType = el.getAttribute('data-item-type') || el.querySelector('[data-item-type]')?.getAttribute('data-item-type') || '';
+      const plUid = el.getAttribute('data-playlist-uid') || el.querySelector('[data-playlist-uid]')?.getAttribute('data-playlist-uid') || null;
+      const plKind = el.getAttribute('data-playlist-kind') || el.querySelector('[data-playlist-kind]')?.getAttribute('data-playlist-kind') || null;
+
+      testEntity = {
+        id: itemId,
+        type: itemType,
+        uid: plUid,
+        kind: plKind,
+        isElementExtracted: true
+      };
+    }
+
+    let entityType = 'unknown';
+    let entityId = '';
+    let playlistUid = null;
+    let playlistKind = null;
+
+    if (typeof testEntity === 'number' || (/^\d+$/.test(String(testEntity).trim()))) {
+      entityType = 'album';
+      entityId = String(testEntity);
+    } else if (typeof testEntity === 'string') {
+      entityId = testEntity.trim();
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId)) {
+        entityType = 'playlist_uuid';
+      } else if (entityId.includes(':')) {
+        entityType = 'playlist_key';
+        const parts = entityId.split(':');
+        playlistUid = parts[0];
+        playlistKind = parts[1];
+      } else {
+        entityType = 'album';
+      }
+    } else if (typeof testEntity === 'object' && testEntity !== null) {
+      if (testEntity.album || testEntity.type === 'album_item') {
+        entityType = 'album';
+        entityId = String(testEntity.album?.id || testEntity.id);
+      } else if (testEntity.playlist || testEntity.type === 'liked_playlist_item' || testEntity.playlistUuid || testEntity.kind || testEntity.uid) {
+        entityType = 'playlist';
+        const pl = testEntity.playlist || testEntity;
+        entityId = pl.playlistUuid || pl.uuid || pl.id;
+        playlistUid = pl.uid;
+        playlistKind = pl.kind;
+      } else if (testEntity.track) {
+        entityType = 'track';
+        entityId = String(testEntity.track.id || testEntity.id);
+      }
+    }
+
+    console.log('%c5. Классификация сущности:', 'color: #f59e0b; font-weight: bold;', {
+      entityType,
+      entityId,
+      playlistUid,
+      playlistKind,
+      isUuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(entityId))
+    });
+
+    if (options.testPlayback && svc) {
+      console.log('%c6. Запуск тестового воспроизведения...', 'color: #3b82f6; font-weight: bold;');
+      const methodsToTry = [];
+      if (entityType === 'album' || /^\d+$/.test(entityId)) {
+        if (typeof svc.openAlbumTrailer === 'function') methodsToTry.push({ name: 'openAlbumTrailer', fn: () => svc.openAlbumTrailer(String(entityId)) });
+        if (typeof svc.playTrailer === 'function') methodsToTry.push({ name: 'playTrailer(albumId)', fn: () => svc.playTrailer({ albumId: Number(entityId) || entityId }) });
+      } else {
+        const plKey = (playlistUid && playlistKind) ? `${playlistUid}:${playlistKind}` : String(entityId);
+        if (typeof svc.openPlaylistTrailer === 'function') {
+          methodsToTry.push({ name: `openPlaylistTrailer("${plKey}")`, fn: () => svc.openPlaylistTrailer(String(plKey)) });
+        }
+        if (typeof svc.playPlaylistTrailer === 'function') {
+          methodsToTry.push({ name: 'playPlaylistTrailer({ uid, kind })', fn: () => svc.playPlaylistTrailer({ uid: Number(playlistUid) || playlistUid, kind: Number(playlistKind) || playlistKind, uuid: entityId }) });
+        }
+        if (typeof svc.playTrailer === 'function') {
+          methodsToTry.push({ name: 'playTrailer(playlist)', fn: () => svc.playTrailer({ type: 'playlist', id: plKey, uuid: entityId, uid: playlistUid, kind: playlistKind }) });
+        }
+      }
+
+      for (const m of methodsToTry) {
+        try {
+          console.log(`%cПробуем метод: ${m.name}...`, 'color: #fbbf24;');
+          const res = await m.fn();
+          console.log(`%cУспех для ${m.name}! Результат:`, 'color: #10b981;', res);
+          break;
+        } catch (err) {
+          console.warn(`%cОшибка при вызове ${m.name}:`, 'color: #ef4444;', err);
+        }
+      }
+    }
+
+    console.groupEnd();
+    return {
+      svc,
+      svcMethods,
+      entityType,
+      entityId,
+      playlistUid,
+      playlistKind,
+      extractedData
+    };
+  }
+
+  // Автоматический перехват кликов по кнопкам трейлеров для детального анализа
+  document.addEventListener('click', (e) => {
+    const trailerBtn = e.target.closest('[class*="trailerButton"], [class*="trailerIcon"], .ym-editorial-trailer-btn, .ym-chart-trailer-btn, .ym-album-month-trailer-btn, [data-action="trailer"]');
+    if (!trailerBtn) return;
+
+    const card = trailerBtn.closest('.laBJlJAaqEVS0i_4Ot3l, .HorizontalCardContainer_root__YoAAP, [class*="NewRelease_root"]') || trailerBtn;
+    debugTrailer(card, { testPlayback: false });
+  }, { capture: true, passive: true });
+
   window.bymDebugButton = debugButton;
   window.bymStartInspector = startInspector;
   window.bymStopInspector = stopInspector;
+  window.bymDebugTrailer = debugTrailer;
+  window.debugTrailer = debugTrailer;
 
-  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
+  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymDebugTrailer($0), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
 })();
+
 
 
 // --- Component: shared/vibe/vibe-init.js ---

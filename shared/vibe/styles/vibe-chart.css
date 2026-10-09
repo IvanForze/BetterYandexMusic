@@ -1,0 +1,84 @@
+/* =========================================================================
+   BetterYandexMusic: Chart Section (Чарт - Тренды)
+   Exact 1-to-1 Native Layout matching Yandex Music
+   ========================================================================= */
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section {
+  gap: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chart-carousel {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 24px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  padding: 0 0 16px 0 !important;
+  padding-left: 0 !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+  list-style: none !important;
+  margin: 0 !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-chart-carousel::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_item__RBGs4 {
+  flex-shrink: 0 !important;
+  list-style: none !important;
+  scroll-snap-align: start !important;
+  width: calc(50% - 12px) !important;
+  min-width: 340px !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 1060px) {
+  html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_item__RBGs4 {
+    width: 100% !important;
+    min-width: 280px !important;
+  }
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .CarouselWithColumnsBlock_column__oMRES {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  width: 100% !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .TrackChart_chartCell__33_al {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 28px !important;
+  width: 28px !important;
+  margin-right: 8px !important;
+  text-align: center !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .Chart_position__7UNY9 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 16px !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .Chart_progress__sGj4s {
+  width: 12px !important;
+  height: 12px !important;
+  margin-top: 2px !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselWithColumnsBlock_root__v_qoo:hover .CarouselControls_root__E_hwc {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}

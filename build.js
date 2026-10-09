@@ -17,6 +17,7 @@ const vibeModuleFiles = [
   'shared/vibe/vibe-section-premiere.js',
   'shared/vibe/vibe-section-mixes.js',
   'shared/vibe/vibe-section-albums-month.js',
+  'shared/vibe/vibe-section-chart.js',
   'shared/vibe/vibe-section-editorial.js',
   'shared/vibe/vibe-button-debugger.js',
   'shared/vibe/vibe-init.js'
@@ -35,6 +36,7 @@ function bundleVibeStyles() {
     'vibe-premiere.css',
     'vibe-mixes.css',
     'vibe-albums-month.css',
+    'vibe-chart.css',
     'vibe-editorial.css',
     'vibe-context-menu.css'
   ];

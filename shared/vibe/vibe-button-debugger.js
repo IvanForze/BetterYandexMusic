@@ -219,9 +219,212 @@
     console.log('%c🛑 [BYM Inspector] ВЫКЛЮЧЕН.', 'color: #ef4444; font-weight: bold;');
   }
 
+  // =========================================================================
+  // 5. Специализированный отладчик трейлеров (Trailer Service Debugger)
+  // =========================================================================
+  async function debugTrailer(targetOrId, options = {}) {
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym?.rootModel;
+    const svc = (typeof getTrailerService === 'function' ? getTrailerService() : null) || root?.services?.trailerService || root?.trailer;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || window.getSonataCore?.();
+
+    console.group('%c🎬 [BYM TRAILER DEBUGGER] Анализ сервиса трейлеров и сущности', 'color: #f59e0b; font-weight: bold; font-size: 14px;');
+
+    // 1. Анализ trailerService
+    let svcMethods = [];
+    if (svc) {
+      try {
+        const protoMethods = Object.getOwnPropertyNames(Object.getPrototypeOf(svc));
+        const directKeys = Object.keys(svc);
+        svcMethods = Array.from(new Set([...protoMethods, ...directKeys])).filter(k => typeof svc[k] === 'function');
+      } catch (_) {}
+    }
+
+    console.log('%c1. Состояние TrailerService:', 'color: #38bdf8; font-weight: bold;', {
+      available: Boolean(svc),
+      instance: svc,
+      methods: svcMethods,
+      properties: svc ? Object.keys(svc) : [],
+      isPlaying: svc?.isPlaying,
+      currentTrailer: svc?.currentTrailer,
+      status: svc?.status
+    });
+
+    // 2. Если передан DOM-элемент или селектор
+    let domElement = null;
+    let extractedData = null;
+    if (typeof targetOrId === 'string' && (targetOrId.startsWith('.') || targetOrId.startsWith('#') || targetOrId.startsWith('['))) {
+      domElement = document.querySelector(targetOrId);
+    } else if (targetOrId instanceof Element) {
+      domElement = targetOrId;
+    }
+
+    if (domElement) {
+      const btn = domElement.closest('button, [role="button"]') || domElement;
+      const card = domElement.closest('.laBJlJAaqEVS0i_4Ot3l, [class*="Card"], [class*="Track"], [class*="NewRelease"]') || domElement;
+      const props = getReactProps(btn) || getReactProps(card);
+      const fiber = getReactFiber(btn) || getReactFiber(card);
+
+      console.log('%c2. DOM и React Fiber элемента:', 'color: #10b981; font-weight: bold;', {
+        element: btn,
+        cardElement: card,
+        reactProps: props,
+        fiber
+      });
+
+      // Ищем данные трейлера в Fiber
+      let curF = fiber;
+      while (curF && !extractedData) {
+        const p = curF.memoizedProps;
+        if (p) {
+          if (p.album || p.playlist || p.track || p.item || p.trailer) {
+            extractedData = {
+              album: p.album,
+              playlist: p.playlist,
+              track: p.track,
+              item: p.item,
+              trailer: p.trailer
+            };
+          }
+        }
+        curF = curF.return;
+      }
+      if (extractedData) {
+        console.log('%c3. Данные из React Fiber:', 'color: #ec4899; font-weight: bold;', extractedData);
+      }
+    }
+
+    // 3. Анализ входных данных ID/объекта
+    let testEntity = targetOrId;
+    if (!testEntity && extractedData) {
+      testEntity = extractedData.album || extractedData.playlist || extractedData.track || extractedData.item;
+    }
+    if (!testEntity && typeof $0 !== 'undefined' && $0) {
+      return debugTrailer($0, options);
+    }
+
+    console.log('%c4. Тестируемая сущность:', 'color: #a855f7; font-weight: bold;', testEntity);
+
+    // 4. Определение типа сущности
+    if ((testEntity instanceof Element || testEntity?.nodeType) && !extractedData) {
+      const el = testEntity;
+      const itemId = el.getAttribute('data-item-id') || el.querySelector('[data-item-id]')?.getAttribute('data-item-id') ||
+                     el.getAttribute('data-album-id') || el.querySelector('[data-album-id]')?.getAttribute('data-album-id') ||
+                     el.getAttribute('data-track-id') || el.querySelector('[data-track-id]')?.getAttribute('data-track-id') || '';
+      const itemType = el.getAttribute('data-item-type') || el.querySelector('[data-item-type]')?.getAttribute('data-item-type') || '';
+      const plUid = el.getAttribute('data-playlist-uid') || el.querySelector('[data-playlist-uid]')?.getAttribute('data-playlist-uid') || null;
+      const plKind = el.getAttribute('data-playlist-kind') || el.querySelector('[data-playlist-kind]')?.getAttribute('data-playlist-kind') || null;
+
+      testEntity = {
+        id: itemId,
+        type: itemType,
+        uid: plUid,
+        kind: plKind,
+        isElementExtracted: true
+      };
+    }
+
+    let entityType = 'unknown';
+    let entityId = '';
+    let playlistUid = null;
+    let playlistKind = null;
+
+    if (typeof testEntity === 'number' || (/^\d+$/.test(String(testEntity).trim()))) {
+      entityType = 'album';
+      entityId = String(testEntity);
+    } else if (typeof testEntity === 'string') {
+      entityId = testEntity.trim();
+      if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(entityId)) {
+        entityType = 'playlist_uuid';
+      } else if (entityId.includes(':')) {
+        entityType = 'playlist_key';
+        const parts = entityId.split(':');
+        playlistUid = parts[0];
+        playlistKind = parts[1];
+      } else {
+        entityType = 'album';
+      }
+    } else if (typeof testEntity === 'object' && testEntity !== null) {
+      if (testEntity.album || testEntity.type === 'album_item') {
+        entityType = 'album';
+        entityId = String(testEntity.album?.id || testEntity.id);
+      } else if (testEntity.playlist || testEntity.type === 'liked_playlist_item' || testEntity.playlistUuid || testEntity.kind || testEntity.uid) {
+        entityType = 'playlist';
+        const pl = testEntity.playlist || testEntity;
+        entityId = pl.playlistUuid || pl.uuid || pl.id;
+        playlistUid = pl.uid;
+        playlistKind = pl.kind;
+      } else if (testEntity.track) {
+        entityType = 'track';
+        entityId = String(testEntity.track.id || testEntity.id);
+      }
+    }
+
+    console.log('%c5. Классификация сущности:', 'color: #f59e0b; font-weight: bold;', {
+      entityType,
+      entityId,
+      playlistUid,
+      playlistKind,
+      isUuid: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(entityId))
+    });
+
+    if (options.testPlayback && svc) {
+      console.log('%c6. Запуск тестового воспроизведения...', 'color: #3b82f6; font-weight: bold;');
+      const methodsToTry = [];
+      if (entityType === 'album' || /^\d+$/.test(entityId)) {
+        if (typeof svc.openAlbumTrailer === 'function') methodsToTry.push({ name: 'openAlbumTrailer', fn: () => svc.openAlbumTrailer(String(entityId)) });
+        if (typeof svc.playTrailer === 'function') methodsToTry.push({ name: 'playTrailer(albumId)', fn: () => svc.playTrailer({ albumId: Number(entityId) || entityId }) });
+      } else {
+        const plKey = (playlistUid && playlistKind) ? `${playlistUid}:${playlistKind}` : String(entityId);
+        if (typeof svc.openPlaylistTrailer === 'function') {
+          methodsToTry.push({ name: `openPlaylistTrailer("${plKey}")`, fn: () => svc.openPlaylistTrailer(String(plKey)) });
+        }
+        if (typeof svc.playPlaylistTrailer === 'function') {
+          methodsToTry.push({ name: 'playPlaylistTrailer({ uid, kind })', fn: () => svc.playPlaylistTrailer({ uid: Number(playlistUid) || playlistUid, kind: Number(playlistKind) || playlistKind, uuid: entityId }) });
+        }
+        if (typeof svc.playTrailer === 'function') {
+          methodsToTry.push({ name: 'playTrailer(playlist)', fn: () => svc.playTrailer({ type: 'playlist', id: plKey, uuid: entityId, uid: playlistUid, kind: playlistKind }) });
+        }
+      }
+
+      for (const m of methodsToTry) {
+        try {
+          console.log(`%cПробуем метод: ${m.name}...`, 'color: #fbbf24;');
+          const res = await m.fn();
+          console.log(`%cУспех для ${m.name}! Результат:`, 'color: #10b981;', res);
+          break;
+        } catch (err) {
+          console.warn(`%cОшибка при вызове ${m.name}:`, 'color: #ef4444;', err);
+        }
+      }
+    }
+
+    console.groupEnd();
+    return {
+      svc,
+      svcMethods,
+      entityType,
+      entityId,
+      playlistUid,
+      playlistKind,
+      extractedData
+    };
+  }
+
+  // Автоматический перехват кликов по кнопкам трейлеров для детального анализа
+  document.addEventListener('click', (e) => {
+    const trailerBtn = e.target.closest('[class*="trailerButton"], [class*="trailerIcon"], .ym-editorial-trailer-btn, .ym-chart-trailer-btn, .ym-album-month-trailer-btn, [data-action="trailer"]');
+    if (!trailerBtn) return;
+
+    const card = trailerBtn.closest('.laBJlJAaqEVS0i_4Ot3l, .HorizontalCardContainer_root__YoAAP, [class*="NewRelease_root"]') || trailerBtn;
+    debugTrailer(card, { testPlayback: false });
+  }, { capture: true, passive: true });
+
   window.bymDebugButton = debugButton;
   window.bymStartInspector = startInspector;
   window.bymStopInspector = stopInspector;
+  window.bymDebugTrailer = debugTrailer;
+  window.debugTrailer = debugTrailer;
 
-  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
+  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymDebugTrailer($0), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
 })();
+

@@ -45,7 +45,10 @@
     if (
       !e.target.closest('.ym-native-album-menu') &&
       !e.target.closest('.ym-native-album-submenu') &&
-      !e.target.closest('.AlbumCard_menuButton__pxkA6')
+      !e.target.closest('.AlbumCard_menuButton__pxkA6') &&
+      !e.target.closest('.ym-editorial-menu-btn') &&
+      !e.target.closest('.ym-chart-menu-btn') &&
+      !e.target.closest('.CommonControlsBar_contextMenu__EAq_c')
     ) {
       closeAlbumContextMenu();
     }
@@ -78,8 +81,8 @@
   function openAlbumContextMenu(buttonEl, album, item) {
     closeAlbumContextMenu();
 
-    const card = buttonEl.closest('.AlbumCard_root__vP6k4');
-    const pinBtn = card?.querySelector('.AlbumCard_pinButton__Mdi_E');
+    const card = buttonEl?.closest?.('.AlbumCard_root__vP6k4') || buttonEl?.closest?.('.laBJlJAaqEVS0i_4Ot3l') || buttonEl?.closest?.('li');
+    const pinBtn = card?.querySelector('.AlbumCard_pinButton__Mdi_E, .ym-editorial-pin-btn');
     const isPinned = pinBtn ? pinBtn.getAttribute('aria-pressed') === 'true' : isAlbumPinned(album.id);
     const isLiked = Boolean(album._isLiked);
 
@@ -338,8 +341,150 @@
     });
   }
 
+  function openPlaylistContextMenu(buttonEl, playlist, itemWrapper) {
+    closeAlbumContextMenu();
+
+    const pl = playlist?.playlist || playlist || {};
+    const uuid = pl.playlistUuid || pl.uuid || pl.kind;
+    const plUid = pl.uid;
+    const kind = pl.kind;
+    const title = pl.title || '';
+    const isPinned = typeof isPlaylistPinned === 'function' ? isPlaylistPinned(uuid, pl) : false;
+    const hasTrailer = Boolean(pl.trailer?.available || itemWrapper?.data?.trailer?.available);
+
+    const menu = document.createElement('div');
+    menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-playlist-menu';
+    menu.setAttribute('tabindex', '0');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-orientation', 'vertical');
+
+    menu.innerHTML = `
+      <div class="ggP7WX2_erziDHFOo32s">
+        <!-- 1. Закрепить -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="pin">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isPinned ? 'pin_filled_xxs' : 'pin_xxs'}"></use>
+            </svg>
+            ${isPinned ? 'Открепить' : 'Закрепить'}
+          </span>
+        </button>
+
+        ${hasTrailer ? `
+        <!-- 2. Трейлер -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+            </svg>
+            Трейлер
+          </span>
+        </button>` : ''}
+
+        <!-- 3. Моя волна по плейлисту -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="wave">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#vibe_xxs"></use>
+            </svg>
+            Моя волна по плейлисту
+          </span>
+        </button>
+
+        <!-- 4. Поделиться -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="share">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+            </svg>
+            Поделиться
+          </span>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(menu);
+    activeContextMenuEl = menu;
+
+    const rect = buttonEl.getBoundingClientRect();
+    const menuWidth = 230;
+    const menuHeight = 200;
+
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - 6;
+    }
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.zIndex = '9999999';
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.96)';
+    menu.style.transformOrigin = 'top right';
+    menu.style.transition = 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+    });
+
+    const card = buttonEl.closest('.PlaylistCard_root__i3pR4') || buttonEl.closest('li');
+    const pinBtn = card?.querySelector('.ym-editorial-pin-btn');
+
+    menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      itemBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemBtn.getAttribute('data-action');
+        if (action === 'share') return;
+
+        closeAlbumContextMenu();
+
+        if (action === 'pin') {
+          if (pinBtn) pinBtn.click();
+          else if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(uuid, !isPinned, pl);
+        } else if (action === 'trailer') {
+          if (typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(uuid);
+          }
+        } else if (action === 'wave') {
+          if (typeof playVibeStation === 'function') {
+            const seed = (plUid && kind) ? `playlist:${plUid}:${kind}` : `playlist:${uuid}`;
+            await playVibeStation({
+              stationId: seed,
+              seeds: [seed],
+              title: title ? `Моя волна: ${title}` : 'Моя волна'
+            });
+          }
+        }
+      });
+    });
+
+    const shareBtn = menu.querySelector('button[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeAlbumContextMenu();
+        const playlistUrl = plUid && kind ? `https://music.yandex.ru/users/${plUid}/playlists/${kind}` : `https://music.yandex.ru/playlists/${uuid}`;
+        try {
+          await navigator.clipboard.writeText(playlistUrl);
+          showMenuToast('Ссылка на плейлист скопирована');
+        } catch (_) {
+          showMenuToast('Не удалось скопировать ссылку');
+        }
+      });
+    }
+  }
+
   function openTrackContextMenu(buttonEl, track, playlist) {
     if (!buttonEl || !track) return;
+    if (buttonEl.target) {
+      buttonEl = buttonEl.target.closest('button') || buttonEl.currentTarget || buttonEl.target;
+    }
     closeAlbumContextMenu();
 
     const trackId = String(track.id || track.realId || '');
@@ -348,9 +493,11 @@
     const artists = track.artists || [];
     const firstArtist = artists[0] || {};
 
-    const trackRow = buttonEl.closest('.HorizontalCardContainer_root__YoAAP') || buttonEl.closest('.ym-vibe-premiere-track');
-    const likeBtn = trackRow?.querySelector('.ym-track-like-btn');
-    const isLiked = likeBtn ? likeBtn.getAttribute('aria-pressed') === 'true' : false;
+    const trackRow = buttonEl?.closest?.('.HorizontalCardContainer_root__YoAAP') || buttonEl?.closest?.('.ym-track-row') || buttonEl?.closest?.('.ym-vibe-premiere-track');
+    const likeBtn = trackRow?.querySelector('.ym-track-like-btn, .ym-chart-like-btn');
+    const isLiked = likeBtn
+      ? (likeBtn.getAttribute('aria-pressed') === 'true' || likeBtn.classList.contains('zIMibMuH7wcqUoW7KH1B'))
+      : (typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false);
 
     const menu = document.createElement('div');
     menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-track-menu';
@@ -560,5 +707,11 @@
         }
       });
     });
+  }
+
+  if (typeof window !== 'undefined') {
+    window.openAlbumContextMenu = openAlbumContextMenu;
+    window.openPlaylistContextMenu = openPlaylistContextMenu;
+    window.openTrackContextMenu = openTrackContextMenu;
   }
 

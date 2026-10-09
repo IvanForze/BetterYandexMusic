@@ -136,27 +136,44 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     const cover100 = coverUri ? formatYandexImg(coverUri, '200x200') : '';
     const cover200 = coverUri ? formatYandexImg(coverUri, '400x400') : '';
 
+    const isPinnedInitially = itemType === 'album_item'
+      ? (typeof isAlbumPinned === 'function' ? isAlbumPinned(itemId) : false)
+      : (itemType === 'liked_playlist_item' ? (typeof isPlaylistPinned === 'function' ? isPlaylistPinned(itemId, itemData.playlist) : false) : false);
+    const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+
     const li = document.createElement('li');
     li.className = 'VJ9IexhAEuYSCyGiMfN4 CarouselBlock_item__DatZ2 CarouselBlock_important__AARmP';
+    li.setAttribute('data-item-id', itemId);
+    li.setAttribute('data-item-type', itemType);
+    if (itemData.playlist?.uid) li.setAttribute('data-playlist-uid', String(itemData.playlist.uid));
+    if (itemData.playlist?.kind) li.setAttribute('data-playlist-kind', String(itemData.playlist.kind));
 
     li.innerHTML = `
-      <div class="laBJlJAaqEVS0i_4Ot3l ${isRound ? 'ArtistCard_root__x67BK' : 'PlaylistCard_root__i3pR4'}" data-test-id="${itemType === 'artist_item' ? 'ARTIST_ITEM' : (itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM')}">
+      <div class="laBJlJAaqEVS0i_4Ot3l ${isRound ? 'ArtistCard_root__x67BK' : 'PlaylistCard_root__i3pR4'}" data-test-id="${itemType === 'artist_item' ? 'ARTIST_ITEM' : (itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM')}" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
         <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI ${isRound ? 'ArtistCard_cover__29ShU' : 'PlaylistCard_cover__tpK5L withShadow'}">
           <div class="${isRound ? 'ArtistCard_coverBlock__dBL4x' : 'PlaylistCard_coverBlock__1slsN'}">
             ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ${isRound ? 'ArtistCard_image__pONJx' : 'PlaylistCard_image__Li6oy'}" alt="${escapeHtml(title)}" loading="lazy" aria-hidden="true" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
             <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE cSCPJSa6Lx6OnpM4ljX9 ${isRound ? 'ArtistCard_controls__jsqqI' : 'PlaylistCard_controls__Ej8Rz'}">
-              <div class="P6gOmyFtXyetUz0dqhF3"></div>
+              <div class="P6gOmyFtXyetUz0dqhF3">
+                <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} ${isRound ? 'ArtistCard_pinButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_pinButton__Mdi_E AlbumCard_control__qx7Xh'} ym-editorial-pin-btn" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
+                  <span class="JjlbHZ4FaP9EAcR_1DxF">
+                    <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                      <use xlink:href="${initialPinIcon}"></use>
+                    </svg>
+                  </span>
+                </button>
+              </div>
               <div class="bL0wE1Bui8zpIZbvMVL3">
                 <div class="RvWjZle1erRBXzJEF9Zj">
                   ${hasTrailer ? `
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j' : 'PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq'} ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j' : 'PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq'} ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
                         <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
                       </svg>
                     </span>
                   </button>` : ''}
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
                         <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
@@ -165,10 +182,10 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
                   </button>
                 </div>
                 <div class="bBh7lvgdfF7bqNqlK78Q">
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isRound ? 'ArtistCard_likeButton__LU9TL ArtistCard_control___qv5j' : 'PlaylistCard_likeButton__RYXJz PlaylistCard_control__73YUq'} ym-editorial-like-btn" type="button" aria-label="Нравится" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO zmtVwO34EPppZErNrlIC ${isRound ? 'ArtistCard_menuButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_menuButton__pxkA6 AlbumCard_control__qx7Xh'} ym-editorial-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                        <use xlink:href="/icons/sprite.svg#heart_xxs"></use>
+                        <use xlink:href="/icons/sprite.svg#more_xxs"></use>
                       </svg>
                     </span>
                   </button>
@@ -208,16 +225,68 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       });
     }
 
+    // Pin button
+    const pinBtn = li.querySelector('.ym-editorial-pin-btn');
+    if (pinBtn) {
+      pinBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isCurrentlyPinned = pinBtn.getAttribute('aria-pressed') === 'true';
+        const nextState = !isCurrentlyPinned;
+        pinBtn.setAttribute('aria-pressed', nextState ? 'true' : 'false');
+        pinBtn.setAttribute('aria-label', nextState ? 'Открепить' : 'Закрепить');
+        pinBtn.classList.remove('PinButton_animation_scaled__Aj6LA', 'PinButton_animation_unscaled__QM3sC');
+        pinBtn.classList.add(nextState ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC');
+
+        const svgUse = pinBtn.querySelector('use');
+        if (svgUse) {
+          const nextIcon = nextState ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+          svgUse.setAttribute('xlink:href', nextIcon);
+          svgUse.setAttribute('href', nextIcon);
+        }
+
+        if (itemType === 'album_item') {
+          if (typeof togglePinAlbum === 'function') await togglePinAlbum(itemId, nextState);
+        } else if (itemType === 'liked_playlist_item') {
+          if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(itemId, nextState, itemData.playlist);
+        }
+      });
+    }
+
     // Play button
     const playBtn = li.querySelector('.ym-editorial-play-btn');
-    if (playBtn && typeof onPlay === 'function') {
+    if (playBtn) {
       playBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        try {
+        const p = getSafeActivePlayer();
+        let state = { isMatch: false, isPlaying: false };
+        if (itemType === 'album_item' && typeof isAlbumCurrentlyPlaying === 'function') {
+          state = isAlbumCurrentlyPlaying(itemId);
+        } else if (itemType === 'liked_playlist_item' && typeof isPlaylistCurrentlyPlaying === 'function') {
+          state = isPlaylistCurrentlyPlaying(itemId, itemData.playlist);
+        } else if (itemType === 'artist_item' && typeof isArtistCurrentlyPlaying === 'function') {
+          state = isArtistCurrentlyPlaying(itemId);
+        }
+
+        if (state.isMatch) {
+          if (typeof p?.togglePause === 'function') {
+            p.togglePause();
+          } else if (state.isPlaying && typeof p?.pause === 'function') {
+            p.pause();
+          } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+            if (p.resume) p.resume();
+            else p.play();
+          }
+        } else if (typeof onPlay === 'function') {
           await onPlay();
-        } catch (err) {
-          console.warn('[BYM] Error playing editorial item:', err);
+        }
+
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+          setTimeout(updateLandingPlaybackIndicators, 600);
         }
       });
     }
@@ -225,12 +294,55 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     // Trailer button
     const trailerBtn = li.querySelector('.ym-editorial-trailer-btn');
     if (trailerBtn && hasTrailer) {
-      trailerBtn.addEventListener('click', (e) => {
+      trailerBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        if (typeof openTrailer === 'function') {
-          openTrailer(itemId);
+        const trailerTarget = itemType === 'album_item'
+          ? itemId
+          : {
+              type: itemType,
+              id: itemId,
+              uuid: itemId,
+              uid: itemData.playlist?.uid,
+              kind: itemData.playlist?.kind,
+              playlist: itemData.playlist
+            };
+        const isPlaying = typeof isAlbumTrailerCurrentlyPlaying === 'function' && isAlbumTrailerCurrentlyPlaying(trailerTarget);
+        const p = getSafeActivePlayer();
+        if (isPlaying) {
+          if (typeof p?.togglePause === 'function') p.togglePause();
+          else if (typeof p?.pause === 'function') p.pause();
+        } else {
+          if (typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(trailerTarget);
+          } else if (typeof playAlbumTrailer === 'function') {
+            await playAlbumTrailer(trailerTarget);
+          }
         }
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          updateLandingPlaybackIndicators();
+          setTimeout(updateLandingPlaybackIndicators, 60);
+          setTimeout(updateLandingPlaybackIndicators, 250);
+        }
+      });
+    }
+
+    // Context menu button (троеточие)
+    const menuBtn = li.querySelector('.ym-editorial-menu-btn');
+    if (menuBtn) {
+      menuBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (itemType === 'album_item' && typeof openAlbumContextMenu === 'function') {
+          openAlbumContextMenu(menuBtn, itemData.album || { id: itemId, title }, itemWrapper);
+        } else if (itemType === 'liked_playlist_item' && typeof openPlaylistContextMenu === 'function') {
+          openPlaylistContextMenu(menuBtn, itemData.playlist || { id: itemId, title }, itemWrapper);
+        } else if (typeof openAlbumContextMenu === 'function') {
+          openAlbumContextMenu(menuBtn, { id: itemId, title }, itemWrapper);
+        }
+      });
+      menuBtn.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
       });
     }
 

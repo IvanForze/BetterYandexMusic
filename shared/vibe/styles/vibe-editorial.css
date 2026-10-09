@@ -40,3 +40,57 @@ html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section .Caro
   min-width: 172px !important;
   max-width: 172px !important;
 }
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section:hover .CarouselControls_root__E_hwc {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.55) 100%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:hover .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:focus-within .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l.is-playing .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l.is-playing .ArtistCard_controls__jsqqI {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x {
+  position: relative !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 !important;
+  width: 100% !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN {
+  border-radius: var(--ym-radius-size-m, 12px) !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x {
+  border-radius: 50% !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_image__Li6oy,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_image__pONJx {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}

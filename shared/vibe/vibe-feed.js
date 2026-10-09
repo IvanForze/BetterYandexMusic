@@ -16,6 +16,7 @@
     premiere: null,
     albumsMonth: null,
     mixesMusic: null,
+    chart: null,
     editorialCompilations: {},
     timestamp: 0
   };
@@ -223,7 +224,7 @@
           .catch(() => null)
       );
 
-      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, mmData, ...editorialResults] = await Promise.allSettled([
+      const [lhRes, mwRes, wavesRes, inStyleRes, nrRes, cRes, premRes, amRes, chartRes, mmData, ...editorialResults] = await Promise.allSettled([
         fetch('https://api.music.yandex.ru/landing-blocks/likes-and-history', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/mixes-waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing-blocks/waves', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
@@ -232,6 +233,7 @@
         fetch('https://api.music.yandex.ru/concerts/landing/personal', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/premiere/smart-open-playlist/RECENT_TRACKS', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetch('https://api.music.yandex.ru/landing/block/editorial/new-releases/ALL_albums_of_the_month', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
+        fetch('https://api.music.yandex.ru/landing/block/chart', { credentials: 'include' }).then(r => r.ok ? r.json() : null),
         fetchMixesData(),
         ...editorialPromises
       ]);
@@ -247,6 +249,9 @@
       }
       if (amRes.status === 'fulfilled' && amRes.value) {
         landingFeedCache.albumsMonth = amRes.value?.result || amRes.value;
+      }
+      if (chartRes.status === 'fulfilled' && chartRes.value) {
+        landingFeedCache.chart = chartRes.value?.result || chartRes.value;
       }
       if (mmData.status === 'fulfilled' && mmData.value) {
         landingFeedCache.mixesMusic = mmData.value?.items ? mmData.value.items : mmData.value;
@@ -360,6 +365,11 @@
       // 2. Секция 2: Альбомы месяца
       if (typeof renderAlbumsOfTheMonthSection === 'function') {
         renderAlbumsOfTheMonthSection(feed, data.albumsMonth);
+      }
+
+      // 3. Секция 3: Чарт
+      if (typeof renderChartSection === 'function') {
+        renderChartSection(feed, data.chart);
       }
 
       // 3. Редакционные подборки:
