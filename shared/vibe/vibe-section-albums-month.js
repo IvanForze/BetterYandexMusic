@@ -199,6 +199,7 @@ function renderAlbumsOfTheMonthSection(feedContainer, albumsMonthData) {
     const playBtn = li.querySelector('.ym-album-month-play-btn');
     if (playBtn) {
       playBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
         e.stopPropagation();
         const albumId = String(album.id || '');
         const p = getSafeActivePlayer();
@@ -209,8 +210,9 @@ function renderAlbumsOfTheMonthSection(feedContainer, albumsMonthData) {
             await p.togglePause();
           } else if (state.isPlaying && typeof p?.pause === 'function') {
             p.pause();
-          } else if (typeof p?.play === 'function') {
-            p.play();
+          } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
+            if (p.resume) p.resume();
+            else p.play();
           }
         } else {
           if (typeof playAlbumContext === 'function') {
@@ -221,6 +223,7 @@ function renderAlbumsOfTheMonthSection(feedContainer, albumsMonthData) {
         updateLandingPlaybackIndicators();
         setTimeout(updateLandingPlaybackIndicators, 60);
         setTimeout(updateLandingPlaybackIndicators, 250);
+        setTimeout(updateLandingPlaybackIndicators, 600);
       });
     }
 

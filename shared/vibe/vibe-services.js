@@ -212,50 +212,159 @@
   }
 
   function isPlayerPlaying(player) {
-    if (!player) return false;
-    const playingState = player.playbackState?.playingState;
-    if (playingState === 'playing') return true;
-    const status = player.playbackState?.playerState?.status?.value || player.playbackState?.playerState?.status;
-    if (status === 'playing') return true;
+    if (!player) {
+      player = getSafeActivePlayer();
+    }
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    const targetPlayer = player || activePlayback;
+
+    // 1. Проверяем playerState.isPause (основной реактивный MobX флаг паузы в Sonata Player)
+    if (targetPlayer?.playbackState?.playerState) {
+      const isPauseVal = targetPlayer.playbackState.playerState.isPause?.value ??
+                         targetPlayer.playbackState.playerState.isPause;
+      if (typeof isPauseVal === 'boolean') {
+        if (!isPauseVal) return true;
+        if (isPauseVal) return false;
+      }
+    }
+
+    if (activePlayback?.playbackState?.playerState && activePlayback !== targetPlayer) {
+      const isPauseVal = activePlayback.playbackState.playerState.isPause?.value ??
+                         activePlayback.playbackState.playerState.isPause;
+      if (typeof isPauseVal === 'boolean') {
+        if (!isPauseVal) return true;
+        if (isPauseVal) return false;
+      }
+    }
+
+    // 2. Проверяем activePlayback.status
+    if (activePlayback) {
+      if (activePlayback.status === 'playing') return true;
+      if (activePlayback.status === 'paused' || activePlayback.status === 'idle') return false;
+    }
+
+    // 3. Проверяем строковые и булевы флаги плеера
+    if (targetPlayer) {
+      if (targetPlayer.playbackState === 'playing') return true;
+      if (targetPlayer.status === 'playing') return true;
+      if (targetPlayer.playingState === 'playing') return true;
+
+      const playingState = targetPlayer.playbackState?.playingState;
+      if (playingState === 'playing') return true;
+
+      const pStatus = targetPlayer.playbackState?.playerState?.status?.value ||
+                      targetPlayer.playbackState?.playerState?.status ||
+                      targetPlayer.playbackState?.status?.value ||
+                      targetPlayer.playbackState?.status ||
+                      targetPlayer.playbackState?.state;
+      if (pStatus === 'playing') return true;
+      if (pStatus === 'paused' || pStatus === 'idle' || pStatus === 'stopped') return false;
+
+      if (typeof targetPlayer.isPlaying === 'function') {
+        try { if (targetPlayer.isPlaying()) return true; } catch (_) {}
+      }
+      if (targetPlayer.isPlaying === true) return true;
+    }
+
+    // 4. Проверяем MobX-модель rootModel.player
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym?.rootModel;
+    if (root?.player) {
+      const rpStatus = root.player.state?.status?.value ||
+                       root.player.state?.status ||
+                       root.player.status?.value ||
+                       root.player.status;
+      if (rpStatus === 'playing') return true;
+      if (root.player.isPlaying === true) return true;
+    }
+
     return false;
   }
 
   function isAlbumCurrentlyPlaying(albumId) {
     if (!albumId) return { isMatch: false, isPlaying: false };
+    const targetIdStr = String(albumId).trim();
     const player = getSafeActivePlayer();
-    if (!player) return { isMatch: false, isPlaying: false };
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
 
-    // Если сейчас играет ТРЕЙЛЕР, обычный альбом не считается играющим
-    const ctx = player.contextController?.currentContext;
-    const ctxData = ctx?.contextData || ctx?.data;
-    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+    // Если сейчас открыт/играет ТРЕЙЛЕР, обычный альбом не считается играющим
+    const svc = typeof getTrailerService === 'function' ? getTrailerService() : null;
+    if (svc && svc.modal?.isOpened) {
       return { isMatch: false, isPlaying: false };
     }
 
-    const targetIdStr = String(albumId);
-    let isMatch = false;
-
-    // 1. Проверяем контекст
-    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
-    const ctxMetaId = ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id;
-
-    if (ctxType === 'album' && String(ctxMetaId) === targetIdStr) {
-      isMatch = true;
+    const currentEntity = player?.queueController?.queue?.state?.currentEntity?.value ||
+                          core?.playbackController?.getPlayback?.()?.queueController?.queue?.state?.currentEntity?.value;
+    const ctx = currentEntity?.context ||
+                player?.contextController?.currentContext ||
+                core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
     }
 
-    // 2. Проверяем текущий играющий трек
+    let isMatch = false;
+
+    // 1. Проверяем activePlayback в Sonata Core ({ type: "album", id: "...", status: "playing" })
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type || activePlayback.data?.type;
+      const apId = String(activePlayback.id || activePlayback.albumId || activePlayback.meta?.id || '');
+      if ((apType === 'album' || !apType) && (apId === targetIdStr || apId.endsWith(`:${targetIdStr}`))) {
+        isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст плеера / очереди
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxId = String(ctx?.id || ctx?.data?.id || ctxData?.id || '');
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+
+      if (ctxType === 'album' || ctxId.startsWith('album:')) {
+        if (ctxMetaId === targetIdStr || ctxId === targetIdStr || ctxId === `album:${targetIdStr}`) {
+          isMatch = true;
+        }
+      } else if (ctxMetaId === targetIdStr) {
+        isMatch = true;
+      }
+    }
+
+    // 3. Проверяем текущий играющий трек и его альбомы
     if (!isMatch) {
-      const track = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
-      if (track?.albums && Array.isArray(track.albums)) {
-        if (track.albums.some(a => String(a.id) === targetIdStr)) {
+      const entity = currentEntity?.entity;
+      const entityData = entity?.data || entity?.entityData;
+      const track = entityData ||
+                    player?.playbackState?.playerState?.track?.value ||
+                    player?.playbackState?.playerState?.track ||
+                    core?.playbackController?.getPlayback?.()?.playbackState?.playerState?.track?.value ||
+                    activePlayback?.track;
+
+      if (track) {
+        const albums = track.albums || track.meta?.albums;
+        const albumId = track.albumId || track.meta?.albumId || track.album?.id;
+
+        if (albums && Array.isArray(albums)) {
+          if (albums.some(a => String(a.id || a) === targetIdStr)) {
+            isMatch = true;
+          }
+        } else if (albumId && String(albumId) === targetIdStr) {
+          isMatch = true;
+        } else if (track.album && String(track.album.id || track.album) === targetIdStr) {
           isMatch = true;
         }
       }
     }
 
+    const playing = isPlayerPlaying(player);
     return {
       isMatch,
-      isPlaying: isMatch && isPlayerPlaying(player)
+      isPlaying: isMatch && playing
     };
   }
 
@@ -345,11 +454,17 @@
   function isPlaylistCurrentlyPlaying(playlistId, playlistObj) {
     if (!playlistId && !playlistObj) return { isMatch: false, isPlaying: false };
     const player = getSafeActivePlayer();
-    if (!player) return { isMatch: false, isPlaying: false };
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
 
-    const ctx = player.contextController?.currentContext;
+    const currentEntity = player?.queueController?.queue?.state?.currentEntity?.value ||
+                          core?.playbackController?.getPlayback?.()?.queueController?.queue?.state?.currentEntity?.value;
+    const ctx = currentEntity?.context ||
+                player?.contextController?.currentContext ||
+                core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
     const ctxData = ctx?.contextData || ctx?.data;
-    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
       return { isMatch: false, isPlaying: false };
     }
 
@@ -358,16 +473,38 @@
     const uid = playlistObj?.uid ? String(playlistObj.uid) : null;
     const key = (uid && kind) ? `${uid}:${kind}` : null;
 
-    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
     let isMatch = false;
 
-    if (ctxType === 'playlist') {
-      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
-      const ctxUuid = String(ctx?.meta?.uuid || ctx?.meta?.playlistUuid || ctx?.data?.meta?.uuid || '');
-      if (uuid && (ctxMetaId === uuid || ctxUuid === uuid)) {
-        isMatch = true;
-      } else if (key && (ctxMetaId === key || ctxMetaId.includes(`:${kind}`))) {
-        isMatch = true;
+    // 1. Проверяем activePlayback в Sonata Core
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type || activePlayback.data?.type;
+      const apId = String(activePlayback.id || activePlayback.meta?.id || '');
+      if (apType === 'playlist' || !apType) {
+        if (uuid && (apId === uuid || apId.endsWith(`:${uuid}`))) isMatch = true;
+        else if (key && (apId === key || apId.endsWith(`:${kind}`))) isMatch = true;
+        else if (kind && apId.endsWith(`:${kind}`)) isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст плеера
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || ctx?.id || ctxData?.id || '');
+      const ctxUuid = String(ctx?.meta?.uuid || ctx?.meta?.playlistUuid || ctx?.data?.meta?.uuid || ctx?.data?.meta?.playlistUuid || '');
+      const ctxKind = String(ctx?.meta?.kind || ctx?.data?.meta?.kind || '');
+      const ctxUid = String(ctx?.meta?.uid || ctx?.data?.meta?.uid || '');
+
+      if (ctxType === 'playlist' || ctxMetaId.includes(':') || ctxUuid) {
+        if (uuid && (ctxMetaId === uuid || ctxUuid === uuid || ctxMetaId.endsWith(`:${uuid}`))) {
+          isMatch = true;
+        } else if (key && (ctxMetaId === key || ctxMetaId === `playlist:${key}` || ctxMetaId.endsWith(`:${key}`) || ctxMetaId.endsWith(`:${kind}`))) {
+          isMatch = true;
+        } else if (kind && (ctxKind === kind || ctxMetaId.endsWith(`:${kind}`))) {
+          if (!uid || !ctxUid || ctxUid === uid) {
+            isMatch = true;
+          }
+        }
       }
     }
 
@@ -380,23 +517,39 @@
   function isArtistCurrentlyPlaying(artistId) {
     if (!artistId) return { isMatch: false, isPlaying: false };
     const player = getSafeActivePlayer();
-    if (!player) return { isMatch: false, isPlaying: false };
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
 
-    const ctx = player.contextController?.currentContext;
+    const ctx = player?.contextController?.currentContext || core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
     const ctxData = ctx?.contextData || ctx?.data;
-    if (ctxData?.trailer === true || player.id === 'TRAILER') {
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
       return { isMatch: false, isPlaying: false };
     }
 
     const targetIdStr = String(artistId);
     let isMatch = false;
-    const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
-    const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
 
-    if (ctxType === 'artist' && ctxMetaId === targetIdStr) {
-      isMatch = true;
-    } else if (ctxType === 'vibe' && (ctxMetaId.includes(`artist:${targetIdStr}`) || ctxMetaId === targetIdStr)) {
-      isMatch = true;
+    // 1. Проверяем activePlayback
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type;
+      const apId = String(activePlayback.id || '');
+      if (apType === 'artist' && apId === targetIdStr) {
+        isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+
+      if (ctxType === 'artist' && ctxMetaId === targetIdStr) {
+        isMatch = true;
+      } else if (ctxType === 'vibe' && (ctxMetaId.includes(`artist:${targetIdStr}`) || ctxMetaId === targetIdStr)) {
+        isMatch = true;
+      }
     }
 
     return {
@@ -566,6 +719,7 @@
       const albumId = btn.getAttribute('data-album-id');
       const state = isAlbumCurrentlyPlaying(albumId);
       const svgUse = btn.querySelector('svg use');
+      const card = btn.closest('.NewRelease_root__oQ_T7, .NewReleases_item__Gv0iR, .NewReleaseCard_root__c2s6u, li');
 
       if (state.isPlaying) {
         if (svgUse) {
@@ -573,12 +727,20 @@
           svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_m');
         }
         btn.setAttribute('aria-label', 'Пауза');
+        if (card) {
+          card.classList.add('is-playing');
+          card.setAttribute('data-playing', 'true');
+        }
       } else {
         if (svgUse) {
           svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_m');
           svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_m');
         }
         btn.setAttribute('aria-label', 'Воспроизведение');
+        if (card) {
+          card.classList.remove('is-playing');
+          card.removeAttribute('data-playing');
+        }
       }
     });
 
@@ -642,16 +804,21 @@
       const itemType = btn.getAttribute('data-item-type');
       let state = { isMatch: false, isPlaying: false };
 
-      if (itemType === 'album_item') {
+      const isAlbum = itemType === 'album_item' || itemType === 'album' || itemType === 'album_month' || (!itemType?.includes('playlist') && !itemType?.includes('artist'));
+      if (isAlbum) {
         state = isAlbumCurrentlyPlaying(itemId);
-      } else if (itemType === 'liked_playlist_item') {
-        state = isPlaylistCurrentlyPlaying(itemId);
-      } else if (itemType === 'artist_item') {
+      }
+      if (!state.isMatch && (itemType === 'liked_playlist_item' || itemType === 'playlist' || !isAlbum)) {
+        const uid = btn.getAttribute('data-playlist-uid');
+        const kind = btn.getAttribute('data-playlist-kind');
+        state = isPlaylistCurrentlyPlaying(itemId, { uid, kind, uuid: itemId });
+      }
+      if (!state.isMatch && (itemType === 'artist_item' || itemType === 'artist')) {
         state = isArtistCurrentlyPlaying(itemId);
       }
 
       const svgUse = btn.querySelector('svg use');
-      const card = btn.closest('.laBJlJAaqEVS0i_4Ot3l');
+      const card = btn.closest('.laBJlJAaqEVS0i_4Ot3l, .CarouselBlock_item__DatZ2, li');
 
       if (state.isPlaying) {
         if (svgUse) {
@@ -659,14 +826,20 @@
           svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xl');
         }
         btn.setAttribute('aria-label', 'Пауза');
-        if (card) card.classList.add('is-playing');
+        if (card) {
+          card.classList.add('is-playing');
+          card.setAttribute('data-playing', 'true');
+        }
       } else {
         if (svgUse) {
           svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xl');
           svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xl');
         }
         btn.setAttribute('aria-label', 'Воспроизведение');
-        if (card) card.classList.remove('is-playing');
+        if (card) {
+          card.classList.remove('is-playing');
+          card.removeAttribute('data-playing');
+        }
       }
     });
 

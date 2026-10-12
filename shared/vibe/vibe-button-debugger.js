@@ -410,21 +410,214 @@
     };
   }
 
+  // =========================================================================
+  // 6. Специализированный отладчик воспроизведения альбомов (Album Playback Debugger)
+  // =========================================================================
+  function debugAlbumPlayback(targetOrId) {
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || window.getSonataCore?.() || findSonataCoreFallback();
+    const player = (typeof getSafeActivePlayer === 'function' ? getSafeActivePlayer() : null) || window.getActivePlayer?.();
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym?.rootModel;
+    const ap = core?.playbackController?.activePlayback?.value;
+    const ctx = player?.contextController?.currentContext || core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    const track = player?.playbackState?.playerState?.track?.value ||
+                  player?.playbackState?.playerState?.track ||
+                  player?.queueController?.queue?.state?.currentEntity?.value?.track ||
+                  core?.playbackController?.getPlayback?.()?.playbackState?.playerState?.track?.value ||
+                  ap?.track;
+
+    console.group('%c🎵 [BYM ALBUM PLAYBACK DEBUGGER] Детальный анализ воспроизведения альбома', 'color: #ec4899; font-weight: bold; font-size: 14px;');
+
+    // 1. Состояние Sonata Core и Player
+    const isPauseVal = player?.playbackState?.playerState?.isPause?.value ??
+                       player?.playbackState?.playerState?.isPause ??
+                       ap?.playbackState?.playerState?.isPause?.value ??
+                       ap?.playbackState?.playerState?.isPause;
+    const playingChecks = {
+      'playerState.isPause': isPauseVal,
+      'core.activePlayback.status': ap?.status,
+      'player.playbackState': player?.playbackState,
+      'player.status': player?.status,
+      'player.playbackState.playerState.status': player?.playbackState?.playerState?.status?.value || player?.playbackState?.playerState?.status,
+      'player.playbackState.status': player?.playbackState?.status?.value || player?.playbackState?.status,
+      'root.player.status': root?.player?.state?.status?.value || root?.player?.state?.status || root?.player?.status,
+      'isPlayerPlaying() result': typeof isPlayerPlaying === 'function' ? isPlayerPlaying(player) : 'N/A'
+    };
+
+    console.log('%c1. Статусы воспроизведения (MobX / Sonata Core):', 'color: #38bdf8; font-weight: bold;', playingChecks);
+
+    // 2. Текущий контекст Sonata Core
+    console.log('%c2. Активный контекст воспроизведения:', 'color: #a855f7; font-weight: bold;', {
+      activePlayback: ap ? {
+        type: ap.type,
+        id: ap.id,
+        trackId: ap.trackId,
+        status: ap.status,
+        raw: ap
+      } : null,
+      currentContext: ctx ? {
+        type: ctx.type || ctxData?.type,
+        id: ctx.id || ctxData?.id,
+        metaId: ctx.meta?.id || ctxData?.meta?.id,
+        raw: ctx
+      } : null,
+      currentTrack: track ? {
+        id: track.id,
+        title: track.title,
+        albumId: track.albumId || track.album?.id,
+        albums: track.albums?.map(a => ({ id: a.id, title: a.title })),
+        raw: track
+      } : null
+    });
+
+    // 3. Анализ целевого альбома (если передан)
+    let targetAlbumId = '';
+    if (typeof targetOrId === 'string' || typeof targetOrId === 'number') {
+      targetAlbumId = String(targetOrId);
+    } else if (targetOrId instanceof Element || targetOrId?.nodeType) {
+      targetAlbumId = targetOrId.getAttribute('data-album-id') ||
+                      targetOrId.getAttribute('data-item-id') ||
+                      targetOrId.querySelector('[data-album-id]')?.getAttribute('data-album-id') ||
+                      targetOrId.querySelector('[data-item-id]')?.getAttribute('data-item-id') || '';
+    } else if (targetOrId?.id || targetOrId?.albumId) {
+      targetAlbumId = String(targetOrId.id || targetOrId.albumId);
+    }
+
+    if (targetAlbumId) {
+      const matchChecks = {
+        'targetAlbumId': targetAlbumId,
+        'matches activePlayback.id': ap ? String(ap.id) === targetAlbumId : false,
+        'matches ctx.id': ctx ? String(ctx.id) === targetAlbumId || String(ctx.id) === `album:${targetAlbumId}` : false,
+        'matches ctx.meta.id': ctx ? String(ctx.meta?.id || ctxData?.meta?.id) === targetAlbumId : false,
+        'matches track.albums': track?.albums ? track.albums.some(a => String(a.id) === targetAlbumId) : false,
+        'matches track.albumId': track ? String(track.albumId || track.album?.id) === targetAlbumId : false,
+        'isAlbumCurrentlyPlaying()': typeof isAlbumCurrentlyPlaying === 'function' ? isAlbumCurrentlyPlaying(targetAlbumId) : 'N/A'
+      };
+      console.log(`%c3. Сопоставление с альбомом #${targetAlbumId}:`, 'color: #10b981; font-weight: bold;', matchChecks);
+    }
+
+    // 4. Поиск всех кнопок воспроизведения в ленте
+    const feed = document.getElementById('ym-vibe-live-landing-feed');
+    const buttonsFound = {
+      albumMonth: Array.from(document.querySelectorAll('.ym-album-month-play-btn')),
+      editorial: Array.from(document.querySelectorAll('.ym-editorial-play-btn')),
+      instyle: Array.from(document.querySelectorAll('.ym-vibe-instyle-play-btn')),
+      release: Array.from(document.querySelectorAll('.ym-vibe-release-play-btn'))
+    };
+
+    const buttonsAudit = [];
+    const allBtns = [...buttonsFound.albumMonth, ...buttonsFound.editorial, ...buttonsFound.instyle, ...buttonsFound.release];
+    allBtns.forEach((btn, idx) => {
+      const aId = btn.getAttribute('data-album-id') || btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type') || 'album';
+      const state = typeof isAlbumCurrentlyPlaying === 'function' ? isAlbumCurrentlyPlaying(aId) : null;
+      const card = btn.closest('.laBJlJAaqEVS0i_4Ot3l, .NewRelease_root__oQ_T7, .NewReleases_item__Gv0iR, li');
+      const svgUse = btn.querySelector('svg use')?.getAttribute('xlink:href') || btn.querySelector('svg use')?.getAttribute('href');
+
+      buttonsAudit.push({
+        index: idx + 1,
+        type: itemType,
+        albumId: aId,
+        isMatch: state?.isMatch,
+        isPlaying: state?.isPlaying,
+        svgIcon: svgUse,
+        cardPlayingClass: card?.classList.contains('is-playing'),
+        buttonElement: btn
+      });
+    });
+
+    console.log(`%c4. Аудит кнопок альбомов в DOM (${allBtns.length} шт.):`, 'color: #f59e0b; font-weight: bold;', {
+      feedElementPresent: Boolean(feed),
+      buttonsCount: allBtns.length,
+      buttonsAudit
+    });
+
+    console.groupEnd();
+    return {
+      core,
+      player,
+      activePlayback: ap,
+      currentContext: ctx,
+      currentTrack: track,
+      buttonsAudit
+    };
+  }
+
   // Автоматический перехват кликов по кнопкам трейлеров для детального анализа
   document.addEventListener('click', (e) => {
     const trailerBtn = e.target.closest('[class*="trailerButton"], [class*="trailerIcon"], .ym-editorial-trailer-btn, .ym-chart-trailer-btn, .ym-album-month-trailer-btn, [data-action="trailer"]');
-    if (!trailerBtn) return;
+    if (trailerBtn) {
+      const card = trailerBtn.closest('.laBJlJAaqEVS0i_4Ot3l, .HorizontalCardContainer_root__YoAAP, [class*="NewRelease_root"]') || trailerBtn;
+      debugTrailer(card, { testPlayback: false });
+    }
 
-    const card = trailerBtn.closest('.laBJlJAaqEVS0i_4Ot3l, .HorizontalCardContainer_root__YoAAP, [class*="NewRelease_root"]') || trailerBtn;
-    debugTrailer(card, { testPlayback: false });
+    const albumPlayBtn = e.target.closest('.ym-album-month-play-btn, .ym-editorial-play-btn, .ym-vibe-instyle-play-btn, .ym-vibe-release-play-btn');
+    if (albumPlayBtn) {
+      const aId = albumPlayBtn.getAttribute('data-album-id') || albumPlayBtn.getAttribute('data-item-id');
+      console.log(`%c▶️ [BYM ALBUM CLICK] Клик по кнопке воспроизведения альбома: ${aId}`, 'color: #10b981; font-weight: bold;');
+      setTimeout(() => debugAlbumPlayback(aId), 150);
+      setTimeout(() => debugAlbumPlayback(aId), 600);
+    }
   }, { capture: true, passive: true });
+
+  async function debugPlayAlbum(albumId) {
+    if (!albumId) {
+      console.error('❌ [BYM] Укажите ID альбома! Пример: debugPlayAlbum("43177815")');
+      return;
+    }
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) || window.getSonataCore?.() || findSonataCoreFallback();
+    const player = (typeof getSafeActivePlayer === 'function' ? getSafeActivePlayer() : null) || window.getActivePlayer?.();
+    if (!core?.factory?.createContext || !player) {
+      console.error('❌ [BYM] Sonata Core или Player не найдены!', { core, player });
+      return;
+    }
+
+    console.group(`%c🚀 [BYM] Запуск тестового воспроизведения альбома #${albumId}...`, 'color: #10b981; font-weight: bold;');
+    try {
+      const ctx = core.factory.createContext({
+        data: {
+          type: 'album',
+          meta: { id: String(albumId) },
+          from: 'web-landing-discovery_block-new_releases-default',
+          includeTracksInResponse: true,
+          interactive: true
+        }
+      });
+      console.log('Создан контекст Sonata:', ctx);
+
+      if (core.playbackController?.callIfUnblocked) {
+        await core.playbackController.callIfUnblocked(async () => {
+          if (core.playbackController?.beforePlayHandler) {
+            core.playbackController.beforePlayHandler(player);
+          }
+          await player.playContext({ context: ctx, loadContextMeta: true });
+          if (core.playbackController?.afterPlayHandler) {
+            core.playbackController.afterPlayHandler(player);
+          }
+        });
+      } else {
+        await player.playContext({ context: ctx, loadContextMeta: true });
+      }
+
+      console.log('✅ player.playContext успешно выполнен!');
+      setTimeout(() => debugAlbumPlayback(albumId), 250);
+      setTimeout(() => debugAlbumPlayback(albumId), 800);
+    } catch (e) {
+      console.error('❌ Ошибка воспроизведения:', e);
+    }
+    console.groupEnd();
+  }
 
   window.bymDebugButton = debugButton;
   window.bymStartInspector = startInspector;
   window.bymStopInspector = stopInspector;
   window.bymDebugTrailer = debugTrailer;
   window.debugTrailer = debugTrailer;
+  window.bymDebugAlbum = debugAlbumPlayback;
+  window.debugAlbum = debugAlbumPlayback;
+  window.bymDebugPlayAlbum = debugPlayAlbum;
+  window.debugPlayAlbum = debugPlayAlbum;
 
-  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymDebugTrailer($0), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
+  console.log('%c🛠 [BetterYandexMusic Debug Tools] Доступны: bymDebugButton($0), bymDebugTrailer($0), bymDebugAlbum($0), debugPlayAlbum("id"), bymStartInspector(), bymStopInspector()', 'color: #38bdf8;');
 })();
 

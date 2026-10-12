@@ -173,7 +173,7 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
                       </svg>
                     </span>
                   </button>` : ''}
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
                     <span class="JjlbHZ4FaP9EAcR_1DxF">
                       <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
                         <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>

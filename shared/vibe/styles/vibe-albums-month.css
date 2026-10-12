@@ -37,3 +37,11 @@ html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section .N
   list-style: none !important;
   scroll-snap-align: start !important;
 }
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section .NewReleases_item__Gv0iR.is-playing .NewReleaseCard_button__WPk82,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section .NewRelease_root__oQ_T7.is-playing .NewReleaseCard_button__WPk82,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-albums-month-section li.is-playing .NewReleaseCard_button__WPk82 {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
