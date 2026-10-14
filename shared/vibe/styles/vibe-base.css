@@ -157,6 +157,16 @@
       background: transparent !important;
     }
 
+    /* Constrain aside height to parent grid row so scrollable content scrolls instead of overflowing screen */
+    html.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside,
+    body.ym-vibe-no-wheel [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside,
+    html.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside,
+    body.ym-vibe-with-landing [class*="CommonLayout_root"]:has([class*="VibePage_root"]) aside {
+      min-height: 0 !important;
+      height: 100% !important;
+      max-height: 100% !important;
+    }
+
     /* Only show trigger button in no_wheel and vibe_with_landing modes */
     body:not(.ym-vibe-no-wheel):not(.ym-vibe-with-landing) #ym-vibe-settings-btn {
       display: none !important;

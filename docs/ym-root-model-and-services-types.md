@@ -10,20 +10,100 @@
 
 ```typescript
 export interface YmRootModel {
+  /** Реактивная библиотека пользователя (лайкнутые треки, альбомы, артисты, плейлисты) */
+  library: YmLibraryStore;
+
   /** Коллекции реактивных сущностей пользователя (пины, лайки, плейлисты) */
   collections: YmCollections;
 
   /** Вспомогательные сервисы (трейлеры, нотификации, телеметрия) */
   services: YmServices;
 
-  /** Состояние пользовательской сессии */
-  user?: YmUserState;
+  /** Состояние пользовательской сессии и аккаунта */
+  user?: {
+    account?: {
+      data?: {
+        uid: number;
+        login: string;
+        publicId: string;
+        hasPlus: boolean;
+        avatarId?: string;
+      };
+      loadingState?: string;
+    };
+  };
 
   /** Конфигурация фиче-флагов и экспериментов */
   experiments?: Record<string, boolean | string>;
 
   /** Экземпляр ядра плеера Sonata Core */
   sonataCore?: SonataCore;
+}
+
+export interface YmLibraryStore {
+  /** MobX ObservableMap лайкнутых треков (trackId -> "1") */
+  tracks: {
+    revision: number;
+    items: Map<string, '1' | '0'>;
+  };
+
+  /** MobX ObservableMap лайкнутых альбомов (albumId -> "1") */
+  albums: {
+    revision: number;
+    items: Map<string, '1' | '0'>;
+  };
+
+  /** MobX ObservableMap лайкнутых артистов (artistId -> "1") */
+  artists: {
+    revision: number;
+    items: Map<string, '1' | '0'>;
+  };
+
+  /** MobX ObservableMap лайкнутых плейлистов (playlistUuid -> "1") */
+  playlists: {
+    revision: number;
+    items: Map<string, '1' | '0'>;
+  };
+
+  /** Проверить отметку «Мне нравится» у трека */
+  isTrackLiked(trackId: string | number): boolean;
+
+  /** Проверить отметку «Мне нравится» у альбома */
+  isAlbumLiked(albumId: string | number): boolean;
+
+  /** Проверить отметку «Мне нравится» у артиста */
+  isArtistLiked(artistId: string | number): boolean;
+
+  /** Проверить отметку «Мне нравится» у плейлиста */
+  isPlaylistLiked(playlistId: string | number): boolean;
+
+  /** Нативный экшен переключения лайка трека (MobX State Tree Action) */
+  toggleTrackLike(options: {
+    entityId: string | number;
+    userId: number;
+    albumId?: string | number;
+  }): Promise<'ok' | 'error'>;
+
+  /** Нативный экшен переключения лайка альбома */
+  toggleAlbumLike(options: {
+    entityId: string | number;
+    userId: number;
+  }): Promise<'ok' | 'error'>;
+
+  /** Нативный экшен переключения лайка артиста */
+  toggleArtistLike(options: {
+    entityId: string | number;
+    userId: number;
+  }): Promise<'ok' | 'error'>;
+
+  /** Нативный экшен переключения лайка плейлиста */
+  togglePlaylistLike(options: {
+    entityId: string | number;
+    userId: number;
+  }): Promise<'ok' | 'error'>;
+
+  /** Синхронизировать коллекцию с сервером */
+  getData(substores?: string[]): Promise<unknown>;
 }
 
 export interface YmCollections {
@@ -134,22 +214,72 @@ export interface TrailerService {
 
 ---
 
-## 4. Likes API (Сетевой сервис отметок «Мне нравится»)
+## 4. Likes Architecture & API (Сервис отметок «Мне нравится»)
+
+В новой веб-версии Яндекс Музыки лайки функционируют на двух уровнях:
+1. **Реактивный уровень состояния (MobX State Tree / `root.library`)**:
+   - Начальные ID лайков гидрируются при загрузке страницы в серверном HTML (Next.js SSR / RSC payload) в MobX `ObservableMap`: `root.library.tracks.items` (а также `albums.items`, `artists.items`, `playlists.items`).
+   - Ключ карты — строковый ID (`"153970251"`), значение — `"1"` (константа `LIKED`).
+   - Публичные API блоков (например, `/landing-blocks/chart`) **не содержат** персонального флага `liked: true`, чтобы ответ оставался неперсонализированным и кэшировался на Edge/CDN. Статус лайка вычисляется клиентом синхронно через `root.library.isTrackLiked(id)` по локальному словарю `items`.
+   - Нативные экшены модели защищены (`[mobx-state-tree] protected`). Модификация `items.set/delete` напрямую извне запрещена и должна производиться через действие `root.library.toggleTrackLike({ entityId, userId, albumId })`.
+
+2. **Сетевой уровень (Users Resource API)**:
+   Экшен `toggleTrackLike` оптимистично обновляет `root.library.tracks.items`, выполняет HTTP POST через внутренний `usersResource` и затем синхронизирует ревизию через `/collection/sync`. Если сетевой запрос завершается ошибкой, MST автоматически откатывает локальное состояние.
+
+### Сигнатура вызова MobX State Tree Action:
 
 ```typescript
-// POST / DELETE https://api.music.yandex.ru/users/{uid}/likes/albums/add
-// POST / DELETE https://api.music.yandex.ru/users/{uid}/likes/albums/remove
+// Вызов нативного действия корневой модели:
+await root.library.toggleTrackLike({
+  entityId: '153970251',       // ID трека (строка)
+  userId: 857786338,           // UID пользователя (root.user.account.data.uid)
+  albumId: '43201525'          // Опционально: ID альбома трека (для трека альбома)
+});
 
-export interface AlbumLikePayload {
-  'album-id': number | string;
-}
+await root.library.toggleAlbumLike({
+  entityId: '43201525',
+  userId: 857786338
+});
+```
 
-export interface ToggleLikeResponse {
-  result: {
-    revision: number;
-    success: boolean;
-  };
-}
+### Точные нативные сетевые эндпоинты (REST):
+
+```http
+### 1. Поставить лайк треку (ADD)
+POST https://api.music.yandex.ru/users/{uid}/likes/tracks/add?track-id={trackId}
+# Или для трека с альбомом: ?track-id={trackId}:{albumId}
+
+### 2. Снять лайк с трека (REMOVE)
+POST https://api.music.yandex.ru/users/{uid}/likes/tracks/{trackId}/remove
+# Или для трека с альбомом: /tracks/{trackId}:{albumId}/remove
+
+### 3. Поставить лайк альбому (ADD)
+POST https://api.music.yandex.ru/users/{uid}/likes/albums/add?album-id={albumId}
+
+### 4. Снять лайк с альбома (REMOVE)
+POST https://api.music.yandex.ru/users/{uid}/likes/albums/{albumId}/remove
+
+### 5. Поставить лайк плейлисту (ADD)
+POST https://api.music.yandex.ru/users/{uid}/likes/playlists/add?owner={ownerUid}&kind={kind}
+
+### 6. Снять лайк с плейлиста (REMOVE)
+POST https://api.music.yandex.ru/users/{uid}/likes/playlists/remove?owner={ownerUid}&kind={kind}
+
+### 7. Синхронизация ревизии коллекции (SYNC)
+POST https://api.music.yandex.ru/collection/sync
+Content-Type: application/json
+
+{"likedTracks": {"revision": 350}}
+```
+
+### Обязательные заголовки для запросов лайков:
+
+```http
+accept-language: ru
+x-requested-with: XMLHttpRequest
+x-yandex-music-client: YandexMusicWebNext/1.0.0
+x-yandex-music-multi-auth-user-id: {uid}
+x-yandex-music-without-invocation-info: 1
 ```
 
 ---

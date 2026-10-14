@@ -222,6 +222,9 @@ let searchQuery = "";
         position: relative !important;
         z-index: 10 !important;
         pointer-events: auto !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        max-height: 100% !important;
       }
 
       /* Dynamically offset content by actual navbar width (200px expanded, 64px collapsed, etc.) */

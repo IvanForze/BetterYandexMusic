@@ -297,7 +297,7 @@ function renderChartSection(feedContainer, chartData) {
             svgUse.setAttribute('href', iconHref);
           }
           if (typeof toggleLikeTrack === 'function') {
-            await toggleLikeTrack(trackId, isPressed);
+            await toggleLikeTrack(trackId, isPressed, albumId);
           }
         });
       }

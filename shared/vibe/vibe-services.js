@@ -797,6 +797,29 @@
       }
     });
 
+    // 8b. Синхронизация лайков треков в Чарте (если библиотека загрузилась/обновилась)
+    const chartLikeButtons = feed.querySelectorAll('.ym-chart-like-btn');
+    chartLikeButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      if (!trackId) return;
+      const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
+      const currentlyPressed = btn.getAttribute('aria-pressed') === 'true' || btn.classList.contains('zIMibMuH7wcqUoW7KH1B');
+      if (isLiked !== currentlyPressed) {
+        btn.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+        if (isLiked) {
+          btn.classList.add('zIMibMuH7wcqUoW7KH1B');
+        } else {
+          btn.classList.remove('zIMibMuH7wcqUoW7KH1B');
+        }
+        const svgUse = btn.querySelector('svg use');
+        if (svgUse) {
+          const iconHref = isLiked ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs';
+          svgUse.setAttribute('xlink:href', iconHref);
+          svgUse.setAttribute('href', iconHref);
+        }
+      }
+    });
+
     // 9. Редакционные карточки (альбомы, плейлисты, артисты на табе Тренды)
     const editorialPlayButtons = feed.querySelectorAll('.ym-editorial-play-btn');
     editorialPlayButtons.forEach(btn => {
@@ -1246,11 +1269,11 @@
 
   function getLikesCollection() {
     const root = getYmRootModel();
-    return root?.likesCollection ||
+    return root?.library ||
+           root?.likesCollection ||
            root?.collections?.likes ||
            root?.library?.likes ||
            root?.library?.tracks ||
-           root?.library ||
            root?.tracksCollection ||
            null;
   }
@@ -1258,8 +1281,40 @@
   function isTrackLiked(trackId) {
     if (!trackId) return false;
     const idStr = String(trackId);
+    const root = getYmRootModel();
+
+    // 1. Приоритетный путь: нативный метод MobX root.library
+    try {
+      if (typeof root?.library?.isTrackLiked === 'function') {
+        const res = root.library.isTrackLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    // 2. Прямая проверка в ObservableMap items: root.library.tracks.items
+    try {
+      const trackItems = root?.library?.tracks?.items;
+      if (trackItems) {
+        if (typeof trackItems.has === 'function' && trackItems.has(idStr)) {
+          const val = typeof trackItems.get === 'function' ? trackItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+        if (typeof trackItems.get === 'function') {
+          const val = trackItems.get(idStr);
+          if (val === '1' || val === 1 || val === true) return true;
+        }
+      }
+    } catch (_) {}
+
     const likes = getLikesCollection();
     if (!likes) return false;
+
+    try {
+      if (typeof likes.isTrackLiked === 'function') {
+        const res = likes.isTrackLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
 
     try {
       if (typeof likes.isLiked === 'function') {
@@ -1281,6 +1336,13 @@
     } catch (_) {}
 
     try {
+      if (likes.items?.has && (likes.items.has(idStr) || likes.items.has(Number(trackId)))) {
+        const val = typeof likes.items.get === 'function' ? likes.items.get(idStr) : true;
+        return val === '1' || val === 1 || val === true;
+      }
+    } catch (_) {}
+
+    try {
       if (likes.index?.has && (likes.index.has(idStr) || likes.index.has(Number(trackId)))) {
         return true;
       }
@@ -1293,11 +1355,46 @@
     } catch (_) {}
 
     try {
-      const items = Array.from(likes.items || likes.tracks || likes.tracksList || []);
+      const raw = likes.items || likes.tracks || likes.tracksList || [];
+      if (raw instanceof Map || (typeof raw?.has === 'function' && typeof raw?.get === 'function')) {
+        if (raw.has(idStr)) {
+          const val = raw.get(idStr);
+          return val === '1' || val === 1 || val === true;
+        }
+      }
+      const items = Array.from(raw);
       return items.some(it => {
+        if (Array.isArray(it)) {
+          return String(it[0]) === idStr;
+        }
         const itId = it?.data?.id || it?.id || it?.entityId || it?.track?.id || it?.meta?.id;
         return String(itId) === idStr;
       });
+    } catch (_) {}
+
+    return false;
+  }
+
+  function isAlbumLiked(albumId) {
+    if (!albumId) return false;
+    const idStr = String(albumId);
+    const root = getYmRootModel();
+
+    try {
+      if (typeof root?.library?.isAlbumLiked === 'function') {
+        const res = root.library.isAlbumLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      const albumItems = root?.library?.albums?.items;
+      if (albumItems) {
+        if (typeof albumItems.has === 'function' && albumItems.has(idStr)) {
+          const val = typeof albumItems.get === 'function' ? albumItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+      }
     } catch (_) {}
 
     return false;
@@ -1497,12 +1594,39 @@
     }
   }
 
+  function getYmUserId() {
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym_root_model;
+    return root?.user?.account?.data?.uid ||
+           root?.user?.uid ||
+           root?.userState?.uid ||
+           window.__ym_user_id ||
+           null;
+  }
+
   async function toggleLikeAlbum(albumId, isCurrentlyLiked) {
     if (!albumId) return false;
     const root = getYmRootModel();
-    const likes = getLikesCollection();
-    const numId = Number(albumId) || albumId;
     const idStr = String(albumId);
+    const numId = Number(albumId) || albumId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleAlbumLike({ entityId, userId })
+    if (typeof root?.library?.toggleAlbumLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling album like via root.library.toggleAlbumLike:', albumId);
+        const res = await root.library.toggleAlbumLike({
+          entityId: idStr,
+          userId: uid
+        });
+        if (res === 'ok' || res === true) {
+          return true;
+        }
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleAlbumLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
 
     // 1. Попытка через нативный MobX Root Model / likesCollection
     if (likes) {
@@ -1510,7 +1634,7 @@
       if (typeof toggleFn === 'function') {
         try {
           console.log('[BYM] Toggling album like via MobX:', albumId);
-          await toggleFn.call(likes, { id: numId, type: 'album' });
+          await toggleFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
           return true;
         } catch (_) {
           try {
@@ -1524,7 +1648,7 @@
         const removeFn = likes.removeAlbumLike || likes.removeAlbum || likes.remove;
         if (typeof removeFn === 'function') {
           try {
-            await removeFn.call(likes, { id: numId, type: 'album' });
+            await removeFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
             return true;
           } catch (_) {}
         }
@@ -1532,24 +1656,34 @@
         const addFn = likes.addAlbumLike || likes.addAlbum || likes.add;
         if (typeof addFn === 'function') {
           try {
-            await addFn.call(likes, { id: numId, type: 'album' });
+            await addFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
             return true;
           } catch (_) {}
         }
       }
     }
 
-    // 2. Фоллбэк: прямой сетевой запрос без 400 sync
-    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    // 2. Фоллбэк: точный сетевой REST-запрос Яндекс Музыки
     if (!uid) return false;
-    const action = isCurrentlyLiked ? 'remove' : 'add';
+    const isLike = !isCurrentlyLiked;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/albums/add?album-id=${encodeURIComponent(idStr)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/albums/${encodeURIComponent(idStr)}/remove`;
+
     try {
-      const res = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/albums/${action}?album-id=${encodeURIComponent(idStr)}`, {
+      const res = await fetch(url, {
         method: 'POST',
+        headers: {
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
+        },
         credentials: 'include'
       });
-      if (likes && typeof likes.getData === 'function') {
-        likes.getData().catch(() => {});
+      if (typeof root?.library?.getData === 'function') {
+        root.library.getData().catch(() => {});
       }
       return res.ok;
     } catch (err) {
@@ -1664,15 +1798,37 @@
     }
   }
 
-  async function toggleLikeTrack(trackId, isCurrentlyLiked) {
+  async function toggleLikeTrack(trackId, isCurrentlyLiked, albumId) {
     if (!trackId) return false;
     if (isCurrentlyLiked === undefined) {
       isCurrentlyLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
     }
-    const root = getYmRootModel();
-    const likes = getLikesCollection();
-    const numId = Number(trackId) || trackId;
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym_root_model;
     const idStr = String(trackId);
+    const numId = Number(trackId) || trackId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleTrackLike({ entityId, userId, albumId })
+    if (typeof root?.library?.toggleTrackLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling track like via root.library.toggleTrackLike:', trackId);
+        const res = await root.library.toggleTrackLike({
+          entityId: idStr,
+          userId: uid,
+          albumId: albumId ? String(albumId) : undefined
+        });
+        if (res === 'ok' || res === true) {
+          if (typeof updateLandingPlaybackIndicators === 'function') {
+            setTimeout(updateLandingPlaybackIndicators, 60);
+          }
+          return true;
+        }
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleTrackLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
 
     // 1. Приоритетный путь: нативный MobX вызов через RootModel / likesCollection
     if (likes) {
@@ -1680,7 +1836,7 @@
         const removeFn = likes.removeTrackLike || likes.removeTrack || likes.remove || likes.unlikeTrack || likes.dislikeTrack;
         if (typeof removeFn === 'function') {
           try {
-            await removeFn.call(likes, { id: numId, type: 'track' });
+            await removeFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
             return true;
           } catch (_) {
             try {
@@ -1693,7 +1849,7 @@
         const addFn = likes.addTrackLike || likes.addTrack || likes.add || likes.likeTrack;
         if (typeof addFn === 'function') {
           try {
-            await addFn.call(likes, { id: numId, type: 'track' });
+            await addFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
             return true;
           } catch (_) {
             try {
@@ -1708,7 +1864,7 @@
       if (typeof toggleFn === 'function') {
         try {
           console.log('[BYM] Toggling track like via MobX collection:', trackId);
-          await toggleFn.call(likes, { id: numId, type: 'track' });
+          await toggleFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
           return true;
         } catch (_) {
           try {
@@ -1723,38 +1879,49 @@
     const lib = root?.library || root?.services?.libraryService;
     if (lib) {
       const libToggle = lib.toggleTrackLike || lib.toggleLike || lib.likeTrack;
-      if (typeof libToggle === 'function') {
+      if (typeof libToggle === 'function' && uid) {
         try {
-          await libToggle.call(lib, idStr);
+          await libToggle.call(lib, { entityId: idStr, userId: uid, albumId: albumId ? String(albumId) : undefined });
           return true;
         } catch (_) {}
       }
     }
 
-    // 3. Фоллбэк: правильный REST API Яндекса (POST application/x-www-form-urlencoded с body: track-ids=...)
-    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    // 3. Фоллбэк: точный сетевой REST API Яндекс Музыки
     if (!uid) {
       console.warn('[BYM] Cannot toggle track like: UID unavailable');
       return false;
     }
-    const action = isCurrentlyLiked ? 'remove' : 'add';
+    const isLike = !isCurrentlyLiked;
+    const targetEntity = albumId ? `${idStr}:${albumId}` : idStr;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/tracks/add?track-id=${encodeURIComponent(targetEntity)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/tracks/${encodeURIComponent(targetEntity)}/remove`;
+
     try {
-      console.log(`[BYM] Track like REST fallback: /users/${uid}/likes/tracks/${action} (track-ids: ${idStr})`);
-      const resp = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/tracks/${action}`, {
+      console.log(`[BYM] Track like REST fallback: ${url}`);
+      const resp = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
         },
-        body: `track-ids=${encodeURIComponent(idStr)}`,
         credentials: 'include'
       });
 
-      if (likes && typeof likes.getData === 'function') {
-        likes.getData().catch(() => {});
-      } else if (likes && typeof likes.sync === 'function') {
-        likes.sync().catch(() => {});
+      if (resp.ok) {
+        if (typeof root?.library?.getData === 'function') {
+          root.library.getData().catch(() => {});
+        }
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          setTimeout(updateLandingPlaybackIndicators, 60);
+        }
+        return true;
       }
-      return resp.ok;
+      return false;
     } catch (err) {
       console.warn('[BYM] Like track error:', err);
       return false;

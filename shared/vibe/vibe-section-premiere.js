@@ -283,7 +283,7 @@ function renderPremiereSection(feedContainer, premiereData) {
             svgUse.setAttribute('href', next ? '/icons/sprite.svg#like_filled_xxs' : '/icons/sprite.svg#like_xxs');
           }
           if (typeof toggleLikeTrack === 'function') {
-            await toggleLikeTrack(trackId, isPressed);
+            await toggleLikeTrack(trackId, isPressed, albumId);
           }
         });
       }
