@@ -325,7 +325,7 @@ function renderPremiereSection(feedContainer, premiereData) {
           e.preventDefault();
           e.stopPropagation();
           if (typeof openTrackContextMenu === 'function') {
-            openTrackContextMenu(menuBtn, t, playlist);
+            openTrackContextMenu(menuBtn, t, playlist, i + tIdx);
           }
         });
       }
@@ -334,7 +334,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       trackEl.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         if (typeof openTrackContextMenu === 'function') {
-          openTrackContextMenu(trackEl, t, playlist);
+          openTrackContextMenu(trackEl, t, playlist, i + tIdx);
         }
       });
 

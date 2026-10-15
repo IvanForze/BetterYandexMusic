@@ -23598,6 +23598,7 @@ let searchQuery = "";
       !e.target.closest('.ArtistCard_menuButton__EynXG') &&
       !e.target.closest('.ym-editorial-menu-btn') &&
       !e.target.closest('.ym-chart-menu-btn') &&
+      !e.target.closest('.ym-track-menu-btn') &&
       !e.target.closest('.CommonControlsBar_contextMenu__EAq_c')
     ) {
       closeAlbumContextMenu();
@@ -24035,6 +24036,7 @@ let searchQuery = "";
     if (buttonEl.target) {
       buttonEl = buttonEl.target.closest('button') || buttonEl.currentTarget || buttonEl.target;
     }
+
     closeAlbumContextMenu();
 
     const trackId = String(track.id || track.realId || '');
@@ -24042,6 +24044,7 @@ let searchQuery = "";
     const albumId = album.id || '';
     const artists = track.artists || [];
     const firstArtist = artists[0] || {};
+    const hasTrailer = Boolean(track.hasTrailer || album?.hasTrailer || (track.trailer && track.trailer.available));
 
     const trackRow = buttonEl?.closest?.('.HorizontalCardContainer_root__YoAAP') || buttonEl?.closest?.('.ym-track-row') || buttonEl?.closest?.('.ym-vibe-premiere-track');
     const likeBtn = trackRow?.querySelector('.ym-track-like-btn, .ym-chart-like-btn');
@@ -24055,19 +24058,23 @@ let searchQuery = "";
     menu.setAttribute('role', 'menu');
     menu.setAttribute('aria-orientation', 'vertical');
 
+    // Флаги предотвращают повторную инжекцию из fullscreen-utils.js и track-downloader.js
+    menu.dataset.ymContextMenuPatched = 'true';
+    menu.dataset.ymDownloadOptionPatched = 'true';
+
     menu.innerHTML = `
       <div class="ggP7WX2_erziDHFOo32s">
         <!-- 1. Нравится -->
         <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitemcheckbox" aria-checked="${isLiked ? 'true' : 'false'}" tabindex="-1" data-action="like">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-              <use xlink:href="/icons/sprite.svg#${isLiked ? 'liked_xxs' : 'dislike_xxs'}"></use>
+              <use xlink:href="/icons/sprite.svg#${isLiked ? 'liked_xxs' : 'like_xxs'}"></use>
             </svg>
             ${isLiked ? 'Удалить из «Мне нравится»' : 'Нравится'}
           </span>
         </button>
 
-        ${albumId ? `
+        ${(hasTrailer || albumId) ? `
         <!-- 2. Трейлер -->
         <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
@@ -24088,29 +24095,55 @@ let searchQuery = "";
           </span>
         </button>
 
-        ${albumId ? `
-        <!-- 4. Перейти к альбому -->
-        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="album">
+        <!-- 4. Развернуть на весь экран -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="fullscreen">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;">
+              <path d="M15 3h6v6"></path>
+              <path d="M9 21H3v-6"></path>
+              <path d="M21 3l-7 7"></path>
+              <path d="M3 21l7-7"></path>
+            </svg>
+            Развернуть на весь экран
+          </span>
+        </button>
+
+        <!-- 5. Скачать трек -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM ym-context-menu-download-btn" type="button" role="menuitem" tabindex="-1" data-action="download">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 12px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Скачать трек
+          </span>
+        </button>
+
+        <!-- 6. Не нравится -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="dislike">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-              <use xlink:href="/icons/sprite.svg#disc_xxs"></use>
+              <use xlink:href="/icons/sprite.svg#dislike_xxs"></use>
             </svg>
-            Перейти к альбому
+            Не нравится
           </span>
-        </button>` : ''}
+        </button>
 
-        ${firstArtist.id ? `
-        <!-- 5. Перейти к артисту -->
-        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="artist">
+        <!-- 7. Добавить в плейлист -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="add-playlist">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-              <use xlink:href="/icons/sprite.svg#artist_xxs"></use>
+              <use xlink:href="/icons/sprite.svg#addToPlaylist_xxs"></use>
             </svg>
-            Перейти к артисту
+            Добавить в плейлист
+            <svg class="KNLFZ4Jd_xKFInxHox4i l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true" style="margin-left: auto;">
+              <use xlink:href="/icons/sprite.svg#arrowRight_xxs"></use>
+            </svg>
           </span>
-        </button>` : ''}
+        </button>
 
-        <!-- 6. Поделиться -->
+        <!-- 8. Поделиться -->
         <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-nested="" aria-expanded="false" aria-haspopup="menu" data-action="share">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
             <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
@@ -24123,15 +24156,35 @@ let searchQuery = "";
           </span>
         </button>
 
-        <!-- 7. Скачать трек -->
-        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="download">
+        ${albumId ? `
+        <!-- 9. Перейти к альбому -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="album">
           <span class="JjlbHZ4FaP9EAcR_1DxF">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#album_xxs"></use>
             </svg>
-            Скачать трек
+            Перейти к альбому
+          </span>
+        </button>` : ''}
+
+        ${firstArtist.id ? `
+        <!-- 10. Перейти к исполнителю -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="artist">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#artist_xxs"></use>
+            </svg>
+            Перейти к исполнителю
+          </span>
+        </button>` : ''}
+
+        <!-- 11. О треке -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="info">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#info_xxs"></use>
+            </svg>
+            О треке
           </span>
         </button>
       </div>
@@ -24143,8 +24196,8 @@ let searchQuery = "";
     buttonEl.setAttribute('aria-expanded', 'true');
 
     const rect = buttonEl.getBoundingClientRect();
-    const menuWidth = 230;
-    const menuHeight = 280;
+    const menuWidth = 240;
+    const menuHeight = 440;
 
     let left = rect.right - menuWidth;
     if (left < 10) left = 10;
@@ -24152,15 +24205,28 @@ let searchQuery = "";
 
     let top = rect.bottom + 6;
     if (top + menuHeight > window.innerHeight - 10) {
-      top = rect.top - menuHeight - 6;
+      top = Math.max(10, rect.top - menuHeight - 6);
     }
 
     menu.style.position = 'fixed';
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
-    menu.style.zIndex = '999999';
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.zIndex = '9999999';
+    menu.style.maxHeight = 'calc(100vh - 20px)';
+    menu.style.overflowY = 'auto';
+    menu.style.overflowX = 'hidden';
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.96)';
+    menu.style.transformOrigin = 'top right';
+    menu.style.transition = 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
 
-    function openTrackSubmenu() {
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+    });
+
+    // Подменю «Поделиться»
+    function openTrackShareSubmenu() {
       closeSubmenu(true);
       const shareBtn = menu.querySelector('button[data-action="share"]');
       if (!shareBtn) return;
@@ -24194,9 +24260,9 @@ let searchQuery = "";
         sLeft = sRect.left - subWidth - 6;
       }
       sub.style.position = 'fixed';
-      sub.style.left = `${sLeft}px`;
-      sub.style.top = `${sRect.top}px`;
-      sub.style.zIndex = '1000000';
+      sub.style.left = `${Math.round(sLeft)}px`;
+      sub.style.top = `${Math.round(sRect.top)}px`;
+      sub.style.zIndex = '10000000';
 
       sub.querySelector('button[data-action="copy-link"]')?.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -24211,20 +24277,161 @@ let searchQuery = "";
       });
     }
 
+    // Подменю «Добавить в плейлист»
+    async function openTrackPlaylistSubmenu() {
+      closeSubmenu(true);
+      const plBtn = menu.querySelector('button[data-action="add-playlist"]');
+      if (!plBtn) return;
+      plBtn.setAttribute('aria-expanded', 'true');
+
+      const sub = document.createElement('div');
+      sub.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-submenu';
+      sub.setAttribute('tabindex', '0');
+      sub.setAttribute('role', 'menu');
+      sub.style.maxHeight = '320px';
+      sub.style.overflowY = 'auto';
+
+      sub.innerHTML = `
+        <div class="ggP7WX2_erziDHFOo32s">
+          <div style="padding: 10px 14px; font-size: 13px; opacity: 0.6;">Загрузка плейлистов...</div>
+        </div>
+      `;
+
+      document.body.appendChild(sub);
+      activeSubmenuEl = sub;
+
+      const sRect = plBtn.getBoundingClientRect();
+      const subWidth = 220;
+      let sLeft = sRect.right + 6;
+      if (sLeft + subWidth > window.innerWidth - 10) {
+        sLeft = sRect.left - subWidth - 6;
+      }
+      sub.style.position = 'fixed';
+      sub.style.left = `${Math.round(sLeft)}px`;
+      sub.style.top = `${Math.round(sRect.top)}px`;
+      sub.style.zIndex = '10000000';
+
+      const root = window.__ym?.rootModel;
+      const uid = root?.user?.account?.data?.uid || window.__ym_user_id;
+
+      try {
+        let playlists = [];
+        if (uid) {
+          const res = await fetch(`https://api.music.yandex.ru/users/${uid}/playlists/list`, {
+            headers: {
+              'x-requested-with': 'XMLHttpRequest',
+              'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+              'x-yandex-music-multi-auth-user-id': String(uid)
+            }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            playlists = data?.result || [];
+          }
+        }
+
+        const container = sub.querySelector('.ggP7WX2_erziDHFOo32s');
+        if (!container) return;
+
+        if (playlists.length === 0) {
+          container.innerHTML = `
+            <div style="padding: 10px 14px; font-size: 13px; opacity: 0.6;">Плейлисты не найдены</div>
+          `;
+          return;
+        }
+
+        container.innerHTML = playlists.map(pl => `
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-playlist-kind="${pl.kind}" data-playlist-title="${encodeURIComponent(pl.title || '')}">
+            <span class="JjlbHZ4FaP9EAcR_1DxF" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${pl.title || 'Плейлист'}
+            </span>
+          </button>
+        `).join('');
+
+        container.querySelectorAll('button[data-playlist-kind]').forEach(btn => {
+          btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const kind = btn.getAttribute('data-playlist-kind');
+            const plTitle = decodeURIComponent(btn.getAttribute('data-playlist-title') || '');
+            closeAlbumContextMenu();
+
+            try {
+              const getRes = await fetch(`https://api.music.yandex.ru/users/${uid}/playlists/${kind}`, {
+                headers: {
+                  'x-requested-with': 'XMLHttpRequest',
+                  'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+                  'x-yandex-music-multi-auth-user-id': String(uid)
+                }
+              });
+              const plData = await getRes.json();
+              const revision = plData?.result?.revision || 0;
+              const diff = JSON.stringify([
+                {
+                  op: 'insert',
+                  at: 0,
+                  tracks: [{ id: String(trackId), albumId: albumId ? String(albumId) : undefined }]
+                }
+              ]);
+              const postRes = await fetch(`https://api.music.yandex.ru/users/${uid}/playlists/${kind}/change-relative`, {
+                method: 'POST',
+                headers: {
+                  'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                  'x-requested-with': 'XMLHttpRequest',
+                  'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+                  'x-yandex-music-multi-auth-user-id': String(uid)
+                },
+                body: `diff=${encodeURIComponent(diff)}&revision=${revision}`
+              });
+
+              if (postRes.ok) {
+                showMenuToast(`Трек добавлен в «${plTitle}»`);
+              } else {
+                showMenuToast('Не удалось добавить трек в плейлист');
+              }
+            } catch (err) {
+              console.warn('[BYM] Playlist add error:', err);
+              showMenuToast('Не удалось добавить трек в плейлист');
+            }
+          });
+        });
+      } catch (err) {
+        console.warn('[BYM] Fetch playlists error:', err);
+        const container = sub.querySelector('.ggP7WX2_erziDHFOo32s');
+        if (container) {
+          container.innerHTML = `<div style="padding: 10px 14px; font-size: 13px; opacity: 0.6;">Ошибка загрузки</div>`;
+        }
+      }
+    }
+
     const shareBtn = menu.querySelector('button[data-action="share"]');
     if (shareBtn) {
-      shareBtn.addEventListener('mouseenter', openTrackSubmenu);
+      shareBtn.addEventListener('mouseenter', openTrackShareSubmenu);
       shareBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openTrackSubmenu();
+        openTrackShareSubmenu();
+      });
+    }
+
+    const playlistBtn = menu.querySelector('button[data-action="add-playlist"]');
+    if (playlistBtn) {
+      playlistBtn.addEventListener('mouseenter', openTrackPlaylistSubmenu);
+      playlistBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openTrackPlaylistSubmenu();
       });
     }
 
     menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      const action = itemBtn.getAttribute('data-action');
+      if (action !== 'share' && action !== 'add-playlist') {
+        itemBtn.addEventListener('mouseenter', () => {
+          closeSubmenu();
+        });
+      }
+
       itemBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
-        const action = itemBtn.getAttribute('data-action');
-        if (action === 'share') return;
+        if (action === 'share' || action === 'add-playlist') return;
 
         closeAlbumContextMenu();
 
@@ -24232,7 +24439,7 @@ let searchQuery = "";
           if (likeBtn) {
             likeBtn.click();
           } else {
-            await toggleLikeTrack(trackId, isLiked);
+            await toggleLikeTrack(trackId, isLiked, albumId);
             showMenuToast(!isLiked ? 'Добавлено в коллекцию' : 'Удалено из коллекции');
           }
         } else if (action === 'trailer') {
@@ -24247,13 +24454,44 @@ let searchQuery = "";
               title: track.title ? `Моя волна: ${track.title}` : 'Моя волна по треку'
             });
           }
+        } else if (action === 'fullscreen') {
+          if (typeof window.toggleNativeFullscreen === 'function') {
+            window.toggleNativeFullscreen();
+          } else {
+            const fsBtn = document.querySelector('[class*="PlayerBar"] button[aria-label*="весь экран"], [data-test-id="FULLSCREEN_BUTTON"]');
+            if (fsBtn) fsBtn.click();
+          }
+        } else if (action === 'download') {
+          const dlBtn = trackRow?.querySelector('.ym-track-row-download-btn, .ym-chart-download-btn');
+          if (dlBtn) {
+            dlBtn.click();
+          } else if (typeof window.__ym_download_track === 'function') {
+            window.__ym_download_track(trackId);
+          }
+        } else if (action === 'dislike') {
+          const root = window.__ym?.rootModel;
+          const uid = root?.user?.account?.data?.uid || window.__ym_user_id;
+          if (uid) {
+            try {
+              await fetch(`https://api.music.yandex.ru/users/${uid}/dislikes/tracks/add?track-id=${trackId}`, {
+                method: 'POST',
+                headers: {
+                  'x-requested-with': 'XMLHttpRequest',
+                  'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+                  'x-yandex-music-multi-auth-user-id': String(uid)
+                }
+              });
+            } catch (_) {}
+          }
+          showMenuToast('Не рекомендовать этот трек');
         } else if (action === 'album') {
           if (albumId) spaNavigate(`/album/${albumId}`);
         } else if (action === 'artist') {
           if (firstArtist.id) spaNavigate(`/artist/${firstArtist.id}`);
-        } else if (action === 'download') {
-          const dlBtn = trackRow?.querySelector('.ym-track-row-download-btn');
-          if (dlBtn) dlBtn.click();
+        } else if (action === 'info') {
+          if (typeof openTrackInfo === 'function') {
+            openTrackInfo(trackId, albumId);
+          }
         }
       });
     });
@@ -26510,7 +26748,7 @@ function renderPremiereSection(feedContainer, premiereData) {
           e.preventDefault();
           e.stopPropagation();
           if (typeof openTrackContextMenu === 'function') {
-            openTrackContextMenu(menuBtn, t, playlist);
+            openTrackContextMenu(menuBtn, t, playlist, i + tIdx);
           }
         });
       }
@@ -26519,7 +26757,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       trackEl.addEventListener('contextmenu', (e) => {
         e.preventDefault();
         if (typeof openTrackContextMenu === 'function') {
-          openTrackContextMenu(trackEl, t, playlist);
+          openTrackContextMenu(trackEl, t, playlist, i + tIdx);
         }
       });
 
