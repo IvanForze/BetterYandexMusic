@@ -221,13 +221,33 @@ function renderChartSection(feedContainer, chartData) {
         </div>
       `;
 
-      // Links navigation
+      // Links navigation & TrackModal trigger
       trackRow.querySelectorAll('.ym-chart-track-link').forEach(a => {
-        a.addEventListener('click', (e) => spaNavigate(trackUrl, e));
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof openTrackInfo === 'function') {
+            openTrackInfo(trackId, albumId);
+          } else {
+            spaNavigate(trackUrl, e);
+          }
+        });
       });
       trackRow.querySelectorAll('.ym-chart-artist-link').forEach(a => {
         const href = a.getAttribute('href');
         if (href) a.addEventListener('click', (e) => spaNavigate(href, e));
+      });
+
+      // Click anywhere on track row outside buttons opens the native TrackModal
+      trackRow.addEventListener('click', (e) => {
+        if (e.target.closest('button, .ym-chart-artist-link, .ym-chart-play-btn, .ym-chart-like-btn, .ym-chart-menu-btn, .ym-track-row-download-btn, .ym-chart-trailer-btn')) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof openTrackInfo === 'function') {
+          openTrackInfo(trackId, albumId);
+        }
       });
 
       // Play button

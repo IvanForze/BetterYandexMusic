@@ -82,3 +82,8 @@ html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselWithColumnsBlock_r
   opacity: 1 !important;
   pointer-events: auto !important;
 }
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-chart-section .ym-track-row {
+  cursor: pointer !important;
+}
+

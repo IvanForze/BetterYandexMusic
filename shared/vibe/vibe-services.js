@@ -1327,6 +1327,73 @@
     return null;
   }
 
+  let cachedTrackPageModel = null;
+
+  function getTrackPageModel() {
+    if (cachedTrackPageModel?.open) return cachedTrackPageModel;
+    if (window.ymR?.open) {
+      cachedTrackPageModel = window.ymR;
+      return cachedTrackPageModel;
+    }
+    if (window.__ym_track_model?.open) {
+      cachedTrackPageModel = window.__ym_track_model;
+      return cachedTrackPageModel;
+    }
+
+    // 1. Поиск в MobX корне
+    const root = getYmRootModel();
+    if (root?.track?.open) {
+      cachedTrackPageModel = root.track;
+      return cachedTrackPageModel;
+    }
+
+    // 2. Поиск через React Fiber контексты любого трека
+    const row = document.querySelector('.CommonTrack_root__i6shE, .HorizontalCardContainer_root__YoAAP');
+    if (row) {
+      let fiber = null;
+      for (const k in row) if (k.startsWith('__reactFiber$')) fiber = row[k];
+      let curr = fiber;
+      while (curr && !cachedTrackPageModel) {
+        let dep = curr.dependencies?.firstContext;
+        while (dep) {
+          const val = dep.memoizedValue || dep.context?._currentValue;
+          if (val?.track?.open) {
+            cachedTrackPageModel = val.track;
+            window.__ym_track_model = val.track;
+            return cachedTrackPageModel;
+          }
+          dep = dep.next;
+        }
+        curr = curr.return;
+      }
+    }
+
+    return null;
+  }
+
+  function openTrackInfo(trackId, albumId) {
+    if (!trackId) return false;
+    const numTrackId = Number(trackId) || trackId;
+    const numAlbumId = albumId ? (Number(albumId) || null) : null;
+
+    const trackModel = getTrackPageModel();
+    if (trackModel?.open) {
+      console.log(`[BYM] Opening native TrackModal: trackId=${numTrackId}, albumId=${numAlbumId}`);
+      try {
+        trackModel.open({
+          trackId: numTrackId,
+          albumId: numAlbumId
+        });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] TrackModal open error:', err);
+      }
+    }
+
+    console.warn('[BYM] TrackPage model not found');
+    return false;
+  }
+
   function getPinsCollection() {
     const root = getYmRootModel();
     return root?.pinsCollection || root?.collections?.pins || null;
