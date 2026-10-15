@@ -21187,7 +21187,17 @@ let searchQuery = "";
     const activePlayback = core?.playbackController?.activePlayback?.value;
     const targetPlayer = player || activePlayback;
 
-    // 1. Проверяем playerState.isPause (основной реактивный MobX флаг паузы в Sonata Player)
+    // 1. Проверяем playerState.status (основной реактивный MobX статус в Sonata: 'playing' | 'paused' | 'idle')
+    const pStatus = targetPlayer?.playbackState?.playerState?.status?.value ||
+                    targetPlayer?.playbackState?.playerState?.status ||
+                    activePlayback?.playbackState?.playerState?.status?.value ||
+                    activePlayback?.playbackState?.playerState?.status ||
+                    targetPlayer?.playbackState?.status?.value ||
+                    targetPlayer?.playbackState?.status;
+    if (pStatus === 'playing') return true;
+    if (pStatus === 'paused' || pStatus === 'idle' || pStatus === 'stopped') return false;
+
+    // 2. Проверяем playerState.isPause (если присутствует)
     if (targetPlayer?.playbackState?.playerState) {
       const isPauseVal = targetPlayer.playbackState.playerState.isPause?.value ??
                          targetPlayer.playbackState.playerState.isPause;
@@ -21206,29 +21216,13 @@ let searchQuery = "";
       }
     }
 
-    // 2. Проверяем activePlayback.status
+    // 3. Проверяем activePlayback.status
     if (activePlayback) {
       if (activePlayback.status === 'playing') return true;
       if (activePlayback.status === 'paused' || activePlayback.status === 'idle') return false;
     }
 
-    // 3. Проверяем строковые и булевы флаги плеера
     if (targetPlayer) {
-      if (targetPlayer.playbackState === 'playing') return true;
-      if (targetPlayer.status === 'playing') return true;
-      if (targetPlayer.playingState === 'playing') return true;
-
-      const playingState = targetPlayer.playbackState?.playingState;
-      if (playingState === 'playing') return true;
-
-      const pStatus = targetPlayer.playbackState?.playerState?.status?.value ||
-                      targetPlayer.playbackState?.playerState?.status ||
-                      targetPlayer.playbackState?.status?.value ||
-                      targetPlayer.playbackState?.status ||
-                      targetPlayer.playbackState?.state;
-      if (pStatus === 'playing') return true;
-      if (pStatus === 'paused' || pStatus === 'idle' || pStatus === 'stopped') return false;
-
       if (typeof targetPlayer.isPlaying === 'function') {
         try { if (targetPlayer.isPlaying()) return true; } catch (_) {}
       }
@@ -21371,14 +21365,41 @@ let searchQuery = "";
     return false;
   }
 
+  function getCurrentlyPlayingTrackId(player) {
+    if (!player) player = getSafeActivePlayer();
+    if (!player) return null;
+
+    // 1. Из playerState.track
+    const psTrack = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
+    if (psTrack?.id || psTrack?.realId) {
+      return String(psTrack.id || psTrack.realId);
+    }
+
+    // 2. Из queueController.queue.state.currentEntity
+    const currentEntity = player.queueController?.queue?.state?.currentEntity?.value ||
+                          player.queueController?.queue?.state?.currentEntity;
+    const entityData = currentEntity?.entity?.data;
+    const qId = entityData?.id || entityData?.realId || entityData?.meta?.id || entityData?.meta?.realId;
+    if (qId) return String(qId);
+
+    // 3. Из currentEntity.entity.id
+    if (currentEntity?.entity?.id) return String(currentEntity.entity.id);
+
+    // 4. Из contextController
+    const ctxTrackId = player.contextController?.currentContext?.queueParams?.entityId ||
+                       player.contextController?.currentContext?.queueParams?.trackId;
+    if (ctxTrackId) return String(ctxTrackId);
+
+    return null;
+  }
+
   function isTrackCurrentlyPlaying(trackId) {
     if (!trackId) return { isMatch: false, isPlaying: false };
     const player = getSafeActivePlayer();
     if (!player) return { isMatch: false, isPlaying: false };
 
-    const track = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
-    const currentTrackId = String(track?.id || track?.realId || '');
-    const isMatch = currentTrackId === String(trackId);
+    const currentTrackId = getCurrentlyPlayingTrackId(player);
+    const isMatch = Boolean(currentTrackId && String(currentTrackId) === String(trackId));
 
     return {
       isMatch,
@@ -22025,19 +22046,40 @@ let searchQuery = "";
     return false;
   }
 
-  async function playPlaylistTrackContext(playlistData, trackId, trackObj) {
+  async function playPlaylistTrackContext(playlistData, trackId, trackObj, options = {}) {
     if (!playlistData && !trackId) return false;
+
+    // Защита от перепутанных аргументов
+    let realTrackId = trackId;
+    let realTrackObj = trackObj;
+    let realPlaylistData = playlistData;
+
+    if (typeof playlistData === 'string' && !trackId) {
+      realTrackId = playlistData;
+      realPlaylistData = null;
+    } else if (typeof trackId === 'object' && trackId !== null && !(trackId instanceof Element)) {
+      realTrackObj = trackId;
+      realTrackId = trackId.id || trackId.realId || playlistData;
+    } else if (typeof playlistData === 'string' && typeof trackId === 'object') {
+      realTrackObj = trackId;
+      realTrackId = playlistData;
+    }
+
     const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
                  (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
                  findSonataCoreFallback();
     const player = getSafeActivePlayer();
     const root = getYmRootModel();
 
-    const playlistObj = (typeof playlistData === 'object' && playlistData !== null) ? playlistData : {};
-    const uuid = playlistObj.playlistUuid || playlistObj.uuid || (typeof playlistData === 'string' ? playlistData : '');
+    const playlistObj = (typeof realPlaylistData === 'object' && realPlaylistData !== null) ? realPlaylistData : {};
+    const uuid = playlistObj.playlistUuid || playlistObj.uuid || (typeof realPlaylistData === 'string' ? realPlaylistData : '');
     const uid = playlistObj.uid || playlistObj.owner?.uid || window.__ym_user_id || root?.user?.uid || root?.userState?.uid || null;
     const kind = playlistObj.kind || playlistObj.playlistKind || null;
-    const albumId = trackObj?.albums?.[0]?.id || trackObj?.albumId || null;
+
+    let albumId = realTrackObj?.albums?.[0]?.id ||
+                  realTrackObj?.albumId ||
+                  (typeof realTrackObj?.album === 'object' ? realTrackObj.album.id : realTrackObj?.album) ||
+                  null;
 
     if (core?.factory?.createContext && player) {
       // 1. Попытка через нативный контекст плейлиста
@@ -22055,23 +22097,28 @@ let searchQuery = "";
           }
           if (uid) meta.uid = Number(uid) || uid;
           if (kind) meta.kind = Number(kind) || kind;
+          if (playlistObj.owner) meta.owner = playlistObj.owner;
+          if (playlistObj.title) meta.title = playlistObj.title;
+
+          const fromStr = options.from || playlistObj.from || 'web-landing-all_chart-default';
 
           const ctx = core.factory.createContext({
             data: {
               type: 'playlist',
               meta: meta,
-              from: 'web-landing-discovery_block-premiere-default',
+              from: fromStr,
               includeTracksInResponse: true,
               interactive: true
             }
           });
 
-          console.log('[BYM] Playing Premiere playlist context via Sonata:', { meta, trackId });
+          console.log('[BYM] Playing playlist context via Sonata:', { meta, trackId: realTrackId });
 
-          const queueParams = trackId ? {
-            initialTrackId: String(trackId),
-            trackId: String(trackId),
-            entityId: String(trackId)
+          const queueParams = realTrackId ? {
+            entityId: String(realTrackId),
+            initialTrackId: String(realTrackId),
+            trackId: String(realTrackId),
+            index: typeof options.index === 'number' ? options.index : 0
           } : undefined;
 
           const played = await safePlaySonataContext(core, player, ctx, {
@@ -22084,10 +22131,22 @@ let searchQuery = "";
         }
       }
 
-      // 2. Фоллбэк: воспроизведение через контекст альбома трека (если у трека есть albumId)
+      // Если albumId еще не известен, пробуем получить его через API трека
+      if (!albumId && realTrackId) {
+        try {
+          const tResp = await fetch(`https://api.music.yandex.ru/tracks/${realTrackId}`);
+          if (tResp.ok) {
+            const tData = await tResp.json();
+            const trackItem = tData.result?.[0] || tData?.[0] || tData;
+            albumId = trackItem?.albums?.[0]?.id || trackItem?.albumId || null;
+          }
+        } catch (_) {}
+      }
+
+      // 2. Фоллбэк: воспроизведение через контекст альбома трека (Sonata type: 'album')
       if (albumId) {
         try {
-          console.log('[BYM] Playing track via Album context fallback:', { albumId, trackId });
+          console.log('[BYM] Playing track via Album context fallback:', { albumId, trackId: realTrackId });
           const albumCtx = core.factory.createContext({
             data: {
               type: 'album',
@@ -22099,37 +22158,15 @@ let searchQuery = "";
           });
           const played = await safePlaySonataContext(core, player, albumCtx, {
             loadContextMeta: true,
-            queueParams: trackId ? {
-              initialTrackId: String(trackId),
-              trackId: String(trackId),
-              entityId: String(trackId)
+            queueParams: realTrackId ? {
+              initialTrackId: String(realTrackId),
+              trackId: String(realTrackId),
+              entityId: String(realTrackId)
             } : undefined
           });
           if (played) return true;
         } catch (aErr) {
           console.warn('[BYM] Album context fallback failed:', aErr);
-        }
-      }
-
-      // 3. Фоллбэк: воспроизведение через контекст отдельного трека
-      if (trackId) {
-        try {
-          console.log('[BYM] Playing track via Track context fallback:', trackId);
-          const trackCtx = core.factory.createContext({
-            data: {
-              type: 'track',
-              meta: { id: String(trackId) },
-              from: 'web-landing-discovery_block-premiere-default',
-              includeTracksInResponse: true,
-              interactive: true
-            }
-          });
-          const played = await safePlaySonataContext(core, player, trackCtx, {
-            loadContextMeta: true
-          });
-          if (played) return true;
-        } catch (tErr) {
-          console.warn('[BYM] Track context fallback failed:', tErr);
         }
       }
     }
@@ -26388,10 +26425,10 @@ function formatAriaDuration(durationMs) {
 
 async function handlePremiereTrackPlay(playlistData, trackId, trackObj) {
   const player = getSafeActivePlayer();
-  const currentTrack = player?.playbackState?.playerState?.track?.value || player?.playbackState?.playerState?.track;
-  const currentTrackId = String(currentTrack?.id || currentTrack?.realId || '');
+  const currentTrackId = (typeof getCurrentlyPlayingTrackId === 'function' ? getCurrentlyPlayingTrackId(player) : null) ||
+                         String(player?.playbackState?.playerState?.track?.value?.id || player?.playbackState?.playerState?.track?.id || '');
 
-  if (currentTrackId === String(trackId)) {
+  if (currentTrackId && currentTrackId === String(trackId)) {
     if (typeof player?.togglePause === 'function') {
       await player.togglePause();
     } else if (isPlayerPlaying(player) && typeof player?.pause === 'function') {
@@ -27037,7 +27074,7 @@ function renderChartSection(feedContainer, chartData) {
           const p = getSafeActivePlayer();
           if (state.isMatch) {
             if (typeof p?.togglePause === 'function') {
-              p.togglePause();
+              await p.togglePause();
             } else if (state.isPlaying && typeof p?.pause === 'function') {
               p.pause();
             } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
@@ -27045,16 +27082,25 @@ function renderChartSection(feedContainer, chartData) {
               else p.play();
             }
           } else {
-            if (typeof handlePremiereTrackPlay === 'function') {
-              await handlePremiereTrackPlay(trackId, track, playBtn);
-            } else if (typeof playPlaylistTrackContext === 'function') {
-              await playPlaylistTrackContext({ id: 'chart' }, trackId, track);
+            // Нативные параметры контекста плейлиста «Чарт» из Sonata Core
+            const chartPlaylist = {
+              id: '414787002:1076',
+              uid: 414787002,
+              kind: 1076,
+              owner: { uid: 414787002, login: 'yamusic-top', name: 'Яндекс Музыка' },
+              playlistUuid: 'ch.448df3eb-daee-408a-a60a-252259db2f3b',
+              title: 'Чарт',
+              from: 'web-landing-all_chart-default'
+            };
+            if (typeof playPlaylistTrackContext === 'function') {
+              await playPlaylistTrackContext(chartPlaylist, trackId, track, { index: (pos - 1) >= 0 ? (pos - 1) : 0 });
             }
           }
           if (typeof updateLandingPlaybackIndicators === 'function') {
             updateLandingPlaybackIndicators();
             setTimeout(updateLandingPlaybackIndicators, 60);
             setTimeout(updateLandingPlaybackIndicators, 250);
+            setTimeout(updateLandingPlaybackIndicators, 600);
           }
         });
       }

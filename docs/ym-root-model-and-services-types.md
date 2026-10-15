@@ -433,3 +433,52 @@ export interface ShareSubmenuItem {
   action: () => void;
 }
 ```
+
+---
+
+## 7. Sonata Player: Нативные контексты и воспроизведение Чарта
+
+Обнаружено через шпион `core.factory.createContext` и `player.playContext`:
+
+### 7.1. Контекст плейлиста «Чарт» (`playlist`)
+Чарт управляется нативным системным плейлистом Яндекс Музыки (аккаунт `yamusic-top`, UID: `414787002`, Kind: `1076`):
+
+```typescript
+export interface ChartPlaylistContext {
+  type: 'playlist';
+  from: 'web-landing-all_chart-default';
+  meta: {
+    id: '414787002:1076';
+    uid: 414787002;
+    kind: 1076;
+    playlistUuid: 'ch.448df3eb-daee-408a-a60a-252259db2f3b';
+    title: 'Чарт';
+    owner: {
+      uid: 414787002;
+      login: 'yamusic-top';
+      name: 'Яндекс Музыка';
+    };
+  };
+}
+
+export interface ChartQueueParams {
+  entityId: string; // ID выбранного трека, e.g. "153919218"
+  index?: number;   // Индекс трека в чарте (0-based)
+  initialTrackId?: string;
+  trackId?: string;
+}
+```
+
+### 7.2. Разрешение ID текущего трека в Sonata Player
+В режиме воспроизведения плейлиста/альбома поле `player.playbackState.playerState.track` может быть `undefined`. Настоящий трек всегда извлекается из `queueController`:
+```typescript
+const currentTrackId =
+  player.playbackState?.playerState?.track?.value?.id ||
+  player.playbackState?.playerState?.track?.id ||
+  player.queueController?.queue?.state?.currentEntity?.value?.entity?.data?.id ||
+  player.queueController?.queue?.state?.currentEntity?.value?.entity?.data?.meta?.id;
+```
+
+Статус воспроизведения определяется по реактивному свойству:
+`player.playbackState.playerState.status.value === 'playing'` (или `'paused'` / `'idle'`).
+

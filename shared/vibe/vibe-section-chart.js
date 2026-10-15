@@ -240,7 +240,7 @@ function renderChartSection(feedContainer, chartData) {
           const p = getSafeActivePlayer();
           if (state.isMatch) {
             if (typeof p?.togglePause === 'function') {
-              p.togglePause();
+              await p.togglePause();
             } else if (state.isPlaying && typeof p?.pause === 'function') {
               p.pause();
             } else if (!state.isPlaying && (typeof p?.resume === 'function' || typeof p?.play === 'function')) {
@@ -248,16 +248,25 @@ function renderChartSection(feedContainer, chartData) {
               else p.play();
             }
           } else {
-            if (typeof handlePremiereTrackPlay === 'function') {
-              await handlePremiereTrackPlay(trackId, track, playBtn);
-            } else if (typeof playPlaylistTrackContext === 'function') {
-              await playPlaylistTrackContext({ id: 'chart' }, trackId, track);
+            // Нативные параметры контекста плейлиста «Чарт» из Sonata Core
+            const chartPlaylist = {
+              id: '414787002:1076',
+              uid: 414787002,
+              kind: 1076,
+              owner: { uid: 414787002, login: 'yamusic-top', name: 'Яндекс Музыка' },
+              playlistUuid: 'ch.448df3eb-daee-408a-a60a-252259db2f3b',
+              title: 'Чарт',
+              from: 'web-landing-all_chart-default'
+            };
+            if (typeof playPlaylistTrackContext === 'function') {
+              await playPlaylistTrackContext(chartPlaylist, trackId, track, { index: (pos - 1) >= 0 ? (pos - 1) : 0 });
             }
           }
           if (typeof updateLandingPlaybackIndicators === 'function') {
             updateLandingPlaybackIndicators();
             setTimeout(updateLandingPlaybackIndicators, 60);
             setTimeout(updateLandingPlaybackIndicators, 250);
+            setTimeout(updateLandingPlaybackIndicators, 600);
           }
         });
       }

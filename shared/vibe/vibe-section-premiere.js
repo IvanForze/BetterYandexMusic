@@ -359,10 +359,10 @@ function formatAriaDuration(durationMs) {
 
 async function handlePremiereTrackPlay(playlistData, trackId, trackObj) {
   const player = getSafeActivePlayer();
-  const currentTrack = player?.playbackState?.playerState?.track?.value || player?.playbackState?.playerState?.track;
-  const currentTrackId = String(currentTrack?.id || currentTrack?.realId || '');
+  const currentTrackId = (typeof getCurrentlyPlayingTrackId === 'function' ? getCurrentlyPlayingTrackId(player) : null) ||
+                         String(player?.playbackState?.playerState?.track?.value?.id || player?.playbackState?.playerState?.track?.id || '');
 
-  if (currentTrackId === String(trackId)) {
+  if (currentTrackId && currentTrackId === String(trackId)) {
     if (typeof player?.togglePause === 'function') {
       await player.togglePause();
     } else if (isPlayerPlaying(player) && typeof player?.pause === 'function') {
