@@ -516,6 +516,27 @@ function applyThemeCSS(themeName, customColors) {
       pointer-events: none !important;
       z-index: 10 !important;
     }
+
+    /* Custom Theme Support for Album / Playlist Download Button */
+    .ym-playlist-download-btn {
+      background: var(--color-bg-secondary, var(--yp-color-bg-secondary, rgba(255, 255, 255, 0.08))) !important;
+      color: var(--color-text-primary, var(--yp-color-text-primary, #ffffff)) !important;
+      border: 1px solid var(--yp-color-border-primary, rgba(255, 255, 255, 0.1)) !important;
+    }
+    .ym-playlist-download-btn:hover {
+      background: var(--color-bg-tertiary, var(--yp-color-bg-tertiary, rgba(255, 255, 255, 0.15))) !important;
+      border-color: var(--yp-color-brand, var(--yp-color-border-primary, transparent)) !important;
+    }
+    .ym-playlist-download-btn:active {
+      background: var(--color-bg-primary, rgba(255, 255, 255, 0.2)) !important;
+    }
+    .ym-playlist-download-btn svg {
+      stroke: currentColor !important;
+      color: inherit !important;
+    }
+    .ym-playlist-download-btn span {
+      color: inherit !important;
+    }
   `;
 
   styleEl.textContent = cssText;

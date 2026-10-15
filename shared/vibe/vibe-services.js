@@ -818,9 +818,9 @@
       }
     });
 
-    // 8b. Синхронизация лайков треков в Чарте (если библиотека загрузилась/обновилась)
-    const chartLikeButtons = feed.querySelectorAll('.ym-chart-like-btn');
-    chartLikeButtons.forEach(btn => {
+    // 8b. Синхронизация лайков треков в Чарте и Премьере (если библиотека загрузилась/обновилась)
+    const trackLikeButtons = feed.querySelectorAll('.ym-chart-like-btn, .ym-premiere-like-btn, .ym-track-like-btn');
+    trackLikeButtons.forEach(btn => {
       const trackId = btn.getAttribute('data-track-id');
       if (!trackId) return;
       const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;

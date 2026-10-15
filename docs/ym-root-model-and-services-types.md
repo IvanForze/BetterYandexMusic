@@ -482,3 +482,32 @@ const currentTrackId =
 Статус воспроизведения определяется по реактивному свойству:
 `player.playbackState.playerState.status.value === 'playing'` (или `'paused'` / `'idle'`).
 
+---
+
+## 8. TrackPage & TrackModal (Боковая панель информации о треке)
+
+Управляет выезжающей справа панелью трека (информация о треке, альбом, похожие треки, тексты, титры).
+Расположена в корне MobX State Tree по пути **`/track`** (`name_: 'TrackPage'`).
+
+```typescript
+export interface TrackPageModel {
+  trackId: number | null;
+  albumId: number | null;
+  isOpened: boolean;
+  isTrackPage: boolean;
+  loadingState: 'IDLE' | 'LOADING' | 'RESOLVED' | 'REJECTED';
+  similarTracks?: unknown[];
+  lastTrackInfoTrack?: unknown;
+
+  /** Открыть модальную панель трека (ВНИМАНИЕ: trackId и albumId должны быть числами!) */
+  open(options: {
+    trackId: number;
+    albumId?: number | null;
+  }): void;
+
+  /** Закрыть модальную панель трека */
+  close(): void;
+}
+```
+
+

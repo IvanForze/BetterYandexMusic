@@ -41,3 +41,7 @@ html.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_ro
 html.ym-vibe-with-landing #ym-vibe-live-landing-feed .HorizontalCardContainer_root__YoAAP:hover .ym-track-row-download-btn {
   opacity: 1;
 }
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-premiere-track {
+  cursor: pointer !important;
+}

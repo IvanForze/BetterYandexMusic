@@ -165,10 +165,10 @@ function renderPremiereSection(feedContainer, premiereData) {
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </button>
-          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O zIMibMuH7wcqUoW7KH1B IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO undefined CommonControlsBar_item__qGErG CommonControlsBar_likeIcon__YqgZY ym-track-like-btn" type="button" aria-label="Нравится" aria-pressed="${isLiked ? 'true' : 'false'}" data-track-id="${escapeHtml(trackId)}" aria-live="off" aria-busy="false">
+          <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O ${isLiked ? 'zIMibMuH7wcqUoW7KH1B' : ''} IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO undefined CommonControlsBar_item__qGErG CommonControlsBar_likeIcon__YqgZY ym-premiere-like-btn ym-track-like-btn" type="button" aria-label="Нравится" aria-pressed="${isLiked ? 'true' : 'false'}" data-track-id="${escapeHtml(trackId)}" aria-live="off" aria-busy="false">
             <span class="JjlbHZ4FaP9EAcR_1DxF">
               <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                <use xlink:href="/icons/sprite.svg#${isLiked ? 'like_filled_xxs' : 'like_xxs'}"></use>
+                <use xlink:href="${isLiked ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs'}"></use>
               </svg>
             </span>
           </button>
@@ -206,6 +206,18 @@ function renderPremiereSection(feedContainer, premiereData) {
       trackEl.querySelectorAll('.ym-premiere-artist-link').forEach(a => {
         const href = a.getAttribute('href');
         if (href) a.addEventListener('click', (e) => spaNavigate(href, e));
+      });
+
+      // Клик по строке трека вне интерактивных кнопок открывает нативную панель TrackModal
+      trackEl.addEventListener('click', (e) => {
+        if (e.target.closest('button, .ym-premiere-artist-link, .ym-premiere-play-btn, .ym-premiere-like-btn, .ym-track-like-btn, .ym-track-menu-btn, .ym-track-row-download-btn, .ym-premiere-trailer-btn')) {
+          return;
+        }
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof openTrackInfo === 'function') {
+          openTrackInfo(trackId, albumId);
+        }
       });
 
       // Воспроизведение трека
@@ -269,18 +281,24 @@ function renderPremiereSection(feedContainer, premiereData) {
       }
 
       // Лайк трека
-      const likeBtn = trackEl.querySelector('.ym-track-like-btn');
+      const likeBtn = trackEl.querySelector('.ym-premiere-like-btn, .ym-track-like-btn');
       if (likeBtn) {
         likeBtn.addEventListener('click', async (e) => {
           e.preventDefault();
           e.stopPropagation();
-          const isPressed = likeBtn.getAttribute('aria-pressed') === 'true';
+          const isPressed = likeBtn.getAttribute('aria-pressed') === 'true' || likeBtn.classList.contains('zIMibMuH7wcqUoW7KH1B');
           const next = !isPressed;
-          likeBtn.setAttribute('aria-pressed', String(next));
-          const svgUse = likeBtn.querySelector('svg use');
+          likeBtn.setAttribute('aria-pressed', next ? 'true' : 'false');
+          if (next) {
+            likeBtn.classList.add('zIMibMuH7wcqUoW7KH1B');
+          } else {
+            likeBtn.classList.remove('zIMibMuH7wcqUoW7KH1B');
+          }
+          const svgUse = likeBtn.querySelector('use');
           if (svgUse) {
-            svgUse.setAttribute('xlink:href', next ? '/icons/sprite.svg#like_filled_xxs' : '/icons/sprite.svg#like_xxs');
-            svgUse.setAttribute('href', next ? '/icons/sprite.svg#like_filled_xxs' : '/icons/sprite.svg#like_xxs');
+            const iconHref = next ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs';
+            svgUse.setAttribute('xlink:href', iconHref);
+            svgUse.setAttribute('href', iconHref);
           }
           if (typeof toggleLikeTrack === 'function') {
             await toggleLikeTrack(trackId, isPressed, albumId);
@@ -318,12 +336,6 @@ function renderPremiereSection(feedContainer, premiereData) {
         if (typeof openTrackContextMenu === 'function') {
           openTrackContextMenu(trackEl, t, playlist);
         }
-      });
-
-      // Клик по всей строке трека (кроме кнопок и ссылок)
-      trackEl.addEventListener('click', async (e) => {
-        if (e.target.closest('button') || e.target.closest('a')) return;
-        await handlePremiereTrackPlay(playlist, trackId, t);
       });
 
       colDiv.appendChild(trackEl);

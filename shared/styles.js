@@ -1678,11 +1678,11 @@ function injectStyles() {
       align-items: center !important;
       justify-content: center !important;
       gap: 8px !important;
-      background: rgba(255, 255, 255, 0.08) !important;
-      border: none !important;
+      background: var(--ym-controls-color-secondary-default-enabled, var(--color-bg-secondary, color-mix(in srgb, currentColor 8%, transparent))) !important;
+      border: 1px solid var(--yp-color-border-primary, transparent) !important;
       box-shadow: none !important;
       outline: none !important;
-      color: #ffffff !important;
+      color: var(--ym-controls-color-primary-text, var(--color-text-primary, var(--yp-color-text-primary, currentColor))) !important;
       height: 44px;
       min-height: 40px;
       max-height: 48px !important;
@@ -1693,7 +1693,7 @@ function injectStyles() {
       font-family: 'YS Text', 'Yandex Sans Text', -apple-system, BlinkMacSystemFont, Arial, sans-serif !important;
       line-height: 20px !important;
       cursor: pointer !important;
-      transition: background-color 0.15s ease !important;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease !important;
       margin: 0 !important;
       box-sizing: border-box !important;
       vertical-align: middle !important;
@@ -1720,14 +1720,14 @@ function injectStyles() {
       }
     }
     .ym-playlist-download-btn:hover {
-      background: rgba(255, 255, 255, 0.12) !important;
-      border: none !important;
+      background: var(--ym-controls-color-secondary-default-hovered, var(--color-bg-tertiary, color-mix(in srgb, currentColor 14%, transparent))) !important;
+      border-color: var(--yp-color-brand, var(--yp-color-border-primary, transparent)) !important;
       box-shadow: none !important;
       transform: none !important;
     }
     .ym-playlist-download-btn:active {
-      background: rgba(255, 255, 255, 0.18) !important;
-      border: none !important;
+      background: var(--ym-controls-color-secondary-default-pressed, var(--color-bg-tertiary, color-mix(in srgb, currentColor 20%, transparent))) !important;
+      border-color: var(--yp-color-brand, var(--yp-color-border-primary, transparent)) !important;
       box-shadow: none !important;
       transform: none !important;
     }
@@ -1735,6 +1735,8 @@ function injectStyles() {
       width: 16px !important;
       height: 16px !important;
       stroke: currentColor !important;
+      color: inherit !important;
+      fill: none !important;
       flex-shrink: 0 !important;
     }
     .ym-playlist-download-btn span {
@@ -1746,6 +1748,35 @@ function injectStyles() {
       white-space: nowrap !important;
       display: inline !important;
       flex-shrink: 0 !important;
+      color: inherit !important;
+    }
+
+    /* Explicit Light Theme Overrides */
+    html.theme-light .ym-playlist-download-btn,
+    body.theme-light .ym-playlist-download-btn,
+    .theme-light .ym-playlist-download-btn,
+    html[data-theme="light"] .ym-playlist-download-btn,
+    [data-theme="light"] .ym-playlist-download-btn,
+    .ym-light-theme .ym-playlist-download-btn {
+      background: var(--ym-controls-color-secondary-default-enabled, rgba(0, 0, 0, 0.06)) !important;
+      color: var(--ym-controls-color-primary-text, var(--color-text-primary, #121212)) !important;
+      border-color: var(--yp-color-border-primary, transparent) !important;
+    }
+    html.theme-light .ym-playlist-download-btn:hover,
+    body.theme-light .ym-playlist-download-btn:hover,
+    .theme-light .ym-playlist-download-btn:hover,
+    html[data-theme="light"] .ym-playlist-download-btn:hover,
+    [data-theme="light"] .ym-playlist-download-btn:hover,
+    .ym-light-theme .ym-playlist-download-btn:hover {
+      background: var(--ym-controls-color-secondary-default-hovered, rgba(0, 0, 0, 0.1)) !important;
+    }
+    html.theme-light .ym-playlist-download-btn:active,
+    body.theme-light .ym-playlist-download-btn:active,
+    .theme-light .ym-playlist-download-btn:active,
+    html[data-theme="light"] .ym-playlist-download-btn:active,
+    [data-theme="light"] .ym-playlist-download-btn:active,
+    .ym-light-theme .ym-playlist-download-btn:active {
+      background: var(--ym-controls-color-secondary-default-pressed, rgba(0, 0, 0, 0.14)) !important;
     }
 
     /* Floating Batch Download Progress Widget */
