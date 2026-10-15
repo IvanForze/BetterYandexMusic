@@ -146,20 +146,23 @@ export interface PinsCollection {
   /** Список закрепленных артистов */
   pinnedArtists?: Array<{ id: number | string; name: string }>;
 
-  /** Проверить, закреплен ли альбом */
-  isAlbumPinned(albumId: number | string): boolean;
+  /** Проверить, закреплен ли элемент по его ключу ('artist_item{id}', 'album_item{id}', 'playlist_item{uuid}') */
+  isPinned(pinKey: string): boolean;
 
-  /** Проверить, закреплен ли артист */
-  isArtistPinned(artistId: number | string): boolean;
+  /** Переключить закрепление артиста (ВНИМАНИЕ: pinKey обязателен для работы unpin!) */
+  toggleArtistPin(options: { id: number | string }, pinKey?: string): Promise<unknown>;
 
-  /** Переключить закрепление альбома через внутренний экшен */
-  toggleAlbumPin(options: { id: number | string }): Promise<boolean>;
+  /** Переключить закрепление альбома (pinKey обязателен для unpin) */
+  toggleAlbumPin(options: { id: number | string }, pinKey?: string): Promise<unknown>;
 
-  /** Переключить закрепление артиста */
-  toggleArtistPin(options: { id: number | string }): Promise<boolean>;
+  /** Переключить закрепление плейлиста */
+  togglePlaylistPin(options: { id?: number | string; uid?: number | string; kind?: number | string; uuid?: string }, pinKey?: string): Promise<unknown>;
 
-  /** Удалить закреп */
-  removePin(options: { type: 'album' | 'artist' | 'playlist'; id: number | string }): Promise<void>;
+  /** Удалить закреп по ключу pinKey из локального индекса и массива items */
+  deletePin(pinKey: string): void;
+
+  /** Добавить элемент в закреп */
+  addPin(item: unknown): void;
 }
 ```
 

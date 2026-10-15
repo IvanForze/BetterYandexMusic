@@ -1032,6 +1032,34 @@
     return false;
   }
 
+  async function playArtistWave(artistId) {
+    if (!artistId) return false;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'artist',
+            wave: true,
+            meta: { id: String(artistId) },
+            from: 'web-artist-wave-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing artist wave via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
   async function playPlaylistTrackContext(playlistData, trackId, trackObj) {
     if (!playlistData && !trackId) return false;
     const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
@@ -1438,6 +1466,146 @@
     return false;
   }
 
+  function isArtistLiked(artistId) {
+    if (!artistId) return false;
+    const idStr = String(artistId);
+    const root = getYmRootModel();
+
+    try {
+      if (typeof root?.library?.isArtistLiked === 'function') {
+        const res = root.library.isArtistLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      const artistItems = root?.library?.artists?.items;
+      if (artistItems) {
+        if (typeof artistItems.has === 'function' && artistItems.has(idStr)) {
+          const val = typeof artistItems.get === 'function' ? artistItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
+  function isArtistPinned(artistId) {
+    if (!artistId) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const idStr = String(artistId);
+    const numId = Number(artistId) || artistId;
+    const pinKey = `artist_item${artistId}`;
+
+    // 1. Прямой нативный метод pinsCollection
+    try {
+      if (typeof pins.isArtistPinned === 'function') {
+        const res = pins.isArtistPinned(artistId);
+        if (typeof res === 'boolean' && res) return true;
+        const resNum = pins.isArtistPinned(numId);
+        if (typeof resNum === 'boolean' && resNum) return true;
+      }
+    } catch (_) {}
+
+    // 2. Общий метод isPinned
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (pins.isPinned(pinKey) || pins.isPinned(idStr) || pins.isPinned(numId)) return true;
+      }
+    } catch (_) {}
+
+    // 3. Индекс коллекции
+    try {
+      if (pins.index?.has && (pins.index.has(pinKey) || pins.index.has(idStr) || pins.index.has(numId))) {
+        return true;
+      }
+    } catch (_) {}
+
+    // 4. Список pinnedArtists
+    try {
+      if (Array.isArray(pins.pinnedArtists)) {
+        if (pins.pinnedArtists.some(a => String(a?.id) === idStr)) return true;
+      }
+    } catch (_) {}
+
+    // 5. Элементы коллекции pins.items
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.artist?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function togglePinArtist(artistId, shouldBePinned) {
+    if (!artistId) return false;
+    const numId = Number(artistId) || artistId;
+    const pinKey = `artist_item${artistId}`;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isArtistPinned(artistId);
+
+    // 1. Приоритетный путь: нативный метод pinsCollection (переключает pin/unpin)
+    // ВАЖНО: сигнатура Яндекс Музыки требует вторым аргументом pinKey ('artist_item{id}').
+    // Без pinKey метод e.isPinned(i) возвращает false и вместо unpin пытается выполнить pin!
+    if (pins && typeof pins.toggleArtistPin === 'function') {
+      try {
+        await pins.toggleArtistPin({ id: numId }, pinKey);
+        return true;
+      } catch (err) {
+        // Ошибка [mobx-state-tree] "no longer part of a state tree" возникает в недрах реакций Яндекса
+        // именно ПОСЛЕ того, как узел успешно удален из дерева модели (открепление состоялось).
+        if (err?.message?.includes('no longer part of a state tree') || String(err).includes('AnonymousModel')) {
+          return true;
+        }
+        console.warn('[BYM] Native artist pin error, fallback to HTTP:', err);
+      }
+    }
+
+    // 2. Фоллбэк: прямой сетевой REST-запрос
+    const method = isCurrentlyPinned ? 'DELETE' : 'POST';
+    try {
+      let resp = await fetch('https://api.music.yandex.ru/pin/artist', {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: numId }),
+        credentials: 'include'
+      });
+
+      // Фоллбек на PUT, если эндпоинт ожидает PUT
+      if (!resp.ok && !isCurrentlyPinned && (resp.status === 405 || resp.status === 404)) {
+        resp = await fetch('https://api.music.yandex.ru/pin/artist', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: numId }),
+          credentials: 'include'
+        });
+      }
+
+      // При откреплении синхронизируем локальный индекс экшеном deletePin
+      if (isCurrentlyPinned && pins) {
+        if (typeof pins.deletePin === 'function') {
+          try {
+            pins.deletePin(pinKey);
+          } catch (_) {}
+        }
+      }
+
+      return resp.ok;
+    } catch (err) {
+      console.warn('[BYM] Pin artist HTTP error:', err);
+      return false;
+    }
+  }
+
   async function playAlbumTrailer(albumId) {
     if (!albumId) return false;
     const targetIdStr = String(albumId);
@@ -1688,6 +1856,75 @@
       return res.ok;
     } catch (err) {
       console.warn('[BYM] Like album error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikeArtist(artistId, isCurrentlyLiked) {
+    if (!artistId) return false;
+    const root = getYmRootModel();
+    const idStr = String(artistId);
+    const numId = Number(artistId) || artistId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleArtistLike({ entityId, userId })
+    if (typeof root?.library?.toggleArtistLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling artist like via root.library.toggleArtistLike:', artistId);
+        const res = await root.library.toggleArtistLike({
+          entityId: idStr,
+          userId: uid
+        });
+        if (res === 'ok' || res === true) return true;
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleArtistLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
+    if (likes) {
+      const toggleFn = likes.toggleArtistLike || likes.toggleArtist || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          await toggleFn.call(likes, { id: numId, type: 'artist', entityId: idStr, userId: uid });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 2. Фоллбэк: HTTP REST API
+    if (!uid) {
+      console.warn('[BYM] Cannot toggle artist like: UID unavailable');
+      return false;
+    }
+    const isLike = !isCurrentlyLiked;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/artists/add?artist-id=${encodeURIComponent(idStr)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/artists/${encodeURIComponent(idStr)}/remove`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
+        },
+        credentials: 'include'
+      });
+      if (typeof root?.library?.getData === 'function') {
+        root.library.getData().catch(() => {});
+      }
+      return res.ok;
+    } catch (err) {
+      console.warn('[BYM] Like artist error:', err);
       return false;
     }
   }

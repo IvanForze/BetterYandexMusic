@@ -138,8 +138,15 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
 
     const isPinnedInitially = itemType === 'album_item'
       ? (typeof isAlbumPinned === 'function' ? isAlbumPinned(itemId) : false)
-      : (itemType === 'liked_playlist_item' ? (typeof isPlaylistPinned === 'function' ? isPlaylistPinned(itemId, itemData.playlist) : false) : false);
+      : (itemType === 'liked_playlist_item'
+          ? (typeof isPlaylistPinned === 'function' ? isPlaylistPinned(itemId, itemData.playlist) : false)
+          : (itemType === 'artist_item' ? (typeof isArtistPinned === 'function' ? isArtistPinned(itemId) : false) : false));
     const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
+
+    const isLikedInitially = itemType === 'artist_item'
+      ? (typeof isArtistLiked === 'function' ? isArtistLiked(itemId) : false)
+      : (itemType === 'album_item' ? (typeof isAlbumLiked === 'function' ? isAlbumLiked(itemId) : false) : false);
+    const initialLikeIcon = isLikedInitially ? '/icons/sprite.svg#like_filled_xxs' : '/icons/sprite.svg#like_xxs';
 
     const li = document.createElement('li');
     li.className = 'VJ9IexhAEuYSCyGiMfN4 CarouselBlock_item__DatZ2 CarouselBlock_important__AARmP';
@@ -148,69 +155,148 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
     if (itemData.playlist?.uid) li.setAttribute('data-playlist-uid', String(itemData.playlist.uid));
     if (itemData.playlist?.kind) li.setAttribute('data-playlist-kind', String(itemData.playlist.kind));
 
-    li.innerHTML = `
-      <div class="laBJlJAaqEVS0i_4Ot3l ${isRound ? 'ArtistCard_root__x67BK' : 'PlaylistCard_root__i3pR4'}" data-test-id="${itemType === 'artist_item' ? 'ARTIST_ITEM' : (itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM')}" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
-        <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI ${isRound ? 'ArtistCard_cover__29ShU' : 'PlaylistCard_cover__tpK5L withShadow'}">
-          <div class="${isRound ? 'ArtistCard_coverBlock__dBL4x' : 'PlaylistCard_coverBlock__1slsN'}">
-            ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ${isRound ? 'ArtistCard_image__pONJx' : 'PlaylistCard_image__Li6oy'}" alt="${escapeHtml(title)}" loading="lazy" aria-hidden="true" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
-            <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE cSCPJSa6Lx6OnpM4ljX9 ${isRound ? 'ArtistCard_controls__jsqqI' : 'PlaylistCard_controls__Ej8Rz'}">
-              <div class="P6gOmyFtXyetUz0dqhF3">
-                <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} ${isRound ? 'ArtistCard_pinButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_pinButton__Mdi_E AlbumCard_control__qx7Xh'} ym-editorial-pin-btn" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
-                  <span class="JjlbHZ4FaP9EAcR_1DxF">
-                    <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                      <use xlink:href="${initialPinIcon}"></use>
-                    </svg>
-                  </span>
-                </button>
-              </div>
-              <div class="bL0wE1Bui8zpIZbvMVL3">
-                <div class="RvWjZle1erRBXzJEF9Zj">
-                  ${hasTrailer ? `
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j' : 'PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq'} ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
-                    <span class="JjlbHZ4FaP9EAcR_1DxF">
-                      <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                        <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
-                      </svg>
-                    </span>
-                  </button>` : ''}
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ${isRound ? 'ArtistCard_playButton__XZoTr ArtistCard_control___qv5j' : 'PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq'} ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
-                    <span class="JjlbHZ4FaP9EAcR_1DxF">
-                      <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
-                        <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
-                      </svg>
-                    </span>
-                  </button>
-                </div>
-                <div class="bBh7lvgdfF7bqNqlK78Q">
-                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO zmtVwO34EPppZErNrlIC ${isRound ? 'ArtistCard_menuButton__LU9TL ArtistCard_control___qv5j' : 'AlbumCard_menuButton__pxkA6 AlbumCard_control__qx7Xh'} ym-editorial-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
-                    <span class="JjlbHZ4FaP9EAcR_1DxF">
-                      <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
-                        <use xlink:href="/icons/sprite.svg#more_xxs"></use>
-                      </svg>
-                    </span>
-                  </button>
+    if (isRound) {
+      // Точный оригинальный нативный HTML карточки артиста ("Зажглись от Искры")
+      li.innerHTML = `
+        <div class="laBJlJAaqEVS0i_4Ot3l ArtistCard_root__x67BK" aria-label="Артист ${escapeHtml(title)} " data-test-id="ARTIST_ITEM" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+          <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c ArtistCard_srTitleLink__jzfOW ym-editorial-link" href="${escapeHtml(url)}">Артист ${escapeHtml(title)} </a>
+          <div>
+            <div class="qaIScXjx1qyXuaIHXQIo QIWoHHDozGGG5w2JYImt ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI ArtistCard_cover__29ShU">
+              <div class="ArtistCard_coverBlock__dBL4x">
+                ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ArtistCard_image__pONJx" alt="Артист ${escapeHtml(title)} " loading="lazy" aria-hidden="true" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
+                <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE kHUOlGxOaBwL4P3jEBXU ArtistCard_controls__jsqqI">
+                  <div class="P6gOmyFtXyetUz0dqhF3">
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} ArtistCard_pinButton__G_VOi ArtistCard_control___qv5j ym-editorial-pin-btn" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                          <use xlink:href="${initialPinIcon}"></use>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="bL0wE1Bui8zpIZbvMVL3">
+                    <div class="RvWjZle1erRBXzJEF9Zj">
+                      ${hasTrailer ? `
+                      <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY undefined ArtistCard_trailerButton__a2NHm ArtistCard_control___qv5j ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" data-intersection-property-id="onboarding-tooltip" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+                        <span class="JjlbHZ4FaP9EAcR_1DxF">
+                          <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                            <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+                          </svg>
+                        </span>
+                      </button>` : ''}
+                      <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY ArtistCard_playButton__XZoTr ArtistCard_control___qv5j ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+                        <span class="JjlbHZ4FaP9EAcR_1DxF">
+                          <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" focusable="false" aria-hidden="true">
+                            <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                    <div class="bBh7lvgdfF7bqNqlK78Q">
+                      <div>
+                        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO undefined zmtVwO34EPppZErNrlIC ArtistCard_menuButton__EynXG ArtistCard_control___qv5j ym-editorial-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+                          <span class="JjlbHZ4FaP9EAcR_1DxF">
+                            <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                              <use xlink:href="/icons/sprite.svg#more_xxs"></use>
+                            </svg>
+                          </span>
+                        </button>
+                      </div>
+                      <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 zIMibMuH7wcqUoW7KH1B IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO undefined ArtistCard_likeButton__LU9TL ArtistCard_control___qv5j ym-editorial-like-btn" type="button" aria-label="${isLikedInitially ? 'Не нравится' : 'Нравится'}" aria-pressed="${isLikedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="artist_item">
+                        <span class="JjlbHZ4FaP9EAcR_1DxF">
+                          <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                            <use xlink:href="${initialLikeIcon}"></use>
+                          </svg>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+          <div class="IO4kvpDGNI2J0CHwcKSf">
+            <div class="l8SktNpJd30JWp1owp_b Dp41JRuLGzwV3MHBYHMC PVBDIXF2RTUThmbNT9sV">
+              <div class="LmhA6nlLyzxwYIX31gYa">
+                <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
+                  <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR" aria-hidden="true" style="-webkit-line-clamp: 2;">
+                    <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB ArtistCard_titleLink__G8Puz ym-editorial-link" tabindex="-1" aria-label="Артист ${escapeHtml(title)} " href="${escapeHtml(url)}">${escapeHtml(title)}</a>
+                  </div>
+                </div>
+              </div>
+              <div class="SeparatedArtists_root_variant_breakAll__34YbW SeparatedArtists_root_clamp__SyvjM" style="-webkit-line-clamp: 1;">
+                <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">Исполнитель</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="IO4kvpDGNI2J0CHwcKSf">
-          <div class="l8SktNpJd30JWp1owp_b Mb33JzAWx9EjbQAeScFt PVBDIXF2RTUThmbNT9sV">
-            <div class="LmhA6nlLyzxwYIX31gYa">
-              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
-                <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR" aria-hidden="true" style="-webkit-line-clamp: 2;">
-                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB ${isRound ? 'ArtistCard_titleLink__G8Puz' : 'PlaylistCard_titleLink__H8qEc'} ym-editorial-link" aria-label="${escapeHtml(title)} " tabindex="-1" href="${escapeHtml(url)}">${escapeHtml(title)}</a>
+      `;
+    } else {
+      // Нативный HTML для PlaylistCard / AlbumCard
+      li.innerHTML = `
+        <div class="laBJlJAaqEVS0i_4Ot3l PlaylistCard_root__i3pR4" data-test-id="${itemType === 'album_item' ? 'ALBUM_ITEM' : 'PLAYLIST_ITEM'}" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
+          <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI PlaylistCard_cover__tpK5L withShadow">
+            <div class="PlaylistCard_coverBlock__1slsN">
+              ${cover100 ? `<img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG PlaylistCard_image__Li6oy" alt="${escapeHtml(title)}" loading="lazy" aria-hidden="true" srcset="${escapeHtml(cover100)}, ${escapeHtml(cover200 || cover100)} 2x" src="${escapeHtml(cover100)}">` : ''}
+              <div class="KL50tMDvfAdw_9MzcVht PBhQ1krUFiAybu_BS2YE cSCPJSa6Lx6OnpM4ljX9 PlaylistCard_controls__Ej8Rz">
+                <div class="P6gOmyFtXyetUz0dqhF3">
+                  <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO ${isPinnedInitially ? 'PinButton_animation_scaled__Aj6LA' : 'PinButton_animation_unscaled__QM3sC'} AlbumCard_pinButton__Mdi_E AlbumCard_control__qx7Xh ym-editorial-pin-btn" type="button" aria-label="${isPinnedInitially ? 'Открепить' : 'Закрепить'}" aria-pressed="${isPinnedInitially ? 'true' : 'false'}" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
+                    <span class="JjlbHZ4FaP9EAcR_1DxF">
+                      <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                        <use xlink:href="${initialPinIcon}"></use>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+                <div class="bL0wE1Bui8zpIZbvMVL3">
+                  <div class="RvWjZle1erRBXzJEF9Zj">
+                    ${hasTrailer ? `
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY PlaylistCard_trailerButton__Qjg_U PlaylistCard_control__73YUq ym-editorial-trailer-btn" type="button" aria-label="Запустить трейлер" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+                        </svg>
+                      </span>
+                    </button>` : ''}
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY PlaylistCard_playButton__eaduk PlaylistCard_control__73YUq ym-editorial-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}" data-playlist-uid="${escapeHtml(String(itemData.playlist?.uid || ''))}" data-playlist-kind="${escapeHtml(String(itemData.playlist?.kind || ''))}">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP Seq0GowcqQmiA9LdLP_g" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#play_filled_xl"></use>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="bBh7lvgdfF7bqNqlK78Q">
+                    <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 WtFdWDF44egSVM_YiMUX qU2apWBO1yyEK0lZ3lPO zmtVwO34EPppZErNrlIC AlbumCard_menuButton__pxkA6 AlbumCard_control__qx7Xh ym-editorial-menu-btn" type="button" aria-label="Контекстное меню" aria-expanded="false" aria-haspopup="menu" aria-live="off" aria-busy="false" data-item-id="${escapeHtml(itemId)}" data-item-type="${escapeHtml(itemType)}">
+                      <span class="JjlbHZ4FaP9EAcR_1DxF">
+                        <svg class="J9wTKytjOWG73QMoN5WP l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+                          <use xlink:href="/icons/sprite.svg#more_xxs"></use>
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-            ${subtitle ? `
-            <div class="SeparatedArtists_root_variant_breakAll__34YbW SeparatedArtists_root_clamp__SyvjM" style="-webkit-line-clamp: 1;">
-              <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(subtitle)}</span>
-            </div>` : ''}
+          </div>
+          <div class="IO4kvpDGNI2J0CHwcKSf">
+            <div class="l8SktNpJd30JWp1owp_b Mb33JzAWx9EjbQAeScFt PVBDIXF2RTUThmbNT9sV">
+              <div class="LmhA6nlLyzxwYIX31gYa">
+                <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
+                  <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR" aria-hidden="true" style="-webkit-line-clamp: 2;">
+                    <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB PlaylistCard_titleLink__H8qEc ym-editorial-link" aria-label="${escapeHtml(title)} " tabindex="-1" href="${escapeHtml(url)}">${escapeHtml(title)}</a>
+                  </div>
+                </div>
+              </div>
+              ${subtitle ? `
+              <div class="SeparatedArtists_root_variant_breakAll__34YbW SeparatedArtists_root_clamp__SyvjM" style="-webkit-line-clamp: 1;">
+                <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(subtitle)}</span>
+              </div>` : ''}
+            </div>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }
 
     // Navigation on click
     li.querySelectorAll('.ym-editorial-link').forEach(linkEl => {
@@ -245,10 +331,16 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
           svgUse.setAttribute('href', nextIcon);
         }
 
-        if (itemType === 'album_item') {
-          if (typeof togglePinAlbum === 'function') await togglePinAlbum(itemId, nextState);
-        } else if (itemType === 'liked_playlist_item') {
-          if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(itemId, nextState, itemData.playlist);
+        try {
+          if (itemType === 'album_item') {
+            if (typeof togglePinAlbum === 'function') await togglePinAlbum(itemId, nextState);
+          } else if (itemType === 'liked_playlist_item') {
+            if (typeof togglePinPlaylist === 'function') await togglePinPlaylist(itemId, nextState, itemData.playlist);
+          } else if (itemType === 'artist_item') {
+            if (typeof togglePinArtist === 'function') await togglePinArtist(itemId, nextState);
+          }
+        } catch (err) {
+          console.warn('[BYM] Pin action error:', err);
         }
       });
     }
@@ -327,6 +419,30 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       });
     }
 
+    // Like button (для карточки артиста)
+    const likeBtn = li.querySelector('.ym-editorial-like-btn');
+    if (likeBtn) {
+      likeBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isCurrentlyLiked = likeBtn.getAttribute('aria-pressed') === 'true';
+        const nextState = !isCurrentlyLiked;
+        likeBtn.setAttribute('aria-pressed', nextState ? 'true' : 'false');
+        likeBtn.setAttribute('aria-label', nextState ? 'Не нравится' : 'Нравится');
+
+        const svgUse = likeBtn.querySelector('use');
+        if (svgUse) {
+          const nextIcon = nextState ? '/icons/sprite.svg#like_filled_xxs' : '/icons/sprite.svg#like_xxs';
+          svgUse.setAttribute('xlink:href', nextIcon);
+          svgUse.setAttribute('href', nextIcon);
+        }
+
+        if (itemType === 'artist_item' && typeof toggleLikeArtist === 'function') {
+          await toggleLikeArtist(itemId, isCurrentlyLiked);
+        }
+      });
+    }
+
     // Context menu button (троеточие)
     const menuBtn = li.querySelector('.ym-editorial-menu-btn');
     if (menuBtn) {
@@ -337,6 +453,8 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
           openAlbumContextMenu(menuBtn, itemData.album || { id: itemId, title }, itemWrapper);
         } else if (itemType === 'liked_playlist_item' && typeof openPlaylistContextMenu === 'function') {
           openPlaylistContextMenu(menuBtn, itemData.playlist || { id: itemId, title }, itemWrapper);
+        } else if (itemType === 'artist_item' && typeof openArtistContextMenu === 'function') {
+          openArtistContextMenu(menuBtn, itemData.artist || { id: itemId, name: title, title }, itemWrapper);
         } else if (typeof openAlbumContextMenu === 'function') {
           openAlbumContextMenu(menuBtn, { id: itemId, title }, itemWrapper);
         }

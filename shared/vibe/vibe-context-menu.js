@@ -46,6 +46,7 @@
       !e.target.closest('.ym-native-album-menu') &&
       !e.target.closest('.ym-native-album-submenu') &&
       !e.target.closest('.AlbumCard_menuButton__pxkA6') &&
+      !e.target.closest('.ArtistCard_menuButton__EynXG') &&
       !e.target.closest('.ym-editorial-menu-btn') &&
       !e.target.closest('.ym-chart-menu-btn') &&
       !e.target.closest('.CommonControlsBar_contextMenu__EAq_c')
@@ -709,9 +710,158 @@
     });
   }
 
+  function openArtistContextMenu(buttonEl, artist, itemWrapper) {
+    closeAlbumContextMenu();
+
+    const art = artist?.artist || artist || {};
+    const artistId = String(art.id || artist.id || '');
+    const title = art.name || artist.title || '';
+    const isPinned = typeof isArtistPinned === 'function' ? isArtistPinned(artistId) : false;
+    const isLiked = typeof isArtistLiked === 'function' ? isArtistLiked(artistId) : false;
+    const hasTrailer = Boolean(art.trailer?.available || itemWrapper?.data?.trailer?.available);
+
+    const menu = document.createElement('div');
+    menu.className = 's7_MO4NdsYs7nPQALD8W ym-native-album-menu ym-native-artist-menu';
+    menu.setAttribute('tabindex', '0');
+    menu.setAttribute('role', 'menu');
+    menu.setAttribute('aria-orientation', 'vertical');
+
+    menu.innerHTML = `
+      <div class="ggP7WX2_erziDHFOo32s">
+        <!-- 1. Закрепить -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="pin">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isPinned ? 'pin_filled_xxs' : 'pin_xxs'}"></use>
+            </svg>
+            ${isPinned ? 'Открепить' : 'Закрепить'}
+          </span>
+        </button>
+
+        <!-- 2. Нравится -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitemcheckbox" aria-checked="${isLiked ? 'true' : 'false'}" tabindex="-1" data-action="like">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#${isLiked ? 'like_filled_xxs' : 'like_xxs'}"></use>
+            </svg>
+            ${isLiked ? 'Не нравится' : 'Нравится'}
+          </span>
+        </button>
+
+        ${hasTrailer ? `
+        <!-- 3. Трейлер -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="trailer">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#trailer_xxs"></use>
+            </svg>
+            Трейлер
+          </span>
+        </button>` : ''}
+
+        <!-- 4. Моя волна по артисту -->
+        <button class="cpeagBA1_PblpJn8Xgtv UDMYhpDjiAFT3xUx268O dgV08FKVLZKFsucuiryn IlG7b1K0AD7E7AMx6F5p HbaqudSqu7Q3mv3zMPGr qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="wave">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#vibe_xxs"></use>
+            </svg>
+            Моя волна по артисту
+          </span>
+        </button>
+
+        <!-- 5. Поделиться -->
+        <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p nHWc2sto1C6Gm0Dpw_l0 j1jXIVckFgZECecFzZMe qU2apWBO1yyEK0lZ3lPO kc5CjvU5hT9KEj0iTt3C EiyUV4aCJzpfNzuihfMM" type="button" role="menuitem" tabindex="-1" data-action="share">
+          <span class="JjlbHZ4FaP9EAcR_1DxF">
+            <svg class="J9wTKytjOWG73QMoN5WP elJfazUBui03YWZgHCbW vqAVPWFJlhAOleK_SLk4 l3tE1hAMmBj2aoPPwU08" focusable="false" aria-hidden="true">
+              <use xlink:href="/icons/sprite.svg#share_xxs"></use>
+            </svg>
+            Поделиться
+          </span>
+        </button>
+      </div>
+    `;
+
+    document.body.appendChild(menu);
+    activeContextMenuEl = menu;
+
+    const rect = buttonEl.getBoundingClientRect();
+    const menuWidth = 230;
+    const menuHeight = 220;
+
+    let left = rect.right - menuWidth;
+    if (left < 10) left = 10;
+    if (left + menuWidth > window.innerWidth - 10) left = window.innerWidth - menuWidth - 10;
+
+    let top = rect.bottom + 6;
+    if (top + menuHeight > window.innerHeight - 10) {
+      top = rect.top - menuHeight - 6;
+    }
+
+    menu.style.position = 'fixed';
+    menu.style.left = `${Math.round(left)}px`;
+    menu.style.top = `${Math.round(top)}px`;
+    menu.style.zIndex = '9999999';
+    menu.style.opacity = '0';
+    menu.style.transform = 'scale(0.96)';
+    menu.style.transformOrigin = 'top right';
+    menu.style.transition = 'opacity 150ms cubic-bezier(0.16, 1, 0.3, 1), transform 150ms cubic-bezier(0.16, 1, 0.3, 1)';
+
+    requestAnimationFrame(() => {
+      menu.style.opacity = '1';
+      menu.style.transform = 'scale(1)';
+    });
+
+    const card = buttonEl.closest('.ArtistCard_root__x67BK') || buttonEl.closest('li');
+    const pinBtn = card?.querySelector('.ym-editorial-pin-btn');
+    const likeBtn = card?.querySelector('.ym-editorial-like-btn');
+
+    menu.querySelectorAll('button[data-action]').forEach(itemBtn => {
+      itemBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const action = itemBtn.getAttribute('data-action');
+        if (action === 'share') return;
+
+        closeAlbumContextMenu();
+
+        if (action === 'pin') {
+          if (pinBtn) pinBtn.click();
+          else if (typeof togglePinArtist === 'function') await togglePinArtist(artistId, !isPinned);
+        } else if (action === 'like') {
+          if (likeBtn) likeBtn.click();
+          else if (typeof toggleLikeArtist === 'function') await toggleLikeArtist(artistId, isLiked);
+        } else if (action === 'trailer') {
+          if (typeof handleTrailerPlay === 'function') {
+            await handleTrailerPlay(artistId);
+          }
+        } else if (action === 'wave') {
+          if (typeof playArtistWave === 'function') {
+            await playArtistWave(artistId);
+          }
+        }
+      });
+    });
+
+    const shareBtn = menu.querySelector('button[data-action="share"]');
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        closeAlbumContextMenu();
+        const artistUrl = `https://music.yandex.ru/artist/${artistId}`;
+        try {
+          await navigator.clipboard.writeText(artistUrl);
+          showMenuToast('Ссылка на артиста скопирована');
+        } catch (_) {
+          showMenuToast('Не удалось скопировать ссылку');
+        }
+      });
+    }
+  }
+
   if (typeof window !== 'undefined') {
     window.openAlbumContextMenu = openAlbumContextMenu;
     window.openPlaylistContextMenu = openPlaylistContextMenu;
     window.openTrackContextMenu = openTrackContextMenu;
+    window.openArtistContextMenu = openArtistContextMenu;
   }
+
 
