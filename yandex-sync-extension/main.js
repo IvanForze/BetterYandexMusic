@@ -966,7 +966,7 @@ function checkAndInjectSettings() {
       <div class="ym-settings-section-title" style="font-size: 17px; font-weight: 700; letter-spacing: -0.2px;">BetterYandexMusic</div>
       <button type="button" id="ym-settings-whats-new-btn" class="ym-btn" style="padding: 5px 12px; border-radius: 9999px; border: none; background: rgba(255,255,255,0.08); color: #ffdb4d; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: none; transform: none; transition: background 0.15s ease;">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        Что нового (v1.3.1)
+        Что нового (v1.4.0)
       </button>
     </div>
     
@@ -9347,13 +9347,24 @@ if (document.readyState === 'loading') {
 // ==========================================
 
 (function() {
-  const BYM_VERSION = '1.3.1';
+  const BYM_VERSION = '1.4.0';
   const GITHUB_REPO = 'IvanForze/BetterYandexMusic';
   const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 часов между фоновыми запросами
 
   let updateInfo = null; // { hasUpdate, latestVersion, htmlUrl, name, body, publishedAt }
 
   const BYM_RELEASES = [
+    {
+      version: '1.4.0',
+      date: '18 октября 2026 г.',
+      changes: [
+        'Новые режимы «Моей волны»: выбор из трех вариантов оформления главной страницы — «По умолчанию» (с 3D-колесом), «Без карусели» (компактный визуализатор на весь экран) и гибридный режим «Моя волна с лентой рекомендаций».',
+        'Живая лента рекомендаций под Моей волной: блоки «Для вас и тренды», быстрый запуск «Мне нравится» и «История», AI-сеты по настроениям и жанрам, «Новые релизы», «Альбомы месяца», «Концерты для вас», «Чарт», «Миксы», «Премьера» и спецпроекты.',
+        'Скачивание треков и альбомов: загрузка аудио в максимальном качестве (FLAC Lossless или MP3 320 kbps), упаковка в ZIP-архив, плавающий боковой виджет очередей скачивания и выбор локальной папки для сохранения (в десктопной версии).',
+        'Быстрое скачивание альбомов и треков прямо из контекстных меню.',
+        'Автоматическая проверка обновлений через GitHub Releases с модальным окном списка изменений.'
+      ]
+    },
     {
       version: '1.3.1',
       date: '20 августа 2026 г.',

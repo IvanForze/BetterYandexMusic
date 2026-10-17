@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.3.1-cc00ff?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.4.0-cc00ff?style=for-the-badge" alt="Version">
   <a href="../../releases"><img src="https://img.shields.io/github/downloads/IvanForze/BetterYandexMusic/total.svg?style=for-the-badge&logo=github&color=0969da" alt="Total Downloads"></a>
   <img src="https://img.shields.io/badge/Node.js-16%2B-green?style=for-the-badge&logo=node.js&logoColor=white&color=339933" alt="Node Version">
   <img src="https://img.shields.io/badge/Socket.io-v4-black?style=for-the-badge&logo=socket.io&logoColor=white&color=010101" alt="Socket.io Version">
@@ -33,6 +33,27 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
 ---
 
 ## Ключевые возможности
+
+### 🌊 Несколько режимов «Моей волны» (Кастомизация Главной) — *новое в v1.4*
+Возможность гибко настроить внешний вид главной страницы под свои предпочтения в настройках BetterYandexMusic:
+* **Режим 1: По умолчанию (`default`)** — стандартный интерфейс Яндекс Музыки с нативной 3D-каруселью станций Моей волны.
+* **Режим 2: Без карусели / компактный вид (`no_wheel`)** — минималистичный вид: визуализатор Моей волны разворачивается на всю ширину страницы и плавно заходит под прозрачный левый навбар. Управление волной осуществляется через аккуратную кнопку «Настройка волны» с удобным меню по категориям (*Все, Настроение, Жанры, Артисты, Характер*).
+* **Режим 3: Моя волна с лентой рекомендаций (`vibe_with_landing`)** — гибридный режим: полноэкранный плеер Моей волны сверху, а при скролле вниз — лента персональных рекомендаций со страницы «Для вас и тренды» (новинки, AI-сеты, чарты, миксы и любимые плейлисты).
+
+> [!NOTE]
+> Режим 3 активно развивается. Если при определенных условиях блок рекомендаций временно не отображается, достаточно перейти на нативную страницу «Для вас и тренды» (`/landing/main`).
+
+---
+
+### 💾 Скачивание треков и целых альбомов — *новое в v1.4*
+Встроенный полнофункциональный загрузчик музыки:
+* **Скачивание треков в 1 клик:** Кнопка скачивания доступна прямо в строке треков, чартах и через контекстное меню.
+* **Скачивание целых альбомов и плейлистов:** Скачивание всех композиций с автоматической упаковкой в единый `.zip`-архив.
+* **Выбор качества аудио:** В настройках можно выбрать формат сохранения — **FLAC Lossless** (несжатый оригинальный звук студийного качества) или **MP3 320 kbps** (высокое качество с экономией места).
+* **Управление очередями загрузок:** Плавающий компактный боковой виджет (Edge Dock Drawer) с отображением прогресса и статуса каждого трека.
+* **Интеграция с системой (для десктопной версии Electron):** Возможность выбрать собственную папку для сохранения музыки и опция автоматического открытия файла/папки в Проводнике Windows или macOS Finder сразу после завершения скачивания.
+
+---
 
 ### 🔄 Синхронизация песни
 Трансляция действий (воспроизведение, пауза, перемотка времени, переключение треков).
@@ -148,54 +169,9 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
 ---
 
 ## 📂 Структура проекта
-```text
-📦 BetterYandexMusic
- ├── 📂 public/                          # Фронтенд-интерфейс сервера (страницы комнат)
- ├── 📂 shared/                          # Общая логика и UI (используется на всех платформах)
- │    ├── 📂 wrapped/                  # Local Wrapped — статистика и аналитика прослушиваний
- │    │    ├── 📄 wrapped-db.js        # База данных и вычисление статистики (IndexedDB)
- │    │    ├── 📄 wrapped-charts.js    # Рендеринг графиков и вкладок статистики
- │    │    ├── 📄 wrapped-ui.js        # UI обёртка, вкладки, кнопка в меню
- │    │    ├── 📄 wrapped-stories.js   # Stories-режим (пролистываемые итоги)
- │    │    ├── 📄 wrapped-tracker.js   # Трекинг прослушиваний в реальном времени
- │    │    └── 📄 chart.js             # Встроенная библиотека Chart.js
- │    ├── 📂 fullscreen/                 # Компоненты полноэкранного плеера (лирика, интерфейс)
- │    ├── 📂 lyrics/                     # Клиент LRCLib и рендер текстов песен
- │    ├── 📂 translation/                # Перевод текстов + интеграция RZT-оценок в плеер
- │    ├── 📄 rzt-api.js                  # Клиент API risazatvorchestvo.com (поиск, парсинг оценок)
- │    ├── 📄 scrobbler.js                # Скробблинг Last.fm и ListenBrainz
- │    ├── 📄 settings-injector.js        # Инжект настроек скробблинга на страницу настроек ЯМ
- │    ├── 📄 soundcloud-api.js           # Клиент SoundCloud API
- │    ├── 📄 soundcloud-search.js        # UI поиска и добавления треков из SoundCloud
- │    ├── 📄 soundcloud-import.js        # Импорт треков SoundCloud в коллекцию Яндекс Музыки
- │    ├── 📄 themes.js                   # Кастомные темы оформления
- │    ├── 📄 styles.js                   # Глобальные стили расширения
- │    ├── 📄 player-faker.js             # Эмуляция плеера для SoundCloud-треков
- │    ├── 📄 navbar-sync.js              # Кнопка синхронизации в навбаре
- │    ├── 📄 sync-popover.js             # Попап управления комнатой синхронизации
- │    ├── 📄 theme-popover.js            # Попап выбора темы
- │    ├── 📄 quality-indicator.js        # Индикатор и выбор качества аудио
- │    ├── 📄 custom-audio.js             # Кастомное аудио (для SoundCloud-треков)
- │    └── 📄 md5.js                      # MD5-хэширование (для Last.fm API)
- ├── 📂 yandex-sync-electron/            # Скрипты инжекта и патчер десктопного приложения
- │    └── 📂 src/
- │         ├── 📂 preload/              # Preload-скрипты (Discord RPC, HTTP-сервер, мост API)
- │         └── 📂 page/                # Скрипты веб-страницы (инициализация, монитор плеера)
- ├── 📂 yandex-sync-extension/           # Исходный код расширения для браузеров
- │    ├── 📂 src/
- │    │    ├── 📂 isolated/             # Скрипты изолированного контекста (скробблинг, переменные)
- │    │    └── 📂 main/                 # Скрипты основного контекста страницы
- │    ├── 📄 background.js              # Фоновый скрипт (RZT-запросы, API-проксирование)
- │    ├── 📄 manifest.json              # Манифест расширения
- │    ├── 📄 isolated.js                # Собранный изолированный бандл
- │    └── 📄 main.js                    # Собранный основной бандл
- ├── 📂 yandex-sync-installer/           # Установщик для десктопного приложения
- │    └── 📂 assets/                   # Собранный desktop-sync.js для патчера
- ├── 📄 build.js                         # Скрипт-сборщик (компилирует shared код для всех платформ)
- ├── 📄 server.js                        # Node.js + Socket.io сервер координации клиентов
- ├── 📄 Dockerfile                       # Сборка контейнера сервера
- └── 📄 docker-compose.yml               # Файл быстрого старта Docker Compose
-```
+
+Полное описание архитектуры проекта, схемы всех модулей, подсистем и файлов вынесены в отдельный документ:  
+👉 **[Подробная документация по структуре проекта и файлам (docs/project-structure.md)](docs/project-structure.md)**
 
 ---
 
@@ -227,24 +203,24 @@ BetterYandexMusic расширяет возможности Яндекс Муз�
        1. Установите библиотеку FUSE и выдайте права на запуск файла (нужно выполнить 1 раз):
           ```bash
           sudo apt install -y libfuse2
-          chmod +x "BetterYandexMusic Installer-1.3.1.AppImage"
+          chmod +x "BetterYandexMusic Installer-1.4.0.AppImage"
           ```
        2. Выдайте права на папку Яндекс Музыки вашему пользователю (чтобы установщику не требовался root доступ):
           ```bash
           sudo chown -R $USER:$USER "/opt/Яндекс Музыка"
           ```
-       3. Запускайте установщик обычным двойным кликом или `./"BetterYandexMusic Installer-1.3.1.AppImage"`.
+       3. Запускайте установщик обычным двойным кликом или `./"BetterYandexMusic Installer-1.4.0.AppImage"`.
      * **Вариант Б (Запуск без установки дополнительных пакетов):**
        Запустите AppImage в режиме прямой распаковки:
        ```bash
-       sudo ./"BetterYandexMusic Installer-1.3.1.AppImage" --appimage-extract-and-run --no-sandbox
+       sudo ./"BetterYandexMusic Installer-1.4.0.AppImage" --appimage-extract-and-run --no-sandbox
        ```
      * **Вариант В (.deb пакет для Debian / Ubuntu / Kali):**
        Скачайте `.deb` файл из релизов и установите через пакетный менеджер:
        ```bash
-       sudo dpkg -i "BetterYandexMusic Installer-1.3.1-x64.deb"
+       sudo dpkg -i "BetterYandexMusic Installer-1.4.0-x64.deb"
        # или
-       sudo apt install ./"BetterYandexMusic Installer-1.3.1-x64.deb"
+       sudo apt install ./"BetterYandexMusic Installer-1.4.0-x64.deb"
        ```
    * **macOS:** Скачайте `BetterYandexMusic Installer.dmg`, откройте его и перетащите приложение в папку "Программы" (Applications).
      > [!WARNING]
