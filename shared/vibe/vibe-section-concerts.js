@@ -105,35 +105,35 @@ function renderConcertsSection(feedContainer, concertsData) {
     li.className = 'VJ9IexhAEuYSCyGiMfN4 Concerts_item__jetvg Concerts_important__rvXs6';
 
     li.innerHTML = `
-      <div class="ConcertCardWithImage_root__NHF59" role="button" tabindex="0" data-intersection-property-id="_r_c_${idx}_">
+      <div class="ConcertCardWithImage_root__NHF59" role="button" tabindex="0" data-intersection-property-id="_r_c_${idx}_" data-test-id="CONCERT_CARD">
         <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR eaYyesBmJL_NbkgoYR1c">Концерт</div>
         <div class="ConcertCardWithImage_cover__3V2fk">
           <div class="ConcertImage_root__gZpOa ConcertImage_root_withMask__1ayfK" style="--concert-image-date-background: ${colorHsl};">
-            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_image__xtZCZ" alt="" loading="eager" aria-hidden="true" srcset="${escapeHtml(posterUrl)}, ${escapeHtml(posterUrl)} 2x" src="${escapeHtml(posterUrl)}">
+            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_image__xtZCZ" alt="" loading="eager" aria-hidden="true" data-test-id="CONCERT_CARD_IMAGE" srcset="${escapeHtml(posterUrl)}, ${escapeHtml(posterUrl)} 2x" src="${escapeHtml(posterUrl)}">
             <div class="ConcertImage_date__aH1IR ConcertImage_date_withEventType__QRb1o">
               <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_dateBackground__GAONC" alt="" loading="eager" aria-hidden="true" srcset="https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/100x100, https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/200x200 2x" src="https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/100x100">
-              <div class="ConcertDate_root__xnVG1" aria-label="${escapeHtml(ariaDateLabel)}">
-                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_month__ti5Na ConcertImage_month_withEventType__Thry7">${escapeHtml(monthStr)}</div>
-                <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR ConcertDate_day__YibpP ConcertImage_day_withEventType__GI5B9">${escapeHtml(dayStr)}</div>
-                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_weekday__fBZXo ConcertImage_weekday_withEventType__v4vMZ">${escapeHtml(dowStr)}</div>
+              <div class="ConcertDate_root__xnVG1" aria-label="${escapeHtml(ariaDateLabel)}" data-test-id="CONCERT_DATE">
+                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_month__ti5Na ConcertImage_month_withEventType__Thry7" data-test-id="CONCERT_DATE_MONTH">${escapeHtml(monthStr)}</div>
+                <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR ConcertDate_day__YibpP ConcertImage_day_withEventType__GI5B9" data-test-id="CONCERT_DATE_DAY">${escapeHtml(dayStr)}</div>
+                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_weekday__fBZXo ConcertImage_weekday_withEventType__v4vMZ" data-test-id="CONCERT_DATE_WEEKDAY">${escapeHtml(dowStr)}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="ConcertMeta_root__CkKU3">
-          <div title="${escapeHtml(concertTitle)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI V3WU123oO65AxsprotU9 _3_Mxw7Si7j2g4kWjlpR ConcertMeta_city__ngDq2" style="-webkit-line-clamp: 1;">${escapeHtml(concertTitle)}</div>
+          <div title="${escapeHtml(concertTitle)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI V3WU123oO65AxsprotU9 _3_Mxw7Si7j2g4kWjlpR ConcertMeta_city__ngDq2" data-test-id="CONCERT_CARD_TITLE" style="-webkit-line-clamp: 1;">${escapeHtml(concertTitle)}</div>
           <div class="ConcertMeta_info__czKlU">
-            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR">Концерт</span>
+            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_EVENT_KIND">Концерт</span>
             <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" aria-hidden="true">•</span>
-            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(rating)}</span>
+            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_CONTENT_RATING">${escapeHtml(rating)}</span>
           </div>
-          <span title="${escapeHtml(city)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" style="-webkit-line-clamp: 1;">${escapeHtml(city)}</span>
+          <span title="${escapeHtml(city)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_LOCATION" style="-webkit-line-clamp: 1;">${escapeHtml(city)}</span>
         </div>
       </div>
     `;
 
     const concertId = c.id || c.concertId || c.uuid;
-    const concertUrl = concertId ? `/concert/${concertId}` : '/concerts';
+    const concertUrl = concertId ? `/concert?concertId=${concertId}` : '/concerts';
 
     const cardBtn = li.querySelector('.ConcertCardWithImage_root__NHF59');
     if (cardBtn) {

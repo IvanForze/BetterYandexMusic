@@ -92,9 +92,15 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       const likesCount = itemData.likesCount || pl.likesCount;
       subtitle = likesCount ? `${Number(likesCount).toLocaleString('ru-RU')} лайков` : '';
       coverUri = pl.cover?.uri || '';
-      const uuid = pl.playlistUuid || pl.uuid || pl.kind;
-      url = pl.uid ? `/users/${pl.uid}/playlists/${pl.kind}` : `/playlists/${uuid}`;
-      itemId = uuid;
+      const uuid = pl.playlistUuid || pl.uuid;
+      if (uuid) {
+        url = `/playlists?playlistUuid=${uuid}`;
+      } else if (pl.uid && pl.kind) {
+        url = `/users/playlists?userId=${pl.uid}&kind=${pl.kind}`;
+      } else {
+        url = '/playlists';
+      }
+      itemId = uuid || pl.kind || '';
       hasTrailer = Boolean(itemData.trailer?.available || pl.trailer?.available);
       onPlay = async () => {
         if (typeof playPlaylistTrackContext === 'function') {
@@ -107,7 +113,7 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       const artists = itemData.artists || alb.artists || [];
       subtitle = artists.map(a => a.name).filter(Boolean).join(', ');
       coverUri = alb.cover?.uri || '';
-      url = `/album/${alb.id}`;
+      url = `/album?albumId=${alb.id}`;
       itemId = alb.id;
       hasTrailer = Boolean(itemData.trailer?.available || alb.trailer?.available);
       onPlay = async () => {
@@ -120,7 +126,7 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       title = art.name || '';
       subtitle = 'Исполнитель';
       coverUri = art.cover?.uri || '';
-      url = `/artist/${art.id}`;
+      url = `/artist?artistId=${art.id}`;
       itemId = art.id;
       isRound = true;
       hasTrailer = Boolean(itemData.trailer?.available || art.trailer?.available);

@@ -113,7 +113,7 @@ function renderChartSection(feedContainer, chartData) {
 
       const album = track.albums?.[0] || {};
       const albumId = album.id || '';
-      const trackUrl = albumId ? `/album/${albumId}/track/${trackId}` : `/track/${trackId}`;
+      const trackUrl = albumId ? `/album?albumId=${albumId}&trackId=${trackId}` : `/album?albumId=${albumId}`;
 
       const coverUri = track.coverUri || album.coverUri || primaryArtist.cover?.uri || '';
       const cover100 = coverUri ? formatYandexImg(coverUri, '100x100') : '';
@@ -126,7 +126,7 @@ function renderChartSection(feedContainer, chartData) {
       const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
 
       const artistsHtml = artists.map(art => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-chart-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-chart-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist?artistId=${art.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_artistCaption__JESZi">${escapeHtml(art.name || '')}</span>
         </a>
       `).join(', ');

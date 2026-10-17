@@ -65,7 +65,10 @@ function renderMixesMusicSection(feedContainer, mixesData) {
 
   items.forEach((item) => {
     const title = item.title || 'Подборка';
-    const weblink = item.weblink || `/tag/${item.id || ''}`;
+    let weblink = item.weblink || (item.id ? `/tag?tagId=${item.id}` : '/mixes');
+    if (weblink.startsWith('/tag/')) {
+      weblink = weblink.replace(/^\/tag\/([^?#/]+)/, '/tag?tagId=$1');
+    }
     const primaryCover = item.covers?.[0] || {};
     const coverUri = primaryCover.uri || item.cover?.uri || '';
     const color = primaryCover.color || item.color || '';

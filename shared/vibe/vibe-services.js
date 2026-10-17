@@ -2269,3 +2269,183 @@
     }
   }
 
+  // =========================================================================
+  // Next.js App Router & Universal SPA Navigation (Desktop Electron & Web)
+  // =========================================================================
+
+  let cachedYmRouter = null;
+
+  function getYmRouter() {
+    if (cachedYmRouter && typeof cachedYmRouter.push === 'function') {
+      return cachedYmRouter;
+    }
+    if (window.__ym_router && typeof window.__ym_router.push === 'function') {
+      cachedYmRouter = window.__ym_router;
+      return cachedYmRouter;
+    }
+    if (window.next?.router && typeof window.next.router.push === 'function') {
+      cachedYmRouter = window.next.router;
+      return cachedYmRouter;
+    }
+
+    // 1. Поиск вниз от React Root Container (самый надежный способ в Next.js 14)
+    try {
+      const rootCandidates = [document.querySelector('#__next'), document.querySelector('#root'), document.body];
+      for (const rootEl of rootCandidates) {
+        if (!rootEl) continue;
+        const cKey = Object.keys(rootEl).find(k => k.startsWith('__reactContainer$') || k.startsWith('__reactFiber$'));
+        if (cKey && rootEl[cKey]) {
+          const queue = [rootEl[cKey]];
+          let visited = 0;
+          while (queue.length > 0 && visited < 250) {
+            const node = queue.shift();
+            visited++;
+            if (!node) continue;
+            const val = node.memoizedProps?.value;
+            if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+              cachedYmRouter = val;
+              window.__ym_router = val;
+              return val;
+            }
+            if (node.child) queue.push(node.child);
+            if (node.sibling) queue.push(node.sibling);
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Поиск через Webpack runtime Next.js
+    try {
+      if (typeof window !== 'undefined' && Array.isArray(window.webpackChunk_N_E)) {
+        let req = null;
+        window.webpackChunk_N_E.push([['__bym_router_probe__' + Math.random()], {}, (r) => { req = r; }]);
+        if (req && req.c) {
+          for (const mId in req.c) {
+            const exp = req.c[mId]?.exports;
+            if (!exp) continue;
+            let candidate = null;
+            if (typeof exp.publicAppRouterInstance === 'function') {
+              candidate = exp.publicAppRouterInstance();
+            } else if (exp.publicAppRouterInstance && typeof exp.publicAppRouterInstance.push === 'function') {
+              candidate = exp.publicAppRouterInstance;
+            } else if (exp.default && typeof exp.default.publicAppRouterInstance === 'function') {
+              candidate = exp.default.publicAppRouterInstance();
+            } else if (typeof exp.push === 'function' && typeof exp.replace === 'function' && (typeof exp.back === 'function' || typeof exp.prefetch === 'function')) {
+              candidate = exp;
+            }
+            if (candidate && typeof candidate.push === 'function' && typeof candidate.replace === 'function') {
+              cachedYmRouter = candidate;
+              window.__ym_router = candidate;
+              return candidate;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 3. Поиск вверх по Fiber от нативных элементов навигации
+    try {
+      const candidateNodes = Array.from(document.querySelectorAll('nav a, aside a, [class*="Navbar"] a, [class*="Sidebar"] a, header a, button')).filter(
+        el => !el.closest('#ym-vibe-live-landing-feed') && !el.closest('#ym-vibe-landing-container')
+      );
+      for (const anchor of candidateNodes) {
+        const fiberKey = Object.keys(anchor).find(k => k.startsWith('__reactFiber$'));
+        if (!fiberKey) continue;
+        let cur = anchor[fiberKey];
+        let depth = 0;
+        while (cur && depth < 120) {
+          depth++;
+          const val = cur.memoizedProps?.value;
+          if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+            cachedYmRouter = val;
+            window.__ym_router = val;
+            return val;
+          }
+          cur = cur.return;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  let isNavigating = false;
+
+  function spaNavigate(url, e) {
+    if (e) {
+      try {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+      } catch (_) {}
+    }
+    if (!url || isNavigating) return;
+    isNavigating = true;
+
+    try {
+      // Очищаем URL от полного хоста/протокола, оставляя только относительный путь
+      let targetPath = String(url).trim();
+      targetPath = targetPath.replace(/^https?:\/\/music\.yandex\.(?:ru|com|by|kz)/i, '');
+      targetPath = targetPath.replace(/^music-application:\/\/desktop/i, '');
+      if (!targetPath.startsWith('/')) {
+        targetPath = '/' + targetPath;
+      }
+
+      console.log('[BYM] spaNavigate to:', targetPath);
+
+      // 1. Попытка навигации через Next.js App Router (основной, бесконфликтный путь)
+      try {
+        const router = getYmRouter();
+        if (router && typeof router.push === 'function') {
+          router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] AppRouter push error:', err);
+      }
+
+      // 2. Попытка сымитировать клик по существующей нативной ссылке в сайдбаре / навигации
+      try {
+        const selector = `nav a[href="${targetPath}"], aside a[href="${targetPath}"], [class*="Navbar"] a[href="${targetPath}"], header a[href="${targetPath}"]`;
+        const nativeLinks = document.querySelectorAll(selector);
+        for (const nl of nativeLinks) {
+          if (!nl.closest('#ym-vibe-landing-container') && !nl.closest('#ym-vibe-live-landing-feed')) {
+            nl.click();
+            return;
+          }
+        }
+        if (targetPath === '/collection' || targetPath.startsWith('/collection/')) {
+          const colLink = document.querySelector('aside a[href*="/collection"], nav a[href*="/collection"], [class*="Navbar"] a[href*="/collection"]');
+          if (colLink && !colLink.closest('#ym-vibe-live-landing-feed') && !colLink.closest('#ym-vibe-landing-container')) {
+            colLink.click();
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Попытка через legacy Pages Router (если доступен)
+      try {
+        if (window.next?.router && typeof window.next.router.push === 'function') {
+          window.next.router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] PagesRouter push error:', err);
+      }
+
+      // 4. Резервный SPA-переход без перезагрузки документа (НЕ вызываем location.href, чтобы не ломать Electron)
+      try {
+        window.history.pushState({}, '', targetPath);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } catch (_) {}
+    } finally {
+      setTimeout(() => { isNavigating = false; }, 200);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.getYmRouter = getYmRouter;
+    window.spaNavigate = spaNavigate;
+  }
+
+

@@ -193,20 +193,6 @@
     return null;
   }
 
-  function spaNavigate(url, e) {
-    if (e) {
-      if (e.ctrlKey || e.metaKey || e.shiftKey) return;
-      e.preventDefault();
-    }
-    if (window.next && window.next.router && typeof window.next.router.push === 'function') {
-      try {
-        window.next.router.push(url);
-        return;
-      } catch (err) { }
-    }
-    window.history.pushState({}, '', url);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }
 
   async function fetchFeedData() {
     const now = Date.now();
@@ -329,6 +315,23 @@
     const feed = document.getElementById('ym-vibe-live-landing-feed');
     if (!feed || !data) return;
     feed.replaceChildren();
+
+    // Защита от навигационных сбоев в Electron: перехват обычных тегов <a> и навигация через Next.js роутер
+    if (!feed.dataset.clickBound) {
+      feed.dataset.clickBound = 'true';
+      feed.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        spaNavigate(href, e);
+      }, true);
+    }
 
     // 1. Exact 1-to-1 Native Tabs (Для вас / Тренды)
     renderLandingTabs(feed, data.likesHistory, data.newReleases, data.albumsMonth);
@@ -486,17 +489,20 @@
     const fav = lh.favorites || {};
     const hist = lh.history || {};
 
-    const favLink = fav.playlistUuid ? `/playlists/${fav.playlistUuid}` : '/collection';
-    const histLink = '/music-history';
+    // В реальной Яндекс Музыке переход идет по fav.url вида: /playlists?playlistUuid=lk.61802d7d-047a-40be-85aa-40da7be0d286
+    const favLink = fav.url || (fav.playlistUuid ? `/playlists?playlistUuid=${fav.playlistUuid}` : '/playlists');
+    const histLink = hist.url || '/music-history';
 
     const favCountText = fav.count ? `${fav.count} треков` : 'Мне нравится';
     const histSubElements = Array.isArray(hist.subtitleElements) && hist.subtitleElements.length > 0
       ? hist.subtitleElements.slice(0, 3).join(', ')
       : 'Недавно прослушано';
 
-    const favCoverUrl = fav.cover?.uri
-      ? formatYandexImg(fav.cover.uri, '80x80')
+    const favCoverRaw = fav.cover?.uri;
+    const favCoverUrl = favCoverRaw
+      ? formatYandexImg(favCoverRaw, '80x80')
       : 'https://avatars.yandex.net/get-music-user-playlist/11418140/favorit-playlist-cover.bb48fdb9b9f4/80x80';
+    const favCover2x = favCoverRaw ? formatYandexImg(favCoverRaw, '200x200') : favCoverUrl;
 
     const favCovers = Array.isArray(fav.trackCovers) ? fav.trackCovers.slice(0, 2) : [];
     let favCoversHtml = '';
@@ -506,8 +512,8 @@
           ${favCovers.map((c) => {
             const uri = c.uri || c;
             return `
-              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
-                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ" data-test-id="LIKES_HISTORY_COVERS">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" srcset="${escapeHtml(formatYandexImg(uri, '80x80'))}, ${escapeHtml(formatYandexImg(uri, '200x200'))} 2x" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
               </div>
             `;
           }).join('')}
@@ -523,8 +529,8 @@
           ${histCovers.map((c) => {
             const uri = c.uri || c;
             return `
-              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
-                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ" data-test-id="LIKES_HISTORY_COVERS">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" srcset="${escapeHtml(formatYandexImg(uri, '80x80'))}, ${escapeHtml(formatYandexImg(uri, '200x200'))} 2x" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
               </div>
             `;
           }).join('')}
@@ -537,20 +543,20 @@
     section.innerHTML = `
       <ol class="IZnFMW4gXBshJODnvB1P LikesAndHistory_carousel__579RD" role="list">
         <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
-          <div class="LikesAndHistoryItem_root__oI1gk">
-            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(favLink)}" id="ym-card-fav">
+          <div data-intersection-property-id="_r_9h_" class="LikesAndHistoryItem_root__oI1gk" data-test-id="LIKES_BLOCK">
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(favLink)}" id="ym-card-fav">
               <div class="LikesAndHistoryItem_start__wdtiV">
                 <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_favoritesCoverContainer__UUIDf">
-                  <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistory_favoritesCover__Nt7Gm" alt="Мне нравится" loading="eager" src="${escapeHtml(favCoverUrl)}">
+                  <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistory_favoritesCover__Nt7Gm" alt="Мне нравится" loading="eager" srcset="${escapeHtml(favCoverUrl)}, ${escapeHtml(favCover2x)} 2x" src="${escapeHtml(favCoverUrl)}">
                 </div>
                 <div class="LikesAndHistoryItem_textContainer__yGdOu">
-                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H" data-test-id="LIKES_HISTORY_TITLE">
                     Мне нравится
-                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
                     </svg>
                   </h2>
-                  <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                  <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" data-test-id="LIKES_HISTORY_SUBTITLE" style="-webkit-line-clamp: 1;">
                     ${escapeHtml(favCountText)}
                   </div>
                 </div>
@@ -561,22 +567,22 @@
         </li>
 
         <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
-          <div class="LikesAndHistoryItem_root__oI1gk">
-            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(histLink)}" id="ym-card-hist">
+          <div data-intersection-property-id="_r_9j_" class="LikesAndHistoryItem_root__oI1gk" data-test-id="HISTORY_BLOCK">
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(histLink)}" id="ym-card-hist">
               <div class="LikesAndHistoryItem_start__wdtiV">
                 <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_historyIconContainer__KPPbS">
-                  <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
+                  <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
                     <use xlink:href="/icons/sprite.svg#history_m"></use>
                   </svg>
                 </div>
                 <div class="LikesAndHistoryItem_textContainer__yGdOu">
-                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H" data-test-id="LIKES_HISTORY_TITLE">
                     История
-                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
                     </svg>
                   </h2>
-                  <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                  <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" data-test-id="LIKES_HISTORY_SUBTITLE" style="-webkit-line-clamp: 1;">
                     ${escapeHtml(histSubElements)}
                   </div>
                 </div>

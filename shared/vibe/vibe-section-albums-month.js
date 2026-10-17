@@ -89,11 +89,11 @@ function renderAlbumsOfTheMonthSection(feedContainer, albumsMonthData) {
     const isExplicit = Boolean(album.contentWarning === 'explicit' || (album.contentRestrictions?.disclaimers && album.contentRestrictions.disclaimers.includes('explicit')));
     const hasTrailer = Boolean(rel.trailer?.available || rel.trailer || album.trailer);
 
-    const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
+    const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" data-test-id="SEPARATED_ARTIST_TITLE" href="/artist?artistId=${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
 
     const ariaLabelAlbum = `Альбом ${album.title || ''}`;
-    const albumUrl = `/album/${album.id || ''}`;
-    const primaryArtistUrl = `/artist/${primaryArtist.id || ''}`;
+    const albumUrl = `/album?albumId=${album.id || ''}`;
+    const primaryArtistUrl = `/artist?artistId=${primaryArtist.id || ''}`;
 
     const explicitHtml = isExplicit ? `
       <span class="NewReleaseCard_explicitMarkContainer__QHRoH">

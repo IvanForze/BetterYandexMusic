@@ -134,7 +134,7 @@
       card.setAttribute('aria-label', `Альбом ${albumTitle}`);
 
       const artistsHtml = artists.map(art => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_artistLink__uPR_2 ym-instyle-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_artistLink__uPR_2 ym-instyle-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist?artistId=${art.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(art.name || '')}</span>
         </a>
       `).join(', ');
@@ -143,7 +143,7 @@
       const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
 
       card.innerHTML = `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c AlbumCard_srTitleLink__TxBNz ym-instyle-album-link" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c AlbumCard_srTitleLink__TxBNz ym-instyle-album-link" href="/album?albumId=${album.id}">${escapeHtml(albumTitle)}</a>
         <div>
           <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI AlbumCard_cover__zXmdl">
             <div class="AlbumCard_coverBlock__94ZzY">
@@ -194,7 +194,7 @@
             <div class="LmhA6nlLyzxwYIX31gYa">
               <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
                 <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR AlbumCard_title__8YvhT" aria-hidden="true" style="-webkit-line-clamp: 2;">
-                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_titleLink__u_WLG ym-instyle-album-link" aria-label="${escapeHtml(albumTitle)} " tabindex="-1" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_titleLink__u_WLG ym-instyle-album-link" aria-label="${escapeHtml(albumTitle)} " tabindex="-1" href="/album?albumId=${album.id}">${escapeHtml(albumTitle)}</a>
                 </div>
               </div>
               ${isExplicit ? `<span><svg class="ExplicitMarkIcon_explicitMark__0BPeQ Rkdd2vKC_3xa1eUdRdHP" focusable="false" aria-label="Возрастное ограничение 18+" aria-hidden="false"><use xlink:href="/icons/sprite.svg#exclamation_xxxs"></use></svg></span>` : ''}
@@ -207,7 +207,7 @@
       `;
 
       card.querySelectorAll('.ym-instyle-album-link').forEach(a => {
-        a.addEventListener('click', (e) => spaNavigate(`/album/${album.id}`, e));
+        a.addEventListener('click', (e) => spaNavigate(`/album?albumId=${album.id}`, e));
       });
       card.querySelectorAll('.ym-instyle-artist-link').forEach(a => {
         const href = a.getAttribute('href');

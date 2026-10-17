@@ -11,7 +11,7 @@ function renderPremiereSection(feedContainer, premiereData) {
 
   const playlistUuid = playlist.playlistUuid || 'ps.dcda6558-a32e-454c-a984-3b56eab31262';
   const playlistTitle = playlist.title || 'Премьера';
-  const playlistUrl = `/playlists/${playlistUuid}`;
+  const playlistUrl = playlistUuid ? `/playlists?playlistUuid=${playlistUuid}` : '/playlists';
 
   // Обложка плейлиста в шапке
   const rawCoverUri = premiereData.cover?.uri || playlist.cover?.uri || '';
@@ -93,7 +93,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       const durationMs = t.durationMs || 180000;
       const album = (t.albums && t.albums[0]) || {};
       const albumId = album.id || '';
-      const trackUrl = albumId ? `/album/${albumId}/track/${trackId}` : `/track/${trackId}`;
+      const trackUrl = albumId ? `/album?albumId=${albumId}&trackId=${trackId}` : `/album?albumId=${albumId}`;
 
       const tCoverUri = t.coverUri || t.ogImage || album.coverUri || '';
       const tCover100 = formatYandexImg(tCoverUri, '100x100');
@@ -110,7 +110,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       const isLiked = (typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false) || Boolean(t.liked);
 
       const artistsHtml = artists.map(a => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-premiere-artist-link" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${a.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-premiere-artist-link" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist?artistId=${a.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_artistCaption__JESZi">${escapeHtml(a.name || '')}</span>
         </a>
       `).join(', ');

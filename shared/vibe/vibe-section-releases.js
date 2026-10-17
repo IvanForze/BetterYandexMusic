@@ -92,11 +92,11 @@
       const isExplicit = Boolean(album.contentWarning === 'explicit' || album.explicit || rel.explicit);
       const hasTrailer = Boolean(rel.trailer || album.trailer);
 
-      const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
+      const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" data-test-id="SEPARATED_ARTIST_TITLE" href="/artist?artistId=${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
 
       const ariaLabelAlbum = `${albumTypeStr.charAt(0).toUpperCase() + albumTypeStr.slice(1)} ${album.title || ''}`;
-      const albumUrl = `/album/${album.id || ''}`;
-      const primaryArtistUrl = `/artist/${primaryArtist.id || ''}`;
+      const albumUrl = `/album?albumId=${album.id || ''}`;
+      const primaryArtistUrl = `/artist?artistId=${primaryArtist.id || ''}`;
 
       const explicitHtml = isExplicit ? `
         <span class="NewReleaseCard_explicitMarkContainer__QHRoH">
@@ -123,7 +123,7 @@
         <div class="NewRelease_root__W0T4a" data-intersection-property-id="_r_rel_${idx}_">
           <div class="NewRelease_cover__EVFNR">
             <div class="qaIScXjx1qyXuaIHXQIo QIWoHHDozGGG5w2JYImt ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI NewRelease_coverImage__9x6Uk">
-              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewRelease_image__Vw6_k" alt="${escapeHtml(primaryArtistName)}" loading="eager" aria-hidden="true" srcset="${escapeHtml(artistCover300)}, ${escapeHtml(artistCover600 || artistCover300)} 2x" src="${escapeHtml(artistCover300)}">
+              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewRelease_image__Vw6_k" alt="${escapeHtml(primaryArtistName)}" loading="eager" aria-hidden="true" data-test-id="ENTITY_COVER_IMAGE" srcset="${escapeHtml(artistCover300)}, ${escapeHtml(artistCover600 || artistCover300)} 2x" src="${escapeHtml(artistCover300)}">
               <div class="NewRelease_fade__rVE0_" style="background: ${escapeHtml(fadeBg)};"></div>
             </div>
             <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_fade__rVE0_" aria-label="${escapeHtml(primaryArtistName)}" href="${escapeHtml(primaryArtistUrl)}"></a>
@@ -131,12 +131,12 @@
               ${artistsHtml}
             </div>
           </div>
-          <div class="qaIScXjx1qyXuaIHXQIo NFJAa_h_EAjwQVY7bU5J ZcpulvHgF_wsgzB8Hye9 NewReleaseCard_root__IY5m_ NewRelease_card__yn06x" style="--new-release-cover-color: ${escapeHtml(coverColor)}; --new-release-color: ${escapeHtml(releaseColor)};">
+          <div class="qaIScXjx1qyXuaIHXQIo NFJAa_h_EAjwQVY7bU5J ZcpulvHgF_wsgzB8Hye9 NewReleaseCard_root__IY5m_ NewRelease_card__yn06x" data-test-id="NEW_RELEASE_CARD" style="--new-release-cover-color: ${escapeHtml(coverColor)}; --new-release-color: ${escapeHtml(releaseColor)};">
             <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewReleaseCard_paperLink__NN_8o" aria-label="${escapeHtml(ariaLabelAlbum)}" href="${escapeHtml(albumUrl)}"></a>
-            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" alt="Альбом ${escapeHtml(album.title || '')}" loading="eager" srcset="${escapeHtml(albumCover100)}, ${escapeHtml(albumCover200 || albumCover100)} 2x" src="${escapeHtml(albumCover100)}">
+            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" alt="Альбом ${escapeHtml(album.title || '')}" loading="eager" data-test-id="ENTITY_COVER_IMAGE" srcset="${escapeHtml(albumCover100)}, ${escapeHtml(albumCover200 || albumCover100)} 2x" src="${escapeHtml(albumCover100)}">
             <div class="NewReleaseCard_info__rcfoY">
-              <div title="${escapeHtml(album.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_title__N5soS" aria-label="${escapeHtml(ariaLabelAlbum)}" style="-webkit-line-clamp: 2;">${escapeHtml(album.title || '')}</div>
-              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_description__Daz5q" style="-webkit-line-clamp: 1;">
+              <div title="${escapeHtml(album.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_title__N5soS" aria-label="${escapeHtml(ariaLabelAlbum)}" data-test-id="NEW_RELEASE_CARD_TITLE" style="-webkit-line-clamp: 2;">${escapeHtml(album.title || '')}</div>
+              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_description__Daz5q" data-test-id="NEW_RELEASE_CARD_DESCRIPTION" style="-webkit-line-clamp: 1;">
                 <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR NewRelease_descriptionContainer__g56GG">
                   <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(albumTypeStr)}</span>
                   <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR"> • </span>
@@ -147,7 +147,7 @@
             <div class="NewReleaseCard_container__XvwZC">
               ${explicitHtml}
               ${trailerHtml}
-              <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-album-id="${escapeHtml(album.id || '')}">
+              <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button" aria-label="Воспроизведение" data-test-id="PLAY_BUTTON" aria-live="off" aria-busy="false" data-album-id="${escapeHtml(album.id || '')}">
                 <span class="JjlbHZ4FaP9EAcR_1DxF">
                   <svg class="J9wTKytjOWG73QMoN5WP o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
                     <use xlink:href="/icons/sprite.svg#play_filled_m"></use>

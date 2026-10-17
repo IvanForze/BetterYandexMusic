@@ -9233,7 +9233,13 @@ class WrappedDB {
 
   init() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      let request;
+      try {
+        request = indexedDB.open(DB_NAME, DB_VERSION);
+      } catch (err) {
+        console.warn('WrappedDB Storage access restricted:', err);
+        return resolve();
+      }
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
@@ -17843,8 +17849,9 @@ function getSonataCore() {
 function getActivePlayer() {
   const core = getSonataCore();
   const activePlaybackWrapper = core?.playbackController?.activePlayback;
+  if (!activePlaybackWrapper) return null;
   // Если activePlayback - это обертка observable (свойство value), берем значение из нее
-  return activePlaybackWrapper.value || null;
+  return activePlaybackWrapper?.value || activePlaybackWrapper || null;
 }
 
 window.getSonataCore = getSonataCore;
@@ -23286,6 +23293,186 @@ let searchQuery = "";
     }
   }
 
+  // =========================================================================
+  // Next.js App Router & Universal SPA Navigation (Desktop Electron & Web)
+  // =========================================================================
+
+  let cachedYmRouter = null;
+
+  function getYmRouter() {
+    if (cachedYmRouter && typeof cachedYmRouter.push === 'function') {
+      return cachedYmRouter;
+    }
+    if (window.__ym_router && typeof window.__ym_router.push === 'function') {
+      cachedYmRouter = window.__ym_router;
+      return cachedYmRouter;
+    }
+    if (window.next?.router && typeof window.next.router.push === 'function') {
+      cachedYmRouter = window.next.router;
+      return cachedYmRouter;
+    }
+
+    // 1. Поиск вниз от React Root Container (самый надежный способ в Next.js 14)
+    try {
+      const rootCandidates = [document.querySelector('#__next'), document.querySelector('#root'), document.body];
+      for (const rootEl of rootCandidates) {
+        if (!rootEl) continue;
+        const cKey = Object.keys(rootEl).find(k => k.startsWith('__reactContainer$') || k.startsWith('__reactFiber$'));
+        if (cKey && rootEl[cKey]) {
+          const queue = [rootEl[cKey]];
+          let visited = 0;
+          while (queue.length > 0 && visited < 250) {
+            const node = queue.shift();
+            visited++;
+            if (!node) continue;
+            const val = node.memoizedProps?.value;
+            if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+              cachedYmRouter = val;
+              window.__ym_router = val;
+              return val;
+            }
+            if (node.child) queue.push(node.child);
+            if (node.sibling) queue.push(node.sibling);
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Поиск через Webpack runtime Next.js
+    try {
+      if (typeof window !== 'undefined' && Array.isArray(window.webpackChunk_N_E)) {
+        let req = null;
+        window.webpackChunk_N_E.push([['__bym_router_probe__' + Math.random()], {}, (r) => { req = r; }]);
+        if (req && req.c) {
+          for (const mId in req.c) {
+            const exp = req.c[mId]?.exports;
+            if (!exp) continue;
+            let candidate = null;
+            if (typeof exp.publicAppRouterInstance === 'function') {
+              candidate = exp.publicAppRouterInstance();
+            } else if (exp.publicAppRouterInstance && typeof exp.publicAppRouterInstance.push === 'function') {
+              candidate = exp.publicAppRouterInstance;
+            } else if (exp.default && typeof exp.default.publicAppRouterInstance === 'function') {
+              candidate = exp.default.publicAppRouterInstance();
+            } else if (typeof exp.push === 'function' && typeof exp.replace === 'function' && (typeof exp.back === 'function' || typeof exp.prefetch === 'function')) {
+              candidate = exp;
+            }
+            if (candidate && typeof candidate.push === 'function' && typeof candidate.replace === 'function') {
+              cachedYmRouter = candidate;
+              window.__ym_router = candidate;
+              return candidate;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 3. Поиск вверх по Fiber от нативных элементов навигации
+    try {
+      const candidateNodes = Array.from(document.querySelectorAll('nav a, aside a, [class*="Navbar"] a, [class*="Sidebar"] a, header a, button')).filter(
+        el => !el.closest('#ym-vibe-live-landing-feed') && !el.closest('#ym-vibe-landing-container')
+      );
+      for (const anchor of candidateNodes) {
+        const fiberKey = Object.keys(anchor).find(k => k.startsWith('__reactFiber$'));
+        if (!fiberKey) continue;
+        let cur = anchor[fiberKey];
+        let depth = 0;
+        while (cur && depth < 120) {
+          depth++;
+          const val = cur.memoizedProps?.value;
+          if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+            cachedYmRouter = val;
+            window.__ym_router = val;
+            return val;
+          }
+          cur = cur.return;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  let isNavigating = false;
+
+  function spaNavigate(url, e) {
+    if (e) {
+      try {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+      } catch (_) {}
+    }
+    if (!url || isNavigating) return;
+    isNavigating = true;
+
+    try {
+      // Очищаем URL от полного хоста/протокола, оставляя только относительный путь
+      let targetPath = String(url).trim();
+      targetPath = targetPath.replace(/^https?:\/\/music\.yandex\.(?:ru|com|by|kz)/i, '');
+      targetPath = targetPath.replace(/^music-application:\/\/desktop/i, '');
+      if (!targetPath.startsWith('/')) {
+        targetPath = '/' + targetPath;
+      }
+
+      console.log('[BYM] spaNavigate to:', targetPath);
+
+      // 1. Попытка навигации через Next.js App Router (основной, бесконфликтный путь)
+      try {
+        const router = getYmRouter();
+        if (router && typeof router.push === 'function') {
+          router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] AppRouter push error:', err);
+      }
+
+      // 2. Попытка сымитировать клик по существующей нативной ссылке в сайдбаре / навигации
+      try {
+        const selector = `nav a[href="${targetPath}"], aside a[href="${targetPath}"], [class*="Navbar"] a[href="${targetPath}"], header a[href="${targetPath}"]`;
+        const nativeLinks = document.querySelectorAll(selector);
+        for (const nl of nativeLinks) {
+          if (!nl.closest('#ym-vibe-landing-container') && !nl.closest('#ym-vibe-live-landing-feed')) {
+            nl.click();
+            return;
+          }
+        }
+        if (targetPath === '/collection' || targetPath.startsWith('/collection/')) {
+          const colLink = document.querySelector('aside a[href*="/collection"], nav a[href*="/collection"], [class*="Navbar"] a[href*="/collection"]');
+          if (colLink && !colLink.closest('#ym-vibe-live-landing-feed') && !colLink.closest('#ym-vibe-landing-container')) {
+            colLink.click();
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Попытка через legacy Pages Router (если доступен)
+      try {
+        if (window.next?.router && typeof window.next.router.push === 'function') {
+          window.next.router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] PagesRouter push error:', err);
+      }
+
+      // 4. Резервный SPA-переход без перезагрузки документа (НЕ вызываем location.href, чтобы не ломать Electron)
+      try {
+        window.history.pushState({}, '', targetPath);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } catch (_) {}
+    } finally {
+      setTimeout(() => { isNavigating = false; }, 200);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.getYmRouter = getYmRouter;
+    window.spaNavigate = spaNavigate;
+  }
+
+
 
 
 // --- Component: shared/vibe/vibe-popover.js ---
@@ -24485,9 +24672,9 @@ let searchQuery = "";
           }
           showMenuToast('Не рекомендовать этот трек');
         } else if (action === 'album') {
-          if (albumId) spaNavigate(`/album/${albumId}`);
+          if (albumId) spaNavigate(`/album?albumId=${albumId}`);
         } else if (action === 'artist') {
-          if (firstArtist.id) spaNavigate(`/artist/${firstArtist.id}`);
+          if (firstArtist.id) spaNavigate(`/artist?artistId=${firstArtist.id}`);
         } else if (action === 'info') {
           if (typeof openTrackInfo === 'function') {
             openTrackInfo(trackId, albumId);
@@ -24850,20 +25037,6 @@ let searchQuery = "";
     return null;
   }
 
-  function spaNavigate(url, e) {
-    if (e) {
-      if (e.ctrlKey || e.metaKey || e.shiftKey) return;
-      e.preventDefault();
-    }
-    if (window.next && window.next.router && typeof window.next.router.push === 'function') {
-      try {
-        window.next.router.push(url);
-        return;
-      } catch (err) { }
-    }
-    window.history.pushState({}, '', url);
-    window.dispatchEvent(new PopStateEvent('popstate'));
-  }
 
   async function fetchFeedData() {
     const now = Date.now();
@@ -24986,6 +25159,23 @@ let searchQuery = "";
     const feed = document.getElementById('ym-vibe-live-landing-feed');
     if (!feed || !data) return;
     feed.replaceChildren();
+
+    // Защита от навигационных сбоев в Electron: перехват обычных тегов <a> и навигация через Next.js роутер
+    if (!feed.dataset.clickBound) {
+      feed.dataset.clickBound = 'true';
+      feed.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+
+        const href = link.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        spaNavigate(href, e);
+      }, true);
+    }
 
     // 1. Exact 1-to-1 Native Tabs (Для вас / Тренды)
     renderLandingTabs(feed, data.likesHistory, data.newReleases, data.albumsMonth);
@@ -25143,17 +25333,20 @@ let searchQuery = "";
     const fav = lh.favorites || {};
     const hist = lh.history || {};
 
-    const favLink = fav.playlistUuid ? `/playlists/${fav.playlistUuid}` : '/collection';
-    const histLink = '/music-history';
+    // В реальной Яндекс Музыке переход идет по fav.url вида: /playlists?playlistUuid=lk.61802d7d-047a-40be-85aa-40da7be0d286
+    const favLink = fav.url || (fav.playlistUuid ? `/playlists?playlistUuid=${fav.playlistUuid}` : '/playlists');
+    const histLink = hist.url || '/music-history';
 
     const favCountText = fav.count ? `${fav.count} треков` : 'Мне нравится';
     const histSubElements = Array.isArray(hist.subtitleElements) && hist.subtitleElements.length > 0
       ? hist.subtitleElements.slice(0, 3).join(', ')
       : 'Недавно прослушано';
 
-    const favCoverUrl = fav.cover?.uri
-      ? formatYandexImg(fav.cover.uri, '80x80')
+    const favCoverRaw = fav.cover?.uri;
+    const favCoverUrl = favCoverRaw
+      ? formatYandexImg(favCoverRaw, '80x80')
       : 'https://avatars.yandex.net/get-music-user-playlist/11418140/favorit-playlist-cover.bb48fdb9b9f4/80x80';
+    const favCover2x = favCoverRaw ? formatYandexImg(favCoverRaw, '200x200') : favCoverUrl;
 
     const favCovers = Array.isArray(fav.trackCovers) ? fav.trackCovers.slice(0, 2) : [];
     let favCoversHtml = '';
@@ -25163,8 +25356,8 @@ let searchQuery = "";
           ${favCovers.map((c) => {
             const uri = c.uri || c;
             return `
-              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
-                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ" data-test-id="LIKES_HISTORY_COVERS">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" srcset="${escapeHtml(formatYandexImg(uri, '80x80'))}, ${escapeHtml(formatYandexImg(uri, '200x200'))} 2x" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
               </div>
             `;
           }).join('')}
@@ -25180,8 +25373,8 @@ let searchQuery = "";
           ${histCovers.map((c) => {
             const uri = c.uri || c;
             return `
-              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ">
-                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
+              <div class="qaIScXjx1qyXuaIHXQIo wdE2qVRIlWUesuBfzCis ZcpulvHgF_wsgzB8Hye9 LikesAndHistoryItem_coverContainer__fwXXJ" data-test-id="LIKES_HISTORY_COVERS">
+                <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistoryItem_cover__QlRhz" alt="" loading="eager" srcset="${escapeHtml(formatYandexImg(uri, '80x80'))}, ${escapeHtml(formatYandexImg(uri, '200x200'))} 2x" src="${escapeHtml(formatYandexImg(uri, '80x80'))}">
               </div>
             `;
           }).join('')}
@@ -25194,20 +25387,20 @@ let searchQuery = "";
     section.innerHTML = `
       <ol class="IZnFMW4gXBshJODnvB1P LikesAndHistory_carousel__579RD" role="list">
         <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
-          <div class="LikesAndHistoryItem_root__oI1gk">
-            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(favLink)}" id="ym-card-fav">
+          <div data-intersection-property-id="_r_9h_" class="LikesAndHistoryItem_root__oI1gk" data-test-id="LIKES_BLOCK">
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(favLink)}" id="ym-card-fav">
               <div class="LikesAndHistoryItem_start__wdtiV">
                 <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_favoritesCoverContainer__UUIDf">
-                  <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistory_favoritesCover__Nt7Gm" alt="Мне нравится" loading="eager" src="${escapeHtml(favCoverUrl)}">
+                  <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG LikesAndHistory_favoritesCover__Nt7Gm" alt="Мне нравится" loading="eager" srcset="${escapeHtml(favCoverUrl)}, ${escapeHtml(favCover2x)} 2x" src="${escapeHtml(favCoverUrl)}">
                 </div>
                 <div class="LikesAndHistoryItem_textContainer__yGdOu">
-                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H" data-test-id="LIKES_HISTORY_TITLE">
                     Мне нравится
-                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
                     </svg>
                   </h2>
-                  <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                  <div title="${escapeHtml(favCountText)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" data-test-id="LIKES_HISTORY_SUBTITLE" style="-webkit-line-clamp: 1;">
                     ${escapeHtml(favCountText)}
                   </div>
                 </div>
@@ -25218,22 +25411,22 @@ let searchQuery = "";
         </li>
 
         <li class="VJ9IexhAEuYSCyGiMfN4 LikesAndHistory_carouselItem__Yq5Xw">
-          <div class="LikesAndHistoryItem_root__oI1gk">
-            <a target="_self" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(histLink)}" id="ym-card-hist">
+          <div data-intersection-property-id="_r_9j_" class="LikesAndHistoryItem_root__oI1gk" data-test-id="HISTORY_BLOCK">
+            <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB LikesAndHistoryItem_link__snTl_" href="${escapeHtml(histLink)}" id="ym-card-hist">
               <div class="LikesAndHistoryItem_start__wdtiV">
                 <div class="qaIScXjx1qyXuaIHXQIo emVxQKB1wJc9FwuIBG8o ZcpulvHgF_wsgzB8Hye9 LikesAndHistory_historyIconContainer__KPPbS">
-                  <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" viewBox="0 0 24 24" width="24" height="24" focusable="false" aria-hidden="true">
+                  <svg class="LikesAndHistory_historyIcon__2FAMu o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
                     <use xlink:href="/icons/sprite.svg#history_m"></use>
                   </svg>
                 </div>
                 <div class="LikesAndHistoryItem_textContainer__yGdOu">
-                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H">
+                  <h2 class="_MWOVuZRvUQdXKTMcOPx Ctk8dbecq31Qh7isOJPQ nSU6fV9y80WrZEfafvww LikesAndHistoryItem_title__hdi2H" data-test-id="LIKES_HISTORY_TITLE">
                     История
-                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" viewBox="0 0 16 16" width="12" height="12" focusable="false" aria-hidden="true">
+                    <svg class="LikesAndHistoryItem_titleIcon__2D_yS UwnL5AJBMMAp6NwMDdZk" focusable="false" aria-hidden="true">
                       <use xlink:href="/icons/sprite.svg#arrowRight_xs"></use>
                     </svg>
                   </h2>
-                  <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" style="-webkit-line-clamp: 1;">
+                  <div title="${escapeHtml(histSubElements)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR LikesAndHistoryItem_subtitle__ghuKi" data-test-id="LIKES_HISTORY_SUBTITLE" style="-webkit-line-clamp: 1;">
                     ${escapeHtml(histSubElements)}
                   </div>
                 </div>
@@ -25838,7 +26031,7 @@ let searchQuery = "";
       card.setAttribute('aria-label', `Альбом ${albumTitle}`);
 
       const artistsHtml = artists.map(art => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_artistLink__uPR_2 ym-instyle-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_artistLink__uPR_2 ym-instyle-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist?artistId=${art.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(art.name || '')}</span>
         </a>
       `).join(', ');
@@ -25847,7 +26040,7 @@ let searchQuery = "";
       const initialPinIcon = isPinnedInitially ? '/icons/sprite.svg#pin_filled_xxs' : '/icons/sprite.svg#pin_xxs';
 
       card.innerHTML = `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c AlbumCard_srTitleLink__TxBNz ym-instyle-album-link" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB eaYyesBmJL_NbkgoYR1c AlbumCard_srTitleLink__TxBNz ym-instyle-album-link" href="/album?albumId=${album.id}">${escapeHtml(albumTitle)}</a>
         <div>
           <div class="qaIScXjx1qyXuaIHXQIo _7gw1qGE6BeUAdSMbhRx ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI AlbumCard_cover__zXmdl">
             <div class="AlbumCard_coverBlock__94ZzY">
@@ -25898,7 +26091,7 @@ let searchQuery = "";
             <div class="LmhA6nlLyzxwYIX31gYa">
               <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR FAmeEGy52GX1k0xZuPDn" style="-webkit-line-clamp: 2;">
                 <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR AlbumCard_title__8YvhT" aria-hidden="true" style="-webkit-line-clamp: 2;">
-                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_titleLink__u_WLG ym-instyle-album-link" aria-label="${escapeHtml(albumTitle)} " tabindex="-1" href="/album/${album.id}">${escapeHtml(albumTitle)}</a>
+                  <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB AlbumCard_titleLink__u_WLG ym-instyle-album-link" aria-label="${escapeHtml(albumTitle)} " tabindex="-1" href="/album?albumId=${album.id}">${escapeHtml(albumTitle)}</a>
                 </div>
               </div>
               ${isExplicit ? `<span><svg class="ExplicitMarkIcon_explicitMark__0BPeQ Rkdd2vKC_3xa1eUdRdHP" focusable="false" aria-label="Возрастное ограничение 18+" aria-hidden="false"><use xlink:href="/icons/sprite.svg#exclamation_xxxs"></use></svg></span>` : ''}
@@ -25911,7 +26104,7 @@ let searchQuery = "";
       `;
 
       card.querySelectorAll('.ym-instyle-album-link').forEach(a => {
-        a.addEventListener('click', (e) => spaNavigate(`/album/${album.id}`, e));
+        a.addEventListener('click', (e) => spaNavigate(`/album?albumId=${album.id}`, e));
       });
       card.querySelectorAll('.ym-instyle-artist-link').forEach(a => {
         const href = a.getAttribute('href');
@@ -26108,11 +26301,11 @@ let searchQuery = "";
       const isExplicit = Boolean(album.contentWarning === 'explicit' || album.explicit || rel.explicit);
       const hasTrailer = Boolean(rel.trailer || album.trailer);
 
-      const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
+      const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" data-test-id="SEPARATED_ARTIST_TITLE" href="/artist?artistId=${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
 
       const ariaLabelAlbum = `${albumTypeStr.charAt(0).toUpperCase() + albumTypeStr.slice(1)} ${album.title || ''}`;
-      const albumUrl = `/album/${album.id || ''}`;
-      const primaryArtistUrl = `/artist/${primaryArtist.id || ''}`;
+      const albumUrl = `/album?albumId=${album.id || ''}`;
+      const primaryArtistUrl = `/artist?artistId=${primaryArtist.id || ''}`;
 
       const explicitHtml = isExplicit ? `
         <span class="NewReleaseCard_explicitMarkContainer__QHRoH">
@@ -26139,7 +26332,7 @@ let searchQuery = "";
         <div class="NewRelease_root__W0T4a" data-intersection-property-id="_r_rel_${idx}_">
           <div class="NewRelease_cover__EVFNR">
             <div class="qaIScXjx1qyXuaIHXQIo QIWoHHDozGGG5w2JYImt ZcpulvHgF_wsgzB8Hye9 gtfPudKIIbfkwmuOBzwI NewRelease_coverImage__9x6Uk">
-              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewRelease_image__Vw6_k" alt="${escapeHtml(primaryArtistName)}" loading="eager" aria-hidden="true" srcset="${escapeHtml(artistCover300)}, ${escapeHtml(artistCover600 || artistCover300)} 2x" src="${escapeHtml(artistCover300)}">
+              <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewRelease_image__Vw6_k" alt="${escapeHtml(primaryArtistName)}" loading="eager" aria-hidden="true" data-test-id="ENTITY_COVER_IMAGE" srcset="${escapeHtml(artistCover300)}, ${escapeHtml(artistCover600 || artistCover300)} 2x" src="${escapeHtml(artistCover300)}">
               <div class="NewRelease_fade__rVE0_" style="background: ${escapeHtml(fadeBg)};"></div>
             </div>
             <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_fade__rVE0_" aria-label="${escapeHtml(primaryArtistName)}" href="${escapeHtml(primaryArtistUrl)}"></a>
@@ -26147,12 +26340,12 @@ let searchQuery = "";
               ${artistsHtml}
             </div>
           </div>
-          <div class="qaIScXjx1qyXuaIHXQIo NFJAa_h_EAjwQVY7bU5J ZcpulvHgF_wsgzB8Hye9 NewReleaseCard_root__IY5m_ NewRelease_card__yn06x" style="--new-release-cover-color: ${escapeHtml(coverColor)}; --new-release-color: ${escapeHtml(releaseColor)};">
+          <div class="qaIScXjx1qyXuaIHXQIo NFJAa_h_EAjwQVY7bU5J ZcpulvHgF_wsgzB8Hye9 NewReleaseCard_root__IY5m_ NewRelease_card__yn06x" data-test-id="NEW_RELEASE_CARD" style="--new-release-cover-color: ${escapeHtml(coverColor)}; --new-release-color: ${escapeHtml(releaseColor)};">
             <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewReleaseCard_paperLink__NN_8o" aria-label="${escapeHtml(ariaLabelAlbum)}" href="${escapeHtml(albumUrl)}"></a>
-            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" alt="Альбом ${escapeHtml(album.title || '')}" loading="eager" srcset="${escapeHtml(albumCover100)}, ${escapeHtml(albumCover200 || albumCover100)} 2x" src="${escapeHtml(albumCover100)}">
+            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG NewReleaseCard_image__oxm2S" alt="Альбом ${escapeHtml(album.title || '')}" loading="eager" data-test-id="ENTITY_COVER_IMAGE" srcset="${escapeHtml(albumCover100)}, ${escapeHtml(albumCover200 || albumCover100)} 2x" src="${escapeHtml(albumCover100)}">
             <div class="NewReleaseCard_info__rcfoY">
-              <div title="${escapeHtml(album.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_title__N5soS" aria-label="${escapeHtml(ariaLabelAlbum)}" style="-webkit-line-clamp: 2;">${escapeHtml(album.title || '')}</div>
-              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_description__Daz5q" style="-webkit-line-clamp: 1;">
+              <div title="${escapeHtml(album.title || '')}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 jMyoZB5J9iZbzJmWOrF0 Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_title__N5soS" aria-label="${escapeHtml(ariaLabelAlbum)}" data-test-id="NEW_RELEASE_CARD_TITLE" style="-webkit-line-clamp: 2;">${escapeHtml(album.title || '')}</div>
+              <div class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI mxSPe5xpZnie9gpIqacd _3_Mxw7Si7j2g4kWjlpR NewReleaseCard_description__Daz5q" data-test-id="NEW_RELEASE_CARD_DESCRIPTION" style="-webkit-line-clamp: 1;">
                 <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR NewRelease_descriptionContainer__g56GG">
                   <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(albumTypeStr)}</span>
                   <span class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR"> • </span>
@@ -26163,7 +26356,7 @@ let searchQuery = "";
             <div class="NewReleaseCard_container__XvwZC">
               ${explicitHtml}
               ${trailerHtml}
-              <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button" aria-label="Воспроизведение" aria-live="off" aria-busy="false" data-album-id="${escapeHtml(album.id || '')}">
+              <button class="cpeagBA1_PblpJn8Xgtv iJVAJMgccD4vj4E4o068 uwk3hfWzB2VT7kE13SQk IlG7b1K0AD7E7AMx6F5p undefined qU2apWBO1yyEK0lZ3lPO WsKeF73pWotx9W1tWdYY NewReleaseCard_button__WPk82 ym-vibe-release-play-btn" type="button" aria-label="Воспроизведение" data-test-id="PLAY_BUTTON" aria-live="off" aria-busy="false" data-album-id="${escapeHtml(album.id || '')}">
                 <span class="JjlbHZ4FaP9EAcR_1DxF">
                   <svg class="J9wTKytjOWG73QMoN5WP o_v2ds2BaqtzAsRuCVjw" focusable="false" aria-hidden="true">
                     <use xlink:href="/icons/sprite.svg#play_filled_m"></use>
@@ -26369,35 +26562,35 @@ function renderConcertsSection(feedContainer, concertsData) {
     li.className = 'VJ9IexhAEuYSCyGiMfN4 Concerts_item__jetvg Concerts_important__rvXs6';
 
     li.innerHTML = `
-      <div class="ConcertCardWithImage_root__NHF59" role="button" tabindex="0" data-intersection-property-id="_r_c_${idx}_">
+      <div class="ConcertCardWithImage_root__NHF59" role="button" tabindex="0" data-intersection-property-id="_r_c_${idx}_" data-test-id="CONCERT_CARD">
         <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR eaYyesBmJL_NbkgoYR1c">Концерт</div>
         <div class="ConcertCardWithImage_cover__3V2fk">
           <div class="ConcertImage_root__gZpOa ConcertImage_root_withMask__1ayfK" style="--concert-image-date-background: ${colorHsl};">
-            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_image__xtZCZ" alt="" loading="eager" aria-hidden="true" srcset="${escapeHtml(posterUrl)}, ${escapeHtml(posterUrl)} 2x" src="${escapeHtml(posterUrl)}">
+            <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_image__xtZCZ" alt="" loading="eager" aria-hidden="true" data-test-id="CONCERT_CARD_IMAGE" srcset="${escapeHtml(posterUrl)}, ${escapeHtml(posterUrl)} 2x" src="${escapeHtml(posterUrl)}">
             <div class="ConcertImage_date__aH1IR ConcertImage_date_withEventType__QRb1o">
               <img class="qQ7GQU14EkggPBC6jdeS fosYvyLDok3Kjj9OWmxG ConcertImage_dateBackground__GAONC" alt="" loading="eager" aria-hidden="true" srcset="https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/100x100, https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/200x200 2x" src="https://avatars.mds.yandex.net/get-music-misc/28052/img.69aab8c335547735b2df1c54/100x100">
-              <div class="ConcertDate_root__xnVG1" aria-label="${escapeHtml(ariaDateLabel)}">
-                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_month__ti5Na ConcertImage_month_withEventType__Thry7">${escapeHtml(monthStr)}</div>
-                <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR ConcertDate_day__YibpP ConcertImage_day_withEventType__GI5B9">${escapeHtml(dayStr)}</div>
-                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_weekday__fBZXo ConcertImage_weekday_withEventType__v4vMZ">${escapeHtml(dowStr)}</div>
+              <div class="ConcertDate_root__xnVG1" aria-label="${escapeHtml(ariaDateLabel)}" data-test-id="CONCERT_DATE">
+                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_month__ti5Na ConcertImage_month_withEventType__Thry7" data-test-id="CONCERT_DATE_MONTH">${escapeHtml(monthStr)}</div>
+                <div class="_MWOVuZRvUQdXKTMcOPx Ai2iRN9elHpk_u5splD6 _3_Mxw7Si7j2g4kWjlpR ConcertDate_day__YibpP ConcertImage_day_withEventType__GI5B9" data-test-id="CONCERT_DATE_DAY">${escapeHtml(dayStr)}</div>
+                <div class="_MWOVuZRvUQdXKTMcOPx SehSa7OyRpC2nzYTVb2Q Vi7Rd0SZWqD17F0872TB ConcertDate_weekday__fBZXo ConcertImage_weekday_withEventType__v4vMZ" data-test-id="CONCERT_DATE_WEEKDAY">${escapeHtml(dowStr)}</div>
               </div>
             </div>
           </div>
         </div>
         <div class="ConcertMeta_root__CkKU3">
-          <div title="${escapeHtml(concertTitle)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI V3WU123oO65AxsprotU9 _3_Mxw7Si7j2g4kWjlpR ConcertMeta_city__ngDq2" style="-webkit-line-clamp: 1;">${escapeHtml(concertTitle)}</div>
+          <div title="${escapeHtml(concertTitle)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI V3WU123oO65AxsprotU9 _3_Mxw7Si7j2g4kWjlpR ConcertMeta_city__ngDq2" data-test-id="CONCERT_CARD_TITLE" style="-webkit-line-clamp: 1;">${escapeHtml(concertTitle)}</div>
           <div class="ConcertMeta_info__czKlU">
-            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR">Концерт</span>
+            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_EVENT_KIND">Концерт</span>
             <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" aria-hidden="true">•</span>
-            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR">${escapeHtml(rating)}</span>
+            <span class="_MWOVuZRvUQdXKTMcOPx g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_CONTENT_RATING">${escapeHtml(rating)}</span>
           </div>
-          <span title="${escapeHtml(city)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" style="-webkit-line-clamp: 1;">${escapeHtml(city)}</span>
+          <span title="${escapeHtml(city)}" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI g3qWNP6xl__7qxNmtrvd _3_Mxw7Si7j2g4kWjlpR" data-test-id="CONCERT_CARD_LOCATION" style="-webkit-line-clamp: 1;">${escapeHtml(city)}</span>
         </div>
       </div>
     `;
 
     const concertId = c.id || c.concertId || c.uuid;
-    const concertUrl = concertId ? `/concert/${concertId}` : '/concerts';
+    const concertUrl = concertId ? `/concert?concertId=${concertId}` : '/concerts';
 
     const cardBtn = li.querySelector('.ConcertCardWithImage_root__NHF59');
     if (cardBtn) {
@@ -26434,7 +26627,7 @@ function renderPremiereSection(feedContainer, premiereData) {
 
   const playlistUuid = playlist.playlistUuid || 'ps.dcda6558-a32e-454c-a984-3b56eab31262';
   const playlistTitle = playlist.title || 'Премьера';
-  const playlistUrl = `/playlists/${playlistUuid}`;
+  const playlistUrl = playlistUuid ? `/playlists?playlistUuid=${playlistUuid}` : '/playlists';
 
   // Обложка плейлиста в шапке
   const rawCoverUri = premiereData.cover?.uri || playlist.cover?.uri || '';
@@ -26516,7 +26709,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       const durationMs = t.durationMs || 180000;
       const album = (t.albums && t.albums[0]) || {};
       const albumId = album.id || '';
-      const trackUrl = albumId ? `/album/${albumId}/track/${trackId}` : `/track/${trackId}`;
+      const trackUrl = albumId ? `/album?albumId=${albumId}&trackId=${trackId}` : `/album?albumId=${albumId}`;
 
       const tCoverUri = t.coverUri || t.ogImage || album.coverUri || '';
       const tCover100 = formatYandexImg(tCoverUri, '100x100');
@@ -26533,7 +26726,7 @@ function renderPremiereSection(feedContainer, premiereData) {
       const isLiked = (typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false) || Boolean(t.liked);
 
       const artistsHtml = artists.map(a => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-premiere-artist-link" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${a.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-premiere-artist-link" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist?artistId=${a.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_artistCaption__JESZi">${escapeHtml(a.name || '')}</span>
         </a>
       `).join(', ');
@@ -26885,7 +27078,10 @@ function renderMixesMusicSection(feedContainer, mixesData) {
 
   items.forEach((item) => {
     const title = item.title || 'Подборка';
-    const weblink = item.weblink || `/tag/${item.id || ''}`;
+    let weblink = item.weblink || (item.id ? `/tag?tagId=${item.id}` : '/mixes');
+    if (weblink.startsWith('/tag/')) {
+      weblink = weblink.replace(/^\/tag\/([^?#/]+)/, '/tag?tagId=$1');
+    }
     const primaryCover = item.covers?.[0] || {};
     const coverUri = primaryCover.uri || item.cover?.uri || '';
     const color = primaryCover.color || item.color || '';
@@ -27024,11 +27220,11 @@ function renderAlbumsOfTheMonthSection(feedContainer, albumsMonthData) {
     const isExplicit = Boolean(album.contentWarning === 'explicit' || (album.contentRestrictions?.disclaimers && album.contentRestrictions.disclaimers.includes('explicit')));
     const hasTrailer = Boolean(rel.trailer?.available || rel.trailer || album.trailer);
 
-    const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" href="/artist/${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
+    const artistsHtml = artists.map(a => `<a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB NewRelease_artistLink__CO3Zn" aria-label="Артист ${escapeHtml(a.name || '')}" data-test-id="SEPARATED_ARTIST_TITLE" href="/artist?artistId=${escapeHtml(a.id || '')}"><span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR NewRelease_artistCaption__1F8A9">${escapeHtml(a.name || '')}</span></a>`).join(', ');
 
     const ariaLabelAlbum = `Альбом ${album.title || ''}`;
-    const albumUrl = `/album/${album.id || ''}`;
-    const primaryArtistUrl = `/artist/${primaryArtist.id || ''}`;
+    const albumUrl = `/album?albumId=${album.id || ''}`;
+    const primaryArtistUrl = `/artist?artistId=${primaryArtist.id || ''}`;
 
     const explicitHtml = isExplicit ? `
       <span class="NewReleaseCard_explicitMarkContainer__QHRoH">
@@ -27316,7 +27512,7 @@ function renderChartSection(feedContainer, chartData) {
 
       const album = track.albums?.[0] || {};
       const albumId = album.id || '';
-      const trackUrl = albumId ? `/album/${albumId}/track/${trackId}` : `/track/${trackId}`;
+      const trackUrl = albumId ? `/album?albumId=${albumId}&trackId=${trackId}` : `/album?albumId=${albumId}`;
 
       const coverUri = track.coverUri || album.coverUri || primaryArtist.cover?.uri || '';
       const cover100 = coverUri ? formatYandexImg(coverUri, '100x100') : '';
@@ -27329,7 +27525,7 @@ function renderChartSection(feedContainer, chartData) {
       const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
 
       const artistsHtml = artists.map(art => `
-        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-chart-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist/${art.id}">
+        <a target="_self" rel="" class="buOTZq_TKQOVyjMLrXvB Meta_text__Y5uYH Meta_link__IFDBA ym-chart-artist-link" aria-label="Артист ${escapeHtml(art.name || '')}" href="/artist?artistId=${art.id}">
           <span class="_MWOVuZRvUQdXKTMcOPx Z_WIr2W8JU4MPQek3hgR _3_Mxw7Si7j2g4kWjlpR Meta_text__Y5uYH Meta_artistCaption__JESZi">${escapeHtml(art.name || '')}</span>
         </a>
       `).join(', ');
@@ -27675,9 +27871,15 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       const likesCount = itemData.likesCount || pl.likesCount;
       subtitle = likesCount ? `${Number(likesCount).toLocaleString('ru-RU')} лайков` : '';
       coverUri = pl.cover?.uri || '';
-      const uuid = pl.playlistUuid || pl.uuid || pl.kind;
-      url = pl.uid ? `/users/${pl.uid}/playlists/${pl.kind}` : `/playlists/${uuid}`;
-      itemId = uuid;
+      const uuid = pl.playlistUuid || pl.uuid;
+      if (uuid) {
+        url = `/playlists?playlistUuid=${uuid}`;
+      } else if (pl.uid && pl.kind) {
+        url = `/users/playlists?userId=${pl.uid}&kind=${pl.kind}`;
+      } else {
+        url = '/playlists';
+      }
+      itemId = uuid || pl.kind || '';
       hasTrailer = Boolean(itemData.trailer?.available || pl.trailer?.available);
       onPlay = async () => {
         if (typeof playPlaylistTrackContext === 'function') {
@@ -27690,7 +27892,7 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       const artists = itemData.artists || alb.artists || [];
       subtitle = artists.map(a => a.name).filter(Boolean).join(', ');
       coverUri = alb.cover?.uri || '';
-      url = `/album/${alb.id}`;
+      url = `/album?albumId=${alb.id}`;
       itemId = alb.id;
       hasTrailer = Boolean(itemData.trailer?.available || alb.trailer?.available);
       onPlay = async () => {
@@ -27703,7 +27905,7 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
       title = art.name || '';
       subtitle = 'Исполнитель';
       coverUri = art.cover?.uri || '';
-      url = `/artist/${art.id}`;
+      url = `/artist?artistId=${art.id}`;
       itemId = art.id;
       isRound = true;
       hasTrailer = Boolean(itemData.trailer?.available || art.trailer?.available);
@@ -28876,16 +29078,25 @@ function renderEditorialCompilationSection(feedContainer, config, sectionData) {
 
 // --- Component: page/index.js ---
 function handleInitialConnection() {
+  if (typeof window === 'undefined' || window.location.protocol.startsWith('chrome-error')) return;
+
+  const safeGet = (key, fallback = null) => {
+    try { return localStorage.getItem(key) ?? fallback; } catch (_) { return fallback; }
+  };
+  const safeSet = (key, val) => {
+    try { localStorage.setItem(key, val); } catch (_) {}
+  };
+
   const url = new URL(window.location.href);
   const syncCode = url.searchParams.get('sync_code');
-  const storedRoomId = localStorage.getItem('currentRoomId');
-  const storedServerUrl = localStorage.getItem('serverUrl') || 'http://localhost:3000';
+  const storedRoomId = safeGet('currentRoomId');
+  const storedServerUrl = safeGet('serverUrl', 'http://localhost:3000');
 
   // Применяем сохраненную тему оформления
-  const activeTheme = localStorage.getItem('ymActiveTheme') || 'default';
+  const activeTheme = safeGet('ymActiveTheme', 'default');
   let customColors = null;
   try {
-    const storedColors = localStorage.getItem('ymCustomThemeColors');
+    const storedColors = safeGet('ymCustomThemeColors');
     if (storedColors) customColors = JSON.parse(storedColors);
   } catch (e) {
     console.error("[SYNC] Ошибка чтения кастомной темы:", e);
@@ -28896,8 +29107,8 @@ function handleInitialConnection() {
   const onJoinHandler = (data) => {
     const { room, server } = data;
     console.log(`[SYNC] Получена внешняя команда на вход в комнату: комната=${room}, сервер=${server}`);
-    localStorage.setItem('currentRoomId', room);
-    localStorage.setItem('serverUrl', server);
+    safeSet('currentRoomId', room);
+    safeSet('serverUrl', server);
     currentRoom = room;
     connectToServer(server);
     updatePopoverUI(room, currentStatus);
@@ -28919,7 +29130,7 @@ function handleInitialConnection() {
     currentRoom = syncCode;
 
     // Сохраняем в localStorage и подключаемся
-    localStorage.setItem('currentRoomId', syncCode);
+    safeSet('currentRoomId', syncCode);
     connectToServer(storedServerUrl);
 
     // Очищаем URL от параметра sync_code

@@ -936,9 +936,9 @@
           }
           showMenuToast('Не рекомендовать этот трек');
         } else if (action === 'album') {
-          if (albumId) spaNavigate(`/album/${albumId}`);
+          if (albumId) spaNavigate(`/album?albumId=${albumId}`);
         } else if (action === 'artist') {
-          if (firstArtist.id) spaNavigate(`/artist/${firstArtist.id}`);
+          if (firstArtist.id) spaNavigate(`/artist?artistId=${firstArtist.id}`);
         } else if (action === 'info') {
           if (typeof openTrackInfo === 'function') {
             openTrackInfo(trackId, albumId);

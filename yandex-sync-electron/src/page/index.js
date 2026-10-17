@@ -1,14 +1,23 @@
 function handleInitialConnection() {
+  if (typeof window === 'undefined' || window.location.protocol.startsWith('chrome-error')) return;
+
+  const safeGet = (key, fallback = null) => {
+    try { return localStorage.getItem(key) ?? fallback; } catch (_) { return fallback; }
+  };
+  const safeSet = (key, val) => {
+    try { localStorage.setItem(key, val); } catch (_) {}
+  };
+
   const url = new URL(window.location.href);
   const syncCode = url.searchParams.get('sync_code');
-  const storedRoomId = localStorage.getItem('currentRoomId');
-  const storedServerUrl = localStorage.getItem('serverUrl') || 'http://localhost:3000';
+  const storedRoomId = safeGet('currentRoomId');
+  const storedServerUrl = safeGet('serverUrl', 'http://localhost:3000');
 
   // Применяем сохраненную тему оформления
-  const activeTheme = localStorage.getItem('ymActiveTheme') || 'default';
+  const activeTheme = safeGet('ymActiveTheme', 'default');
   let customColors = null;
   try {
-    const storedColors = localStorage.getItem('ymCustomThemeColors');
+    const storedColors = safeGet('ymCustomThemeColors');
     if (storedColors) customColors = JSON.parse(storedColors);
   } catch (e) {
     console.error("[SYNC] Ошибка чтения кастомной темы:", e);
@@ -19,8 +28,8 @@ function handleInitialConnection() {
   const onJoinHandler = (data) => {
     const { room, server } = data;
     console.log(`[SYNC] Получена внешняя команда на вход в комнату: комната=${room}, сервер=${server}`);
-    localStorage.setItem('currentRoomId', room);
-    localStorage.setItem('serverUrl', server);
+    safeSet('currentRoomId', room);
+    safeSet('serverUrl', server);
     currentRoom = room;
     connectToServer(server);
     updatePopoverUI(room, currentStatus);
@@ -42,7 +51,7 @@ function handleInitialConnection() {
     currentRoom = syncCode;
 
     // Сохраняем в localStorage и подключаемся
-    localStorage.setItem('currentRoomId', syncCode);
+    safeSet('currentRoomId', syncCode);
     connectToServer(storedServerUrl);
 
     // Очищаем URL от параметра sync_code

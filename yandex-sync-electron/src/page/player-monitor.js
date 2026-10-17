@@ -94,8 +94,9 @@ function getSonataCore() {
 function getActivePlayer() {
   const core = getSonataCore();
   const activePlaybackWrapper = core?.playbackController?.activePlayback;
+  if (!activePlaybackWrapper) return null;
   // Если activePlayback - это обертка observable (свойство value), берем значение из нее
-  return activePlaybackWrapper.value || null;
+  return activePlaybackWrapper?.value || activePlaybackWrapper || null;
 }
 
 window.getSonataCore = getSonataCore;
