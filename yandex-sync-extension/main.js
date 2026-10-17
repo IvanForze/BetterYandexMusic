@@ -12981,7 +12981,7 @@ let searchQuery = "";
 
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        togglePopover(btn);
+        toggleVibePopover(btn);
       });
     }
 
@@ -12998,16 +12998,16 @@ let searchQuery = "";
   }
 
   // 6. Popover Management
-  function togglePopover(anchorBtn) {
+  function toggleVibePopover(anchorBtn) {
     if (isPopoverOpen) {
-      closePopover();
+      closeVibePopover();
     } else {
-      openPopover(anchorBtn);
+      openVibePopover(anchorBtn);
     }
   }
 
-  function openPopover(anchorBtn) {
-    closePopover();
+  function openVibePopover(anchorBtn) {
+    closeVibePopover();
     isPopoverOpen = true;
 
     const popover = document.createElement('div');
@@ -13035,7 +13035,7 @@ let searchQuery = "";
 
     document.body.appendChild(popover);
 
-    positionPopover(popover, anchorBtn);
+    positionVibePopover(popover, anchorBtn);
 
     const listContainer = popover.querySelector('#ym-vibe-popover-list');
     renderPopoverItems(listContainer);
@@ -13063,16 +13063,16 @@ let searchQuery = "";
 
     const closeBtn = popover.querySelector('.ym-vibe-popover-close-btn');
     if (closeBtn) {
-      closeBtn.addEventListener('click', closePopover);
+      closeBtn.addEventListener('click', closeVibePopover);
     }
 
     setTimeout(() => {
-      document.addEventListener('click', onDocClickClose);
-      document.addEventListener('keydown', onEscClose);
+      document.addEventListener('click', onVibeDocClickClose);
+      document.addEventListener('keydown', onVibeEscClose);
     }, 10);
   }
 
-  function positionPopover(popover, anchorBtn) {
+  function positionVibePopover(popover, anchorBtn) {
     if (!popover || !anchorBtn) return;
     const rect = anchorBtn.getBoundingClientRect();
     const popoverWidth = 380;
@@ -13158,28 +13158,28 @@ let searchQuery = "";
     });
   }
 
-  function closePopover() {
+  function closeVibePopover() {
     isPopoverOpen = false;
     const popover = document.getElementById('ym-vibe-popover');
     if (popover) {
       popover.classList.add('closing');
       setTimeout(() => popover.remove(), 160);
     }
-    document.removeEventListener('click', onDocClickClose);
-    document.removeEventListener('keydown', onEscClose);
+    document.removeEventListener('click', onVibeDocClickClose);
+    document.removeEventListener('keydown', onVibeEscClose);
   }
 
-  function onDocClickClose(e) {
+  function onVibeDocClickClose(e) {
     const popover = document.getElementById('ym-vibe-popover');
     const btn = document.getElementById('ym-vibe-settings-btn');
     if (popover && !popover.contains(e.target) && (!btn || !btn.contains(e.target))) {
-      closePopover();
+      closeVibePopover();
     }
   }
 
-  function onEscClose(e) {
+  function onVibeEscClose(e) {
     if (e.key === 'Escape') {
-      closePopover();
+      closeVibePopover();
     }
   }
 

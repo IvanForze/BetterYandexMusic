@@ -4359,12 +4359,35 @@ function syncButtonCollapsedState(btnId) {
 }
 
 // --- Component: shared/sync-popover.js ---
+function safeGetItem(key, fallback = null) {
+  try {
+    return localStorage.getItem(key) ?? fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function safeSetItem(key, val) {
+  try {
+    localStorage.setItem(key, val);
+  } catch (_) {}
+}
+
+function safeRemoveItem(key) {
+  try {
+    localStorage.removeItem(key);
+  } catch (_) {}
+}
+
 function injectSyncButton() {
   const container = document.querySelector('ol[class*="NavbarDesktop_navigationGroup"]');
   if (!container) return;
   const existingBtn = document.getElementById('ym-sync-button');
   if (existingBtn) {
     if (container.contains(existingBtn)) {
+      if (!document.getElementById('ym-sync-popover')) {
+        injectPopover();
+      }
       return; // Уже добавлена в нужный контейнер
     } else {
       existingBtn.remove(); // Удаляем устаревшую кнопку
@@ -4382,7 +4405,7 @@ function injectSyncButton() {
           <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
         </svg>
-        <span class="ym-sync-status-indicator ${currentStatus}"></span>
+        <span class="ym-sync-status-indicator ${typeof currentStatus !== 'undefined' ? currentStatus : 'disconnected'}"></span>
       </div>
       <div class="nxMXCBiVfgH4oxds3f2y">
         <span title="Синхронизация" class="_MWOVuZRvUQdXKTMcOPx LezmJlldtbHWqU7l1950 oyQL2RSmoNbNQf3Vc6YI tk7ahHRDYXJMMB879KUA _3_Mxw7Si7j2g4kWjlpR" style="-webkit-line-clamp: 1;">Синхронизация</span>
@@ -4393,7 +4416,7 @@ function injectSyncButton() {
   btn.addEventListener('click', e => {
     e.stopPropagation();
     e.preventDefault();
-    togglePopover();
+    toggleSyncPopover();
   });
   injectPopover();
 
@@ -4403,7 +4426,7 @@ function injectSyncButton() {
     scrollableSidebar.addEventListener('scroll', () => {
       const popover = document.getElementById('ym-sync-popover');
       if (popover && popover.classList.contains('show')) {
-        positionPopover();
+        positionSyncPopover();
       }
     });
 
@@ -4484,8 +4507,8 @@ function injectPopover() {
   setupPopoverListeners();
 
   // Синхронизация при первом создании
-  const storedRoomId = localStorage.getItem('currentRoomId');
-  const storedServerUrl = localStorage.getItem('serverUrl') || 'http://localhost:3000';
+  const storedRoomId = safeGetItem('currentRoomId');
+  const storedServerUrl = safeGetItem('serverUrl', 'http://localhost:3000');
   const serverInput = document.getElementById('ym-serverUrl');
   const roomInput = document.getElementById('ym-roomId');
   if (serverInput) {
@@ -4494,7 +4517,7 @@ function injectPopover() {
   if (roomInput) {
     roomInput.value = storedRoomId || '';
   }
-  updatePopoverUI(storedRoomId, currentStatus);
+  updatePopoverUI(storedRoomId, typeof currentStatus !== 'undefined' ? currentStatus : 'disconnected');
 }
 
 function setupPopoverListeners() {
@@ -4576,8 +4599,8 @@ function setupPopoverListeners() {
       currentRoom = roomId;
 
       // Сохраняем в localStorage и запускаем соединение
-      localStorage.setItem('currentRoomId', roomId);
-      localStorage.setItem('serverUrl', serverUrl);
+      safeSetItem('currentRoomId', roomId);
+      safeSetItem('serverUrl', serverUrl);
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.set({ currentRoomId: roomId, serverUrl: serverUrl });
       }
@@ -4589,7 +4612,7 @@ function setupPopoverListeners() {
   }
   if (disconnectBtn) {
     disconnectBtn.addEventListener('click', () => {
-      localStorage.removeItem('currentRoomId');
+      safeRemoveItem('currentRoomId');
       if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
         chrome.storage.local.remove(['currentRoomId']);
       }
@@ -4608,11 +4631,11 @@ function setupPopoverListeners() {
   }
   const discordToggle = document.getElementById('ym-discord-rpc-toggle');
   if (discordToggle) {
-    const browserRpcEnabled = localStorage.getItem('ymDiscordRpcEnabled') !== 'false';
+    const browserRpcEnabled = safeGetItem('ymDiscordRpcEnabled') !== 'false';
     discordToggle.checked = browserRpcEnabled;
     discordToggle.addEventListener('change', e => {
       const enabled = e.target.checked;
-      localStorage.setItem('ymDiscordRpcEnabled', enabled ? 'true' : 'false');
+      safeSetItem('ymDiscordRpcEnabled', enabled ? 'true' : 'false');
       if (window.__ymSyncBridge && typeof window.__ymSyncBridge.sendSettings === 'function') {
         window.__ymSyncBridge.sendSettings({
           enabled: enabled
@@ -4627,17 +4650,32 @@ function setupPopoverListeners() {
   }
 }
 
-function togglePopover() {
-  const popover = document.getElementById('ym-sync-popover');
+function toggleSyncPopover() {
+  let popover = document.getElementById('ym-sync-popover');
+  if (!popover) {
+    injectPopover();
+    popover = document.getElementById('ym-sync-popover');
+  }
   if (!popover) return;
   const isShowing = popover.classList.contains('show');
   if (isShowing) {
     popover.classList.remove('show');
   } else {
+    // Скрываем другие открытые меню
     const themePopover = document.getElementById('ym-theme-popover');
     if (themePopover) themePopover.classList.remove('show');
-    const storedRoomId = localStorage.getItem('currentRoomId');
-    const storedServerUrl = localStorage.getItem('serverUrl') || 'http://localhost:3000';
+    const sleepTimerPopover = document.getElementById('ym-sleep-timer-popover');
+    if (sleepTimerPopover) {
+      sleepTimerPopover.classList.remove('show');
+      sleepTimerPopover.style.display = 'none';
+    }
+    const lyricsPopover = document.getElementById('ym-lyrics-popover');
+    if (lyricsPopover) lyricsPopover.classList.remove('show');
+    const vibePopover = document.getElementById('ym-vibe-popover');
+    if (vibePopover) vibePopover.remove();
+
+    const storedRoomId = safeGetItem('currentRoomId');
+    const storedServerUrl = safeGetItem('serverUrl', 'http://localhost:3000');
     const serverInput = document.getElementById('ym-serverUrl');
     const roomInput = document.getElementById('ym-roomId');
     if (serverInput && !serverInput.disabled) {
@@ -4646,18 +4684,22 @@ function togglePopover() {
     if (roomInput && !roomInput.disabled) {
       roomInput.value = storedRoomId || '';
     }
-    positionPopover();
+    positionSyncPopover();
     popover.classList.add('show');
   }
 }
 
-function positionPopover() {
+function togglePopover() {
+  toggleSyncPopover();
+}
+
+function positionSyncPopover() {
   const btn = document.getElementById('ym-sync-button');
   const popover = document.getElementById('ym-sync-popover');
   if (!btn || !popover) return;
   const rect = btn.getBoundingClientRect();
-  const popoverWidth = popover.offsetWidth || 280;
-  const popoverHeight = popover.offsetHeight || 190;
+  const popoverWidth = popover.offsetWidth || 290;
+  const popoverHeight = popover.offsetHeight || 280;
   let left = rect.right + 12;
   let top = rect.top + rect.height / 2 - popoverHeight / 2;
   if (top < 10) top = 10;
@@ -4669,6 +4711,10 @@ function positionPopover() {
   }
   popover.style.left = `${left}px`;
   popover.style.top = `${top}px`;
+}
+
+function positionPopover() {
+  positionSyncPopover();
 }
 
 // Дополнительные функции для тем оформления
@@ -4685,7 +4731,7 @@ function updatePopoverUI(roomId, status) {
   const serverInput = document.getElementById('ym-serverUrl');
   const roomInput = document.getElementById('ym-roomId');
   if (indicator) {
-    indicator.className = 'ym-sync-status-indicator ' + status;
+    indicator.className = 'ym-sync-status-indicator ' + (status || 'disconnected');
   }
   if (status === 'connected') {
     if (connectBtn) connectBtn.style.display = 'none';
@@ -4717,11 +4763,9 @@ function updatePopoverUI(roomId, status) {
     if (roomInput) roomInput.disabled = false;
   }
   if (popover.classList.contains('show')) {
-    setTimeout(positionPopover, 0);
+    setTimeout(positionSyncPopover, 0);
   }
 }
-
-// Закрытие при клике вовне
 
 // Закрытие при клике вовне
 document.addEventListener('click', e => {
@@ -4749,12 +4793,10 @@ document.addEventListener('click', e => {
 });
 
 // Корректировка позиции при ресайзе
-
-// Корректировка позиции при ресайзе
 window.addEventListener('resize', () => {
   const syncPopover = document.getElementById('ym-sync-popover');
   if (syncPopover && syncPopover.classList.contains('show')) {
-    positionPopover();
+    positionSyncPopover();
   }
   const themePopover = document.getElementById('ym-theme-popover');
   if (themePopover && themePopover.classList.contains('show')) {
@@ -4765,6 +4807,16 @@ window.addEventListener('resize', () => {
     positionLyricsPopover();
   }
 });
+
+if (typeof window !== 'undefined') {
+  window.toggleSyncPopover = toggleSyncPopover;
+  window.togglePopover = toggleSyncPopover;
+  window.positionSyncPopover = positionSyncPopover;
+  window.positionPopover = positionSyncPopover;
+  window.injectSyncButton = injectSyncButton;
+  window.injectPopover = injectPopover;
+  window.updatePopoverUI = updatePopoverUI;
+}
 
 // Функции для текста песен (LRCLIB)
 
