@@ -174,6 +174,7 @@ function checkAndInjectSettings() {
           <select id="ym-vibe-design-mode" class="ym-select">
             <option value="default" ${vibeDesignMode === 'default' ? 'selected' : ''}>По умолчанию (с колесом волны)</option>
             <option value="no_wheel" ${vibeDesignMode === 'no_wheel' ? 'selected' : ''}>Без карусели (компактный вид)</option>
+            <option value="vibe_with_landing" ${vibeDesignMode === 'vibe_with_landing' ? 'selected' : ''}>Моя волна с лентой рекомендаций</option>
             <option value="classic" ${vibeDesignMode === 'classic' ? 'selected' : ''}>Старый дизайн (в разработке)</option>
           </select>
         </div>
@@ -660,8 +661,17 @@ function checkAndInjectSettings() {
       localStorage.setItem('ymVibeDesignMode', mode);
       if (mode === 'no_wheel') {
         document.body.classList.add('ym-vibe-no-wheel');
+        document.documentElement.classList.add('ym-vibe-no-wheel');
       } else {
         document.body.classList.remove('ym-vibe-no-wheel');
+        document.documentElement.classList.remove('ym-vibe-no-wheel');
+      }
+      if (mode === 'vibe_with_landing') {
+        document.body.classList.add('ym-vibe-with-landing');
+        document.documentElement.classList.add('ym-vibe-with-landing');
+      } else {
+        document.body.classList.remove('ym-vibe-with-landing');
+        document.documentElement.classList.remove('ym-vibe-with-landing');
       }
       window.dispatchEvent(new CustomEvent('ym-vibe-mode-changed', { detail: { mode } }));
     });

@@ -13,7 +13,13 @@ class WrappedDB {
 
   init() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      let request;
+      try {
+        request = indexedDB.open(DB_NAME, DB_VERSION);
+      } catch (err) {
+        console.warn('WrappedDB Storage access restricted:', err);
+        return resolve();
+      }
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;

@@ -1,0 +1,2451 @@
+// =========================================================================
+// BetterYandexMusic: Vibe Services (Playback, Sonata, Pins, Trailer & Likes)
+// =========================================================================
+
+  // 4. Activate / Play a Vibe Item safely via Swiper navigation and fresh active slide
+  function activateVibeItem(item) {
+    if (!item) return;
+    closePopover();
+
+    const swiper = getSwiperInstance();
+    if (swiper && typeof swiper.slideToLoop === 'function') {
+      try {
+        swiper.slideToLoop(item.index, 0);
+        if (typeof swiper.update === 'function') swiper.update();
+      } catch (e) { }
+    }
+
+    // Wait a frame for Swiper to mount the active slide in the DOM
+    setTimeout(() => {
+      let targetSlide = null;
+
+      // 1. Try finding slide matching the exact swiper index
+      const matchingSlides = document.querySelectorAll(
+        `[class*="WheelDesktop_slide"][data-swiper-slide-index="${item.index}"]`
+      );
+      if (matchingSlides.length > 0) {
+        targetSlide = matchingSlides[0];
+      }
+
+      // 2. If not found by index, check active slide
+      if (!targetSlide) {
+        targetSlide = document.querySelector('.swiper-slide-active, [class*="WheelDesktop_activeSlide"]');
+      }
+
+      // 3. If still not found, search all slides by name
+      if (!targetSlide) {
+        const allSlides = document.querySelectorAll('[class*="WheelDesktop_slide"]');
+        for (const slide of allSlides) {
+          const titleEl = slide.querySelector('[class*="WheelItem_title"]');
+          if (titleEl && titleEl.textContent.trim().toLowerCase() === item.name.toLowerCase()) {
+            targetSlide = slide;
+            break;
+          }
+        }
+      }
+
+      if (targetSlide) {
+        let triggered = false;
+
+        // Try React props onClick first
+        for (const key in targetSlide) {
+          if (key.startsWith('__reactProps$')) {
+            const props = targetSlide[key];
+            if (props && typeof props.onClick === 'function') {
+              try {
+                props.onClick({ stopPropagation: () => { }, preventDefault: () => { }, target: targetSlide });
+                triggered = true;
+              } catch (e) { }
+            }
+          }
+        }
+
+        // Trigger DOM click on the button or slide
+        if (!triggered) {
+          const playBtn = targetSlide.querySelector(
+            'button[aria-label*="Воспроизведение"], [class*="PlayButtonWithCover_playButton"], button'
+          );
+          const clickable = playBtn || targetSlide.querySelector('[role="button"]') || targetSlide;
+          if (clickable) {
+            try {
+              clickable.click();
+            } catch (e) {
+              clickable.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+            }
+          }
+        }
+      } else {
+        // Fallback: search wheel React Fiber for select handlers
+        triggerWheelFiberSelect(item);
+      }
+    }, 45);
+  }
+
+  function triggerWheelFiberSelect(item) {
+    const wheelRoot = document.querySelector('[class*="WheelDesktop_root"], [class*="VibePage_wheel"]');
+    if (!wheelRoot) return;
+
+    for (const key in wheelRoot) {
+      if (key.startsWith('__reactFiber$')) {
+        let fiber = wheelRoot[key];
+        let depth = 0;
+        while (fiber && depth < 30) {
+          const props = fiber.memoizedProps;
+          if (props) {
+            if (typeof props.onSelect === 'function') {
+              try { props.onSelect(item); return; } catch (e) { }
+            }
+            if (typeof props.onItemClick === 'function') {
+              try { props.onItemClick(item); return; } catch (e) { }
+            }
+            if (typeof props.playWave === 'function') {
+              try { props.playWave(item); return; } catch (e) { }
+            }
+            if (props.wheelStore && typeof props.wheelStore.selectItem === 'function') {
+              try { props.wheelStore.selectItem(item); return; } catch (e) { }
+            }
+          }
+          fiber = fiber.return;
+          depth++;
+        }
+      }
+    }
+  }
+
+
+  function findSonataCoreFallback() {
+    if (typeof window !== 'undefined') {
+      if (typeof window.getSonataCore === 'function') {
+        const c = window.getSonataCore();
+        if (c) return c;
+      }
+      try {
+        const rootEl = document.querySelector('#root') || document.querySelector('#__next') || document.body;
+        if (rootEl) {
+          const fiberKey = Object.keys(rootEl).find(k => k.startsWith('__reactContainer$') || k.startsWith('__reactFiber$'));
+          if (fiberKey && rootEl[fiberKey]) {
+            let node = rootEl[fiberKey];
+            if (node.current) node = node.current;
+            const queue = [node];
+            while (queue.length > 0) {
+              const cur = queue.shift();
+              if (!cur) continue;
+              const val = cur.memoizedProps?.value;
+              if (val && typeof val === 'object' && val.playbackController) return val;
+              if (cur.child) {
+                let child = cur.child;
+                while (child) {
+                  queue.push(child);
+                  child = child.sibling;
+                }
+              }
+            }
+          }
+        }
+      } catch (e) { }
+    }
+    return null;
+  }
+
+  function getSafeActivePlayer() {
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    if (core?.playbackController) {
+      if (typeof core.playbackController.getPlayback === 'function') {
+        try {
+          const mainPlayer = core.playbackController.getPlayback('MAIN') || core.playbackController.getPlayback();
+          if (mainPlayer && typeof mainPlayer.playContext === 'function') return mainPlayer;
+        } catch (_) {}
+      }
+      const val = core.playbackController.activePlayback?.value;
+      if (val && typeof val.playContext === 'function') return val;
+    }
+    if (typeof window !== 'undefined' && typeof window.getActivePlayer === 'function') {
+      try {
+        const p = window.getActivePlayer();
+        if (p && typeof p.playContext === 'function') return p;
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  async function safePlaySonataContext(core, player, ctx, playOptions = { loadContextMeta: true }) {
+    if (!player || !ctx) return false;
+    const pc = core?.playbackController;
+
+    const doPlay = async () => {
+      if (pc) {
+        if (typeof pc.beforePlayHandler === 'function') {
+          try { pc.beforePlayHandler(player); } catch (_) {}
+        }
+        if (pc.activePlayback) {
+          try { pc.activePlayback.value = player; } catch (_) {}
+        }
+      }
+
+      await player.playContext({ context: ctx, ...playOptions });
+
+      try {
+        if (!isPlayerPlaying(player)) {
+          if (typeof player.play === 'function') await player.play();
+          else if (typeof player.resume === 'function') await player.resume();
+        }
+      } catch (_) {}
+
+      if (pc && typeof pc.afterPlayHandler === 'function') {
+        try { pc.afterPlayHandler(player); } catch (_) {}
+      }
+      return true;
+    };
+
+    if (pc && typeof pc.callIfUnblocked === 'function') {
+      try {
+        return await pc.callIfUnblocked(doPlay);
+      } catch (e) {
+        console.warn('[BYM] pc.callIfUnblocked warning, falling back to direct play:', e);
+        return await doPlay();
+      }
+    }
+
+    return await doPlay();
+  }
+
+  function isPlayerPlaying(player) {
+    if (!player) {
+      player = getSafeActivePlayer();
+    }
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    const targetPlayer = player || activePlayback;
+
+    // 1. Проверяем playerState.status (основной реактивный MobX статус в Sonata: 'playing' | 'paused' | 'idle')
+    const pStatus = targetPlayer?.playbackState?.playerState?.status?.value ||
+                    targetPlayer?.playbackState?.playerState?.status ||
+                    activePlayback?.playbackState?.playerState?.status?.value ||
+                    activePlayback?.playbackState?.playerState?.status ||
+                    targetPlayer?.playbackState?.status?.value ||
+                    targetPlayer?.playbackState?.status;
+    if (pStatus === 'playing') return true;
+    if (pStatus === 'paused' || pStatus === 'idle' || pStatus === 'stopped') return false;
+
+    // 2. Проверяем playerState.isPause (если присутствует)
+    if (targetPlayer?.playbackState?.playerState) {
+      const isPauseVal = targetPlayer.playbackState.playerState.isPause?.value ??
+                         targetPlayer.playbackState.playerState.isPause;
+      if (typeof isPauseVal === 'boolean') {
+        if (!isPauseVal) return true;
+        if (isPauseVal) return false;
+      }
+    }
+
+    if (activePlayback?.playbackState?.playerState && activePlayback !== targetPlayer) {
+      const isPauseVal = activePlayback.playbackState.playerState.isPause?.value ??
+                         activePlayback.playbackState.playerState.isPause;
+      if (typeof isPauseVal === 'boolean') {
+        if (!isPauseVal) return true;
+        if (isPauseVal) return false;
+      }
+    }
+
+    // 3. Проверяем activePlayback.status
+    if (activePlayback) {
+      if (activePlayback.status === 'playing') return true;
+      if (activePlayback.status === 'paused' || activePlayback.status === 'idle') return false;
+    }
+
+    if (targetPlayer) {
+      if (typeof targetPlayer.isPlaying === 'function') {
+        try { if (targetPlayer.isPlaying()) return true; } catch (_) {}
+      }
+      if (targetPlayer.isPlaying === true) return true;
+    }
+
+    // 4. Проверяем MobX-модель rootModel.player
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym?.rootModel;
+    if (root?.player) {
+      const rpStatus = root.player.state?.status?.value ||
+                       root.player.state?.status ||
+                       root.player.status?.value ||
+                       root.player.status;
+      if (rpStatus === 'playing') return true;
+      if (root.player.isPlaying === true) return true;
+    }
+
+    return false;
+  }
+
+  function isAlbumCurrentlyPlaying(albumId) {
+    if (!albumId) return { isMatch: false, isPlaying: false };
+    const targetIdStr = String(albumId).trim();
+    const player = getSafeActivePlayer();
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+
+    // Если сейчас открыт/играет ТРЕЙЛЕР, обычный альбом не считается играющим
+    const svc = typeof getTrailerService === 'function' ? getTrailerService() : null;
+    if (svc && svc.modal?.isOpened) {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    const currentEntity = player?.queueController?.queue?.state?.currentEntity?.value ||
+                          core?.playbackController?.getPlayback?.()?.queueController?.queue?.state?.currentEntity?.value;
+    const ctx = currentEntity?.context ||
+                player?.contextController?.currentContext ||
+                core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    let isMatch = false;
+
+    // 1. Проверяем activePlayback в Sonata Core ({ type: "album", id: "...", status: "playing" })
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type || activePlayback.data?.type;
+      const apId = String(activePlayback.id || activePlayback.albumId || activePlayback.meta?.id || '');
+      if ((apType === 'album' || !apType) && (apId === targetIdStr || apId.endsWith(`:${targetIdStr}`))) {
+        isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст плеера / очереди
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxId = String(ctx?.id || ctx?.data?.id || ctxData?.id || '');
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+
+      if (ctxType === 'album' || ctxId.startsWith('album:')) {
+        if (ctxMetaId === targetIdStr || ctxId === targetIdStr || ctxId === `album:${targetIdStr}`) {
+          isMatch = true;
+        }
+      } else if (ctxMetaId === targetIdStr) {
+        isMatch = true;
+      }
+    }
+
+    // 3. Проверяем текущий играющий трек и его альбомы
+    if (!isMatch) {
+      const entity = currentEntity?.entity;
+      const entityData = entity?.data || entity?.entityData;
+      const track = entityData ||
+                    player?.playbackState?.playerState?.track?.value ||
+                    player?.playbackState?.playerState?.track ||
+                    core?.playbackController?.getPlayback?.()?.playbackState?.playerState?.track?.value ||
+                    activePlayback?.track;
+
+      if (track) {
+        const albums = track.albums || track.meta?.albums;
+        const albumId = track.albumId || track.meta?.albumId || track.album?.id;
+
+        if (albums && Array.isArray(albums)) {
+          if (albums.some(a => String(a.id || a) === targetIdStr)) {
+            isMatch = true;
+          }
+        } else if (albumId && String(albumId) === targetIdStr) {
+          isMatch = true;
+        } else if (track.album && String(track.album.id || track.album) === targetIdStr) {
+          isMatch = true;
+        }
+      }
+    }
+
+    const playing = isPlayerPlaying(player);
+    return {
+      isMatch,
+      isPlaying: isMatch && playing
+    };
+  }
+
+  function isAlbumTrailerCurrentlyPlaying(albumId) {
+    if (!albumId) return false;
+    const svc = getTrailerService();
+    const targetKey = typeof albumId === 'object'
+      ? (albumId.uid && albumId.kind ? `${albumId.uid}:${albumId.kind}` : String(albumId.id || albumId.uuid || albumId.kind || ''))
+      : String(albumId);
+
+    // 1. Проверяем нативное состояние trailerService (открытая шторка)
+    if (svc && svc.modal?.isOpened) {
+      const activeId = String(svc.id || '');
+      if (activeId && (activeId === targetKey || activeId === String(albumId.id || albumId.uuid || ''))) {
+        return true;
+      }
+      if (typeof albumId === 'object' && albumId.uid && albumId.kind && activeId === `${albumId.uid}:${albumId.kind}`) {
+        return true;
+      }
+    }
+
+    // 2. Проверяем Sonata Core контекст
+    const player = getSafeActivePlayer();
+    if (!player) return false;
+    const ctx = player.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    const isTrailer = ctxData?.trailer === true || player.id === 'TRAILER';
+    if (!isTrailer || !isPlayerPlaying(player)) return false;
+
+    const targetIdStr = typeof albumId === 'object' ? String(albumId.id || albumId.uuid || albumId.kind || '') : String(albumId);
+    const metaId = String(ctxData?.meta?.id || ctx?.meta?.id || ctxData?.meta?.uuid || ctx?.meta?.uuid || '');
+    if (metaId && (metaId === targetIdStr || metaId === targetKey)) return true;
+
+    if (typeof albumId === 'object' && albumId.uid && albumId.kind) {
+      const metaUid = String(ctxData?.meta?.uid || ctx?.meta?.uid || '');
+      const metaKind = String(ctxData?.meta?.kind || ctx?.meta?.kind || '');
+      if (metaUid === String(albumId.uid) && metaKind === String(albumId.kind)) return true;
+    }
+    return false;
+  }
+
+  function getCurrentlyPlayingTrackId(player) {
+    if (!player) player = getSafeActivePlayer();
+    if (!player) return null;
+
+    // 1. Из playerState.track
+    const psTrack = player.playbackState?.playerState?.track?.value || player.playbackState?.playerState?.track;
+    if (psTrack?.id || psTrack?.realId) {
+      return String(psTrack.id || psTrack.realId);
+    }
+
+    // 2. Из queueController.queue.state.currentEntity
+    const currentEntity = player.queueController?.queue?.state?.currentEntity?.value ||
+                          player.queueController?.queue?.state?.currentEntity;
+    const entityData = currentEntity?.entity?.data;
+    const qId = entityData?.id || entityData?.realId || entityData?.meta?.id || entityData?.meta?.realId;
+    if (qId) return String(qId);
+
+    // 3. Из currentEntity.entity.id
+    if (currentEntity?.entity?.id) return String(currentEntity.entity.id);
+
+    // 4. Из contextController
+    const ctxTrackId = player.contextController?.currentContext?.queueParams?.entityId ||
+                       player.contextController?.currentContext?.queueParams?.trackId;
+    if (ctxTrackId) return String(ctxTrackId);
+
+    return null;
+  }
+
+  function isTrackCurrentlyPlaying(trackId) {
+    if (!trackId) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const currentTrackId = getCurrentlyPlayingTrackId(player);
+    const isMatch = Boolean(currentTrackId && String(currentTrackId) === String(trackId));
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isStationCurrentlyPlaying(item) {
+    if (!item) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    if (!player) return { isMatch: false, isPlaying: false };
+
+    const ctx = player.contextController?.currentContext;
+    if (!ctx) return { isMatch: false, isPlaying: false };
+
+    const ctxType = ctx?.type || ctx?.data?.type;
+    const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || '');
+    const ctxSeeds = (ctx?.meta?.seeds || ctx?.data?.seeds || []).map(String);
+
+    const targetStationId = item.stationId ? String(item.stationId) : '';
+    const itemSeeds = Array.isArray(item.seeds) ? item.seeds.map(String) : [];
+
+    let isMatch = false;
+    if (targetStationId && (ctxMetaId === targetStationId || ctxSeeds.includes(targetStationId))) {
+      isMatch = true;
+    } else if (itemSeeds.length > 0 && ctxSeeds.length > 0) {
+      if (itemSeeds.some(s => ctxSeeds.includes(s))) {
+        isMatch = true;
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isPlaylistCurrentlyPlaying(playlistId, playlistObj) {
+    if (!playlistId && !playlistObj) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+
+    const currentEntity = player?.queueController?.queue?.state?.currentEntity?.value ||
+                          core?.playbackController?.getPlayback?.()?.queueController?.queue?.state?.currentEntity?.value;
+    const ctx = currentEntity?.context ||
+                player?.contextController?.currentContext ||
+                core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    const uuid = String(playlistObj?.playlistUuid || playlistObj?.uuid || playlistId || '');
+    const kind = playlistObj?.kind ? String(playlistObj.kind) : null;
+    const uid = playlistObj?.uid ? String(playlistObj.uid) : null;
+    const key = (uid && kind) ? `${uid}:${kind}` : null;
+
+    let isMatch = false;
+
+    // 1. Проверяем activePlayback в Sonata Core
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type || activePlayback.data?.type;
+      const apId = String(activePlayback.id || activePlayback.meta?.id || '');
+      if (apType === 'playlist' || !apType) {
+        if (uuid && (apId === uuid || apId.endsWith(`:${uuid}`))) isMatch = true;
+        else if (key && (apId === key || apId.endsWith(`:${kind}`))) isMatch = true;
+        else if (kind && apId.endsWith(`:${kind}`)) isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст плеера
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || ctx?.id || ctxData?.id || '');
+      const ctxUuid = String(ctx?.meta?.uuid || ctx?.meta?.playlistUuid || ctx?.data?.meta?.uuid || ctx?.data?.meta?.playlistUuid || '');
+      const ctxKind = String(ctx?.meta?.kind || ctx?.data?.meta?.kind || '');
+      const ctxUid = String(ctx?.meta?.uid || ctx?.data?.meta?.uid || '');
+
+      if (ctxType === 'playlist' || ctxMetaId.includes(':') || ctxUuid) {
+        if (uuid && (ctxMetaId === uuid || ctxUuid === uuid || ctxMetaId.endsWith(`:${uuid}`))) {
+          isMatch = true;
+        } else if (key && (ctxMetaId === key || ctxMetaId === `playlist:${key}` || ctxMetaId.endsWith(`:${key}`) || ctxMetaId.endsWith(`:${kind}`))) {
+          isMatch = true;
+        } else if (kind && (ctxKind === kind || ctxMetaId.endsWith(`:${kind}`))) {
+          if (!uid || !ctxUid || ctxUid === uid) {
+            isMatch = true;
+          }
+        }
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function isArtistCurrentlyPlaying(artistId) {
+    if (!artistId) return { isMatch: false, isPlaying: false };
+    const player = getSafeActivePlayer();
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+
+    const ctx = player?.contextController?.currentContext || core?.playbackController?.getPlayback?.()?.contextController?.currentContext;
+    const ctxData = ctx?.contextData || ctx?.data;
+    if (ctxData?.trailer === true || player?.id === 'TRAILER') {
+      return { isMatch: false, isPlaying: false };
+    }
+
+    const targetIdStr = String(artistId);
+    let isMatch = false;
+
+    // 1. Проверяем activePlayback
+    const activePlayback = core?.playbackController?.activePlayback?.value;
+    if (activePlayback) {
+      const apType = activePlayback.type;
+      const apId = String(activePlayback.id || '');
+      if (apType === 'artist' && apId === targetIdStr) {
+        isMatch = true;
+      }
+    }
+
+    // 2. Проверяем контекст
+    if (!isMatch && (ctx || ctxData)) {
+      const ctxType = ctx?.type || ctx?.data?.type || ctxData?.type;
+      const ctxMetaId = String(ctx?.meta?.id || ctx?.data?.meta?.id || ctxData?.meta?.id || '');
+
+      if (ctxType === 'artist' && ctxMetaId === targetIdStr) {
+        isMatch = true;
+      } else if (ctxType === 'vibe' && (ctxMetaId.includes(`artist:${targetIdStr}`) || ctxMetaId === targetIdStr)) {
+        isMatch = true;
+      }
+    }
+
+    return {
+      isMatch,
+      isPlaying: isMatch && isPlayerPlaying(player)
+    };
+  }
+
+  function updateLandingPlaybackIndicators() {
+    const feed = document.getElementById('ym-vibe-live-landing-feed');
+    if (!feed) return;
+
+    // 1. Карточки Новых релизов
+    const releaseButtons = feed.querySelectorAll('.ym-vibe-release-play-btn');
+    releaseButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+      }
+    });
+
+    // 2. Карточки "Свели в AI-сет"
+    const aiButtons = feed.querySelectorAll('.ym-vibe-ai-card-btn');
+    aiButtons.forEach(btn => {
+      let itemData = null;
+      try {
+        itemData = JSON.parse(btn.getAttribute('data-item') || '{}');
+      } catch (e) { }
+
+      const state = isStationCurrentlyPlaying(itemData);
+      const svgUse = btn.querySelector('.ym-vibe-ai-icon use');
+      const title = itemData?.title || '';
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', `Пауза: ${title}`);
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_xxs');
+        }
+        btn.setAttribute('aria-label', title || 'Воспроизведение');
+      }
+    });
+
+    // 3. Карточки "Больше открытий" (WAVES)
+    const waveButtons = feed.querySelectorAll('.ym-vibe-wave-btn');
+    waveButtons.forEach(btn => {
+      let itemData = null;
+      try {
+        itemData = JSON.parse(btn.getAttribute('data-item') || '{}');
+      } catch (e) { }
+
+      const state = isStationCurrentlyPlaying(itemData);
+      const svgUse = btn.querySelector('.ym-vibe-wave-icon use');
+      const title = itemData?.title || '';
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', `Пауза: ${title}`);
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_xxs');
+        }
+        btn.setAttribute('aria-label', title || 'Воспроизведение');
+      }
+    });
+
+    // 4. Карточки "В стиле" (IN_STYLE)
+    const inStylePlayButtons = feed.querySelectorAll('.ym-vibe-instyle-play-btn');
+    inStylePlayButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+      }
+    });
+
+    // 5. Карточки с трейлером ("В стиле" и "Новые релизы")
+    const trailerButtons = feed.querySelectorAll('.AlbumCard_trailerButton__typHh, .NewRelease_trailerButton__OYAW6');
+    trailerButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+      const isSmall = btn.classList.contains('AlbumCard_trailerButton__typHh');
+      const trailerIcon = isSmall ? '/icons/sprite.svg#trailer_xxs' : '/icons/sprite.svg#trailer_xs';
+      const pauseIcon = isSmall ? '/icons/sprite.svg#pause_xxs' : '/icons/sprite.svg#pause_xs';
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', pauseIcon);
+          svgUse.setAttribute('href', pauseIcon);
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', trailerIcon);
+          svgUse.setAttribute('href', trailerIcon);
+        }
+        btn.setAttribute('aria-label', 'Запустить трейлер');
+      }
+    });
+
+    // 6. Треки "Премьера"
+    const premiereTrackButtons = feed.querySelectorAll('.ym-premiere-play-btn');
+    premiereTrackButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      const state = isTrackCurrentlyPlaying(trackId);
+      const svgUse = btn.querySelector('svg use');
+      const trackEl = btn.closest('.ym-vibe-premiere-track');
+      const animEl = trackEl?.querySelector('.PlayingAnimation_root__YrWz7');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (animEl) animEl.classList.remove('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.add('HorizontalCardContainer_playing__vP91g');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (animEl) animEl.classList.add('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.remove('HorizontalCardContainer_playing__vP91g');
+      }
+    });
+
+    // 7. Карточки "Альбомы месяца" (Тренды)
+    const albumMonthPlayButtons = feed.querySelectorAll('.ym-album-month-play-btn');
+    albumMonthPlayButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const state = isAlbumCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+      const card = btn.closest('.NewRelease_root__oQ_T7, .NewReleases_item__Gv0iR, .NewReleaseCard_root__c2s6u, li');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (card) {
+          card.classList.add('is-playing');
+          card.setAttribute('data-playing', 'true');
+        }
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_m');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_m');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (card) {
+          card.classList.remove('is-playing');
+          card.removeAttribute('data-playing');
+        }
+      }
+    });
+
+    const albumMonthTrailerButtons = feed.querySelectorAll('.ym-album-month-trailer-btn');
+    albumMonthTrailerButtons.forEach(btn => {
+      const albumId = btn.getAttribute('data-album-id');
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(albumId);
+      const svgUse = btn.querySelector('svg use');
+      const trailerIcon = '/icons/sprite.svg#trailer_xs';
+      const pauseIcon = '/icons/sprite.svg#pause_xs';
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', pauseIcon);
+          svgUse.setAttribute('href', pauseIcon);
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+        btn.setAttribute('title', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', trailerIcon);
+          svgUse.setAttribute('href', trailerIcon);
+        }
+        btn.setAttribute('aria-label', 'Слушать трейлер');
+        btn.setAttribute('title', 'Слушать трейлер');
+      }
+    });
+
+    // 8. Треки "Чарт" (Тренды)
+    const chartTrackButtons = feed.querySelectorAll('.ym-chart-play-btn');
+    chartTrackButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      const state = isTrackCurrentlyPlaying(trackId);
+      const svgUse = btn.querySelector('svg use');
+      const trackEl = btn.closest('.CommonTrack_root__i6shE');
+      const animEl = trackEl?.querySelector('.PlayingAnimation_root__YrWz7');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (animEl) animEl.classList.remove('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.add('HorizontalCardContainer_playing__vP91g');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xs');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (animEl) animEl.classList.add('PlayingAnimation_root_stopAnimation__qOw_g');
+        if (trackEl) trackEl.classList.remove('HorizontalCardContainer_playing__vP91g');
+      }
+    });
+
+    // 8b. Синхронизация лайков треков в Чарте и Премьере (если библиотека загрузилась/обновилась)
+    const trackLikeButtons = feed.querySelectorAll('.ym-chart-like-btn, .ym-premiere-like-btn, .ym-track-like-btn');
+    trackLikeButtons.forEach(btn => {
+      const trackId = btn.getAttribute('data-track-id');
+      if (!trackId) return;
+      const isLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
+      const currentlyPressed = btn.getAttribute('aria-pressed') === 'true' || btn.classList.contains('zIMibMuH7wcqUoW7KH1B');
+      if (isLiked !== currentlyPressed) {
+        btn.setAttribute('aria-pressed', isLiked ? 'true' : 'false');
+        if (isLiked) {
+          btn.classList.add('zIMibMuH7wcqUoW7KH1B');
+        } else {
+          btn.classList.remove('zIMibMuH7wcqUoW7KH1B');
+        }
+        const svgUse = btn.querySelector('svg use');
+        if (svgUse) {
+          const iconHref = isLiked ? '/icons/sprite.svg#liked_xxs' : '/icons/sprite.svg#like_xxs';
+          svgUse.setAttribute('xlink:href', iconHref);
+          svgUse.setAttribute('href', iconHref);
+        }
+      }
+    });
+
+    // 9. Редакционные карточки (альбомы, плейлисты, артисты на табе Тренды)
+    const editorialPlayButtons = feed.querySelectorAll('.ym-editorial-play-btn');
+    editorialPlayButtons.forEach(btn => {
+      const itemId = btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type');
+      let state = { isMatch: false, isPlaying: false };
+
+      const isAlbum = itemType === 'album_item' || itemType === 'album' || itemType === 'album_month' || (!itemType?.includes('playlist') && !itemType?.includes('artist'));
+      if (isAlbum) {
+        state = isAlbumCurrentlyPlaying(itemId);
+      }
+      if (!state.isMatch && (itemType === 'liked_playlist_item' || itemType === 'playlist' || !isAlbum)) {
+        const uid = btn.getAttribute('data-playlist-uid');
+        const kind = btn.getAttribute('data-playlist-kind');
+        state = isPlaylistCurrentlyPlaying(itemId, { uid, kind, uuid: itemId });
+      }
+      if (!state.isMatch && (itemType === 'artist_item' || itemType === 'artist')) {
+        state = isArtistCurrentlyPlaying(itemId);
+      }
+
+      const svgUse = btn.querySelector('svg use');
+      const card = btn.closest('.laBJlJAaqEVS0i_4Ot3l, .CarouselBlock_item__DatZ2, li');
+
+      if (state.isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Пауза');
+        if (card) {
+          card.classList.add('is-playing');
+          card.setAttribute('data-playing', 'true');
+        }
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#play_filled_xl');
+          svgUse.setAttribute('href', '/icons/sprite.svg#play_filled_xl');
+        }
+        btn.setAttribute('aria-label', 'Воспроизведение');
+        if (card) {
+          card.classList.remove('is-playing');
+          card.removeAttribute('data-playing');
+        }
+      }
+    });
+
+    const editorialTrailerButtons = feed.querySelectorAll('.ym-editorial-trailer-btn');
+    editorialTrailerButtons.forEach(btn => {
+      const itemId = btn.getAttribute('data-item-id');
+      const itemType = btn.getAttribute('data-item-type');
+      const playlistUid = btn.getAttribute('data-playlist-uid');
+      const playlistKind = btn.getAttribute('data-playlist-kind');
+      const target = (itemType === 'liked_playlist_item' || (playlistUid && playlistKind))
+        ? { id: itemId, uuid: itemId, uid: playlistUid, kind: playlistKind }
+        : itemId;
+      const isPlaying = isAlbumTrailerCurrentlyPlaying(target);
+      const svgUse = btn.querySelector('svg use');
+
+      if (isPlaying) {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#pause_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#pause_xxs');
+        }
+        btn.setAttribute('aria-label', 'Пауза: Трейлер');
+      } else {
+        if (svgUse) {
+          svgUse.setAttribute('xlink:href', '/icons/sprite.svg#trailer_xxs');
+          svgUse.setAttribute('href', '/icons/sprite.svg#trailer_xxs');
+        }
+        btn.setAttribute('aria-label', 'Запустить трейлер');
+      }
+    });
+  }
+
+  async function playVibeStation(item) {
+    if (!item) return false;
+    const itemSeeds = Array.isArray(item.seeds) ? item.seeds.filter(Boolean).map(String) : [];
+    const stationId = String(item.stationId || (itemSeeds.length > 0 ? itemSeeds[0] : '')).trim();
+    const finalSeeds = itemSeeds.length > 0 ? itemSeeds : (stationId ? [stationId] : ['user:onyourwave']);
+    const finalStationId = stationId || finalSeeds[0] || 'user:onyourwave';
+
+    console.log('[BYM Vibe] Playing station:', item.title || finalStationId, finalSeeds);
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    // 1. Прямой запуск через Sonata Core factory + safePlaySonataContext (100% нативный способ)
+    if (core?.factory?.createContext && player) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'vibe',
+            meta: {
+              id: finalStationId,
+              session: {
+                wave: {
+                  name: item.title || finalStationId,
+                  stationId: finalStationId,
+                  seeds: finalSeeds
+                }
+              }
+            },
+            seeds: finalSeeds,
+            from: 'web-landing-discovery_block-sets_by_waves-radio-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        console.log('[BYM Vibe] Created Vibe context:', ctx);
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) {
+          console.log('[BYM Vibe] Station started successfully via safePlaySonataContext!');
+          return true;
+        }
+      } catch (err) {
+        console.error('[BYM Vibe] Error in createContext / safePlaySonataContext:', err);
+      }
+    }
+
+    // 2. Попытка через queueController
+    try {
+      const qc = player?.queueController;
+      if (qc) {
+        if (typeof qc.playRadio === 'function') {
+          await qc.playRadio({ seeds: finalSeeds, autoPlay: true });
+          return true;
+        }
+        if (typeof qc.setRadioQueue === 'function') {
+          await qc.setRadioQueue({ seeds: finalSeeds, autoPlay: true });
+          return true;
+        }
+      }
+    } catch (qcErr) {
+      console.warn('[BYM Vibe] queueController radio error:', qcErr);
+    }
+
+    // 3. Fallback через React Fiber нативного колеса/волны (если доступно в DOM)
+    try {
+      if (typeof triggerWheelFiberSelect === 'function') {
+        triggerWheelFiberSelect(item);
+        return true;
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
+
+  function hexToRgb(hex) {
+    if (!hex || typeof hex !== 'string') return { r: 32, g: 32, b: 32 };
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    if (h.length !== 6) return { r: 32, g: 32, b: 32 };
+    return {
+      r: parseInt(h.substring(0, 2), 16) || 0,
+      g: parseInt(h.substring(2, 4), 16) || 0,
+      b: parseInt(h.substring(4, 6), 16) || 0
+    };
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        case b: h = (r - g) / d + 4; break;
+      }
+      h /= 6;
+    }
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 1000) / 10,
+      l: Math.round(l * 1000) / 10
+    };
+  }
+
+  async function playAlbumContext(albumId) {
+    if (!albumId) return false;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'album',
+            meta: { id: String(albumId) },
+            from: 'web-landing-discovery_block-new_releases-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing album context via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
+  async function playArtistWave(artistId) {
+    if (!artistId) return false;
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'artist',
+            wave: true,
+            meta: { id: String(artistId) },
+            from: 'web-artist-wave-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing artist wave via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
+  async function playPlaylistTrackContext(playlistData, trackId, trackObj, options = {}) {
+    if (!playlistData && !trackId) return false;
+
+    // Защита от перепутанных аргументов
+    let realTrackId = trackId;
+    let realTrackObj = trackObj;
+    let realPlaylistData = playlistData;
+
+    if (typeof playlistData === 'string' && !trackId) {
+      realTrackId = playlistData;
+      realPlaylistData = null;
+    } else if (typeof trackId === 'object' && trackId !== null && !(trackId instanceof Element)) {
+      realTrackObj = trackId;
+      realTrackId = trackId.id || trackId.realId || playlistData;
+    } else if (typeof playlistData === 'string' && typeof trackId === 'object') {
+      realTrackObj = trackId;
+      realTrackId = playlistData;
+    }
+
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+    const root = getYmRootModel();
+
+    const playlistObj = (typeof realPlaylistData === 'object' && realPlaylistData !== null) ? realPlaylistData : {};
+    const uuid = playlistObj.playlistUuid || playlistObj.uuid || (typeof realPlaylistData === 'string' ? realPlaylistData : '');
+    const uid = playlistObj.uid || playlistObj.owner?.uid || window.__ym_user_id || root?.user?.uid || root?.userState?.uid || null;
+    const kind = playlistObj.kind || playlistObj.playlistKind || null;
+
+    let albumId = realTrackObj?.albums?.[0]?.id ||
+                  realTrackObj?.albumId ||
+                  (typeof realTrackObj?.album === 'object' ? realTrackObj.album.id : realTrackObj?.album) ||
+                  null;
+
+    if (core?.factory?.createContext && player) {
+      // 1. Попытка через нативный контекст плейлиста
+      if ((uid && kind) || uuid) {
+        try {
+          const playlistIdStr = (uid && kind) ? `${uid}:${kind}` : String(uuid);
+          const meta = {
+            id: playlistIdStr,
+            playlistId: playlistIdStr,
+            key: playlistIdStr
+          };
+          if (uuid) {
+            meta.uuid = String(uuid);
+            meta.playlistUuid = String(uuid);
+          }
+          if (uid) meta.uid = Number(uid) || uid;
+          if (kind) meta.kind = Number(kind) || kind;
+          if (playlistObj.owner) meta.owner = playlistObj.owner;
+          if (playlistObj.title) meta.title = playlistObj.title;
+
+          const fromStr = options.from || playlistObj.from || 'web-landing-all_chart-default';
+
+          const ctx = core.factory.createContext({
+            data: {
+              type: 'playlist',
+              meta: meta,
+              from: fromStr,
+              includeTracksInResponse: true,
+              interactive: true
+            }
+          });
+
+          console.log('[BYM] Playing playlist context via Sonata:', { meta, trackId: realTrackId });
+
+          const queueParams = realTrackId ? {
+            entityId: String(realTrackId),
+            initialTrackId: String(realTrackId),
+            trackId: String(realTrackId),
+            index: typeof options.index === 'number' ? options.index : 0
+          } : undefined;
+
+          const played = await safePlaySonataContext(core, player, ctx, {
+            loadContextMeta: true,
+            queueParams
+          });
+          if (played) return true;
+        } catch (err) {
+          console.warn('[BYM] Playlist context play failed, trying fallbacks:', err);
+        }
+      }
+
+      // Если albumId еще не известен, пробуем получить его через API трека
+      if (!albumId && realTrackId) {
+        try {
+          const tResp = await fetch(`https://api.music.yandex.ru/tracks/${realTrackId}`);
+          if (tResp.ok) {
+            const tData = await tResp.json();
+            const trackItem = tData.result?.[0] || tData?.[0] || tData;
+            albumId = trackItem?.albums?.[0]?.id || trackItem?.albumId || null;
+          }
+        } catch (_) {}
+      }
+
+      // 2. Фоллбэк: воспроизведение через контекст альбома трека (Sonata type: 'album')
+      if (albumId) {
+        try {
+          console.log('[BYM] Playing track via Album context fallback:', { albumId, trackId: realTrackId });
+          const albumCtx = core.factory.createContext({
+            data: {
+              type: 'album',
+              meta: { id: String(albumId) },
+              from: 'web-landing-discovery_block-premiere-default',
+              includeTracksInResponse: true,
+              interactive: true
+            }
+          });
+          const played = await safePlaySonataContext(core, player, albumCtx, {
+            loadContextMeta: true,
+            queueParams: realTrackId ? {
+              initialTrackId: String(realTrackId),
+              trackId: String(realTrackId),
+              entityId: String(realTrackId)
+            } : undefined
+          });
+          if (played) return true;
+        } catch (aErr) {
+          console.warn('[BYM] Album context fallback failed:', aErr);
+        }
+      }
+    }
+
+    // 4. Фоллбэк через очередь плеера, если трек уже загружен
+    if (player && trackId && typeof player.setEntityByIndex === 'function') {
+      try {
+        const list = player.queueController?.queue?.state?.entityList?.value;
+        if (Array.isArray(list)) {
+          const idx = list.findIndex(e => String(e?.entity?.id || e?.id || e?.entity?.data?.id) === String(trackId));
+          if (idx !== -1) {
+            player.setEntityByIndex(idx);
+            if (typeof player.play === 'function') player.play();
+            return true;
+          }
+        }
+      } catch (_) {}
+    }
+
+    return false;
+  }
+
+  async function handleTrailerPlay(target, trackIndex = 0) {
+    if (!target) return false;
+    const root = getYmRootModel();
+    const svc = getTrailerService() || root?.services?.trailerService;
+
+    // Определяем, является ли цель плейлистом (объект или UUID)
+    const isPlaylist = (typeof target === 'object' && (target.type === 'liked_playlist_item' || target.playlist || target.kind || target.playlistUuid)) ||
+                       (typeof target === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(target.trim()));
+
+    if (isPlaylist) {
+      console.log('[BYM] Starting playlist trailer:', target);
+      if (typeof playPlaylistTrailer === 'function') {
+        const res = await playPlaylistTrailer(target);
+        updateLandingPlaybackIndicators();
+        return res;
+      }
+    }
+
+    const albumId = (typeof target === 'object' && target !== null) ? (target.albumId || target.id || target.album?.id) : target;
+    const targetIdStr = String(albumId);
+
+    if (svc) {
+      if (typeof svc.openAlbumTrailer === 'function') {
+        try {
+          svc.openAlbumTrailer(targetIdStr);
+          updateLandingPlaybackIndicators();
+          return true;
+        } catch (e) { }
+      }
+      if (typeof svc.playTrailer === 'function') {
+        try {
+          await svc.playTrailer({ albumId: Number(albumId) || albumId, startTrackIndex: trackIndex });
+          updateLandingPlaybackIndicators();
+          return true;
+        } catch (e) { }
+      }
+    }
+
+    const res = await playAlbumTrailer(albumId);
+    updateLandingPlaybackIndicators();
+    return res;
+  }
+
+  let cachedRootModel = null;
+
+  function getYmRootModel() {
+    if (cachedRootModel?.isRootModel || cachedRootModel?.pinsCollection || cachedRootModel?.likesCollection || cachedRootModel?.collections) {
+      return cachedRootModel;
+    }
+
+    if (window.__ym_root_model?.isRootModel || window.__ym_root_model?.pinsCollection || window.__ym_root_model?.likesCollection) {
+      cachedRootModel = window.__ym_root_model;
+      return cachedRootModel;
+    }
+
+    if (window.__ym?.rootModel) {
+      cachedRootModel = window.__ym.rootModel;
+      return cachedRootModel;
+    }
+
+    // 1. Поиск вверх по Fiber от любого элемента страницы
+    const anchor = document.querySelector('nav') ||
+                   document.querySelector('header') ||
+                   document.querySelector('[class*="PlayerBar"]') ||
+                   document.body.firstElementChild;
+    if (anchor) {
+      const fiberKey = Object.keys(anchor).find(k => k.startsWith('__reactFiber$'));
+      let cur = anchor[fiberKey];
+      while (cur) {
+        const val = cur.memoizedProps?.value;
+        if (val?.isRootModel || val?.pinsCollection || val?.likesCollection || val?.collections) {
+          cachedRootModel = val;
+          window.__ym_root_model = val;
+          return val;
+        }
+        cur = cur.return;
+      }
+    }
+
+    // 2. Поиск по дереву от #root
+    const rootEl = document.querySelector('#root');
+    const rootKey = rootEl ? Object.keys(rootEl).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactContainer$')) : null;
+    if (rootEl && rootKey) {
+      const stack = [rootEl[rootKey]];
+      let count = 0;
+      while (stack.length > 0 && count < 2500) {
+        const cur = stack.pop();
+        count++;
+        if (!cur) continue;
+        const val = cur.memoizedProps?.value;
+        if (val?.isRootModel || val?.pinsCollection || val?.likesCollection || val?.collections) {
+          cachedRootModel = val;
+          window.__ym_root_model = val;
+          return val;
+        }
+        if (cur.child) stack.push(cur.child);
+        if (cur.sibling) stack.push(cur.sibling);
+      }
+    }
+
+    return null;
+  }
+
+  let cachedTrackPageModel = null;
+
+  function getTrackPageModel() {
+    if (cachedTrackPageModel?.open) return cachedTrackPageModel;
+    if (window.ymR?.open) {
+      cachedTrackPageModel = window.ymR;
+      return cachedTrackPageModel;
+    }
+    if (window.__ym_track_model?.open) {
+      cachedTrackPageModel = window.__ym_track_model;
+      return cachedTrackPageModel;
+    }
+
+    // 1. Поиск в MobX корне
+    const root = getYmRootModel();
+    if (root?.track?.open) {
+      cachedTrackPageModel = root.track;
+      return cachedTrackPageModel;
+    }
+
+    // 2. Поиск через React Fiber контексты любого трека
+    const row = document.querySelector('.CommonTrack_root__i6shE, .HorizontalCardContainer_root__YoAAP');
+    if (row) {
+      let fiber = null;
+      for (const k in row) if (k.startsWith('__reactFiber$')) fiber = row[k];
+      let curr = fiber;
+      while (curr && !cachedTrackPageModel) {
+        let dep = curr.dependencies?.firstContext;
+        while (dep) {
+          const val = dep.memoizedValue || dep.context?._currentValue;
+          if (val?.track?.open) {
+            cachedTrackPageModel = val.track;
+            window.__ym_track_model = val.track;
+            return cachedTrackPageModel;
+          }
+          dep = dep.next;
+        }
+        curr = curr.return;
+      }
+    }
+
+    return null;
+  }
+
+  function openTrackInfo(trackId, albumId) {
+    if (!trackId) return false;
+    const numTrackId = Number(trackId) || trackId;
+    const numAlbumId = albumId ? (Number(albumId) || null) : null;
+
+    const trackModel = getTrackPageModel();
+    if (trackModel?.open) {
+      console.log(`[BYM] Opening native TrackModal: trackId=${numTrackId}, albumId=${numAlbumId}`);
+      try {
+        trackModel.open({
+          trackId: numTrackId,
+          albumId: numAlbumId
+        });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] TrackModal open error:', err);
+      }
+    }
+
+    console.warn('[BYM] TrackPage model not found');
+    return false;
+  }
+
+  function getPinsCollection() {
+    const root = getYmRootModel();
+    return root?.pinsCollection || root?.collections?.pins || null;
+  }
+
+  function getLikesCollection() {
+    const root = getYmRootModel();
+    return root?.library ||
+           root?.likesCollection ||
+           root?.collections?.likes ||
+           root?.library?.likes ||
+           root?.library?.tracks ||
+           root?.tracksCollection ||
+           null;
+  }
+
+  function isTrackLiked(trackId) {
+    if (!trackId) return false;
+    const idStr = String(trackId);
+    const root = getYmRootModel();
+
+    // 1. Приоритетный путь: нативный метод MobX root.library
+    try {
+      if (typeof root?.library?.isTrackLiked === 'function') {
+        const res = root.library.isTrackLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    // 2. Прямая проверка в ObservableMap items: root.library.tracks.items
+    try {
+      const trackItems = root?.library?.tracks?.items;
+      if (trackItems) {
+        if (typeof trackItems.has === 'function' && trackItems.has(idStr)) {
+          const val = typeof trackItems.get === 'function' ? trackItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+        if (typeof trackItems.get === 'function') {
+          const val = trackItems.get(idStr);
+          if (val === '1' || val === 1 || val === true) return true;
+        }
+      }
+    } catch (_) {}
+
+    const likes = getLikesCollection();
+    if (!likes) return false;
+
+    try {
+      if (typeof likes.isTrackLiked === 'function') {
+        const res = likes.isTrackLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof likes.isLiked === 'function') {
+        const res = likes.isLiked(idStr) || likes.isLiked({ id: idStr, type: 'track' });
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof likes.hasTrack === 'function') {
+        if (likes.hasTrack(idStr)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (typeof likes.has === 'function') {
+        if (likes.has(idStr)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (likes.items?.has && (likes.items.has(idStr) || likes.items.has(Number(trackId)))) {
+        const val = typeof likes.items.get === 'function' ? likes.items.get(idStr) : true;
+        return val === '1' || val === 1 || val === true;
+      }
+    } catch (_) {}
+
+    try {
+      if (likes.index?.has && (likes.index.has(idStr) || likes.index.has(Number(trackId)))) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (likes.tracksIndex?.has && (likes.tracksIndex.has(idStr) || likes.tracksIndex.has(Number(trackId)))) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      const raw = likes.items || likes.tracks || likes.tracksList || [];
+      if (raw instanceof Map || (typeof raw?.has === 'function' && typeof raw?.get === 'function')) {
+        if (raw.has(idStr)) {
+          const val = raw.get(idStr);
+          return val === '1' || val === 1 || val === true;
+        }
+      }
+      const items = Array.from(raw);
+      return items.some(it => {
+        if (Array.isArray(it)) {
+          return String(it[0]) === idStr;
+        }
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.track?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  function isAlbumLiked(albumId) {
+    if (!albumId) return false;
+    const idStr = String(albumId);
+    const root = getYmRootModel();
+
+    try {
+      if (typeof root?.library?.isAlbumLiked === 'function') {
+        const res = root.library.isAlbumLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      const albumItems = root?.library?.albums?.items;
+      if (albumItems) {
+        if (typeof albumItems.has === 'function' && albumItems.has(idStr)) {
+          const val = typeof albumItems.get === 'function' ? albumItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
+  function getTrailerService() {
+    const root = getYmRootModel();
+    if (root?.trailer && typeof root.trailer.openAlbumTrailer === 'function') {
+      return root.trailer;
+    }
+    return null;
+  }
+
+  function isAlbumPinned(albumId) {
+    if (!albumId) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const idStr = String(albumId);
+    const pinKey = `album_item${albumId}`;
+
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (pins.isPinned(pinKey)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (pins.index?.has && pins.index.has(pinKey)) {
+        return true;
+      }
+    } catch (_) {}
+
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.album?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  function isArtistLiked(artistId) {
+    if (!artistId) return false;
+    const idStr = String(artistId);
+    const root = getYmRootModel();
+
+    try {
+      if (typeof root?.library?.isArtistLiked === 'function') {
+        const res = root.library.isArtistLiked(idStr);
+        if (typeof res === 'boolean') return res;
+      }
+    } catch (_) {}
+
+    try {
+      const artistItems = root?.library?.artists?.items;
+      if (artistItems) {
+        if (typeof artistItems.has === 'function' && artistItems.has(idStr)) {
+          const val = typeof artistItems.get === 'function' ? artistItems.get(idStr) : true;
+          return val === '1' || val === 1 || val === true;
+        }
+      }
+    } catch (_) {}
+
+    return false;
+  }
+
+  function isArtistPinned(artistId) {
+    if (!artistId) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const idStr = String(artistId);
+    const numId = Number(artistId) || artistId;
+    const pinKey = `artist_item${artistId}`;
+
+    // 1. Прямой нативный метод pinsCollection
+    try {
+      if (typeof pins.isArtistPinned === 'function') {
+        const res = pins.isArtistPinned(artistId);
+        if (typeof res === 'boolean' && res) return true;
+        const resNum = pins.isArtistPinned(numId);
+        if (typeof resNum === 'boolean' && resNum) return true;
+      }
+    } catch (_) {}
+
+    // 2. Общий метод isPinned
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (pins.isPinned(pinKey) || pins.isPinned(idStr) || pins.isPinned(numId)) return true;
+      }
+    } catch (_) {}
+
+    // 3. Индекс коллекции
+    try {
+      if (pins.index?.has && (pins.index.has(pinKey) || pins.index.has(idStr) || pins.index.has(numId))) {
+        return true;
+      }
+    } catch (_) {}
+
+    // 4. Список pinnedArtists
+    try {
+      if (Array.isArray(pins.pinnedArtists)) {
+        if (pins.pinnedArtists.some(a => String(a?.id) === idStr)) return true;
+      }
+    } catch (_) {}
+
+    // 5. Элементы коллекции pins.items
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = it?.data?.id || it?.id || it?.entityId || it?.artist?.id || it?.meta?.id;
+        return String(itId) === idStr;
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function togglePinArtist(artistId, shouldBePinned) {
+    if (!artistId) return false;
+    const numId = Number(artistId) || artistId;
+    const pinKey = `artist_item${artistId}`;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isArtistPinned(artistId);
+
+    // 1. Приоритетный путь: нативный метод pinsCollection (переключает pin/unpin)
+    // ВАЖНО: сигнатура Яндекс Музыки требует вторым аргументом pinKey ('artist_item{id}').
+    // Без pinKey метод e.isPinned(i) возвращает false и вместо unpin пытается выполнить pin!
+    if (pins && typeof pins.toggleArtistPin === 'function') {
+      try {
+        await pins.toggleArtistPin({ id: numId }, pinKey);
+        return true;
+      } catch (err) {
+        // Ошибка [mobx-state-tree] "no longer part of a state tree" возникает в недрах реакций Яндекса
+        // именно ПОСЛЕ того, как узел успешно удален из дерева модели (открепление состоялось).
+        if (err?.message?.includes('no longer part of a state tree') || String(err).includes('AnonymousModel')) {
+          return true;
+        }
+        console.warn('[BYM] Native artist pin error, fallback to HTTP:', err);
+      }
+    }
+
+    // 2. Фоллбэк: прямой сетевой REST-запрос
+    const method = isCurrentlyPinned ? 'DELETE' : 'POST';
+    try {
+      let resp = await fetch('https://api.music.yandex.ru/pin/artist', {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: numId }),
+        credentials: 'include'
+      });
+
+      // Фоллбек на PUT, если эндпоинт ожидает PUT
+      if (!resp.ok && !isCurrentlyPinned && (resp.status === 405 || resp.status === 404)) {
+        resp = await fetch('https://api.music.yandex.ru/pin/artist', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ id: numId }),
+          credentials: 'include'
+        });
+      }
+
+      // При откреплении синхронизируем локальный индекс экшеном deletePin
+      if (isCurrentlyPinned && pins) {
+        if (typeof pins.deletePin === 'function') {
+          try {
+            pins.deletePin(pinKey);
+          } catch (_) {}
+        }
+      }
+
+      return resp.ok;
+    } catch (err) {
+      console.warn('[BYM] Pin artist HTTP error:', err);
+      return false;
+    }
+  }
+
+  async function playAlbumTrailer(albumId) {
+    if (!albumId) return false;
+    const targetIdStr = String(albumId);
+
+    // 1. Приоритетный путь: нативный сервис трейлера Яндекс Музыки (запуск трейлера + открытие шторки справа)
+    try {
+      const svc = getTrailerService();
+      if (svc && typeof svc.openAlbumTrailer === 'function') {
+        svc.openAlbumTrailer(targetIdStr);
+        return true;
+      }
+    } catch (err) {
+      console.warn('[BYM] Error playing trailer via native service:', err);
+    }
+
+    // 2. Фоллбек путь: воспроизведение контекста трейлера через Sonata Core
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'album',
+            trailer: true,
+            meta: { id: targetIdStr },
+            from: 'web-album-trailer-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing album trailer via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
+  async function playPlaylistTrailer(playlistTarget) {
+    if (!playlistTarget) return false;
+    const plObj = typeof playlistTarget === 'object' ? (playlistTarget.playlist || playlistTarget) : {};
+    let uuid = plObj.playlistUuid || plObj.uuid || (typeof playlistTarget === 'string' ? playlistTarget : '');
+    let uid = plObj.uid || null;
+    let kind = plObj.kind || null;
+
+    // Если uid или kind не переданы, пробуем найти их в DOM по uuid
+    if ((!uid || !kind) && uuid) {
+      const el = document.querySelector(`[data-item-id="${uuid}"][data-playlist-uid], [data-item-id="${uuid}"] [data-playlist-uid]`);
+      if (el) {
+        const targetEl = el.getAttribute('data-playlist-uid') ? el : el.querySelector('[data-playlist-uid]');
+        if (targetEl) {
+          uid = targetEl.getAttribute('data-playlist-uid') || uid;
+          kind = targetEl.getAttribute('data-playlist-kind') || kind;
+        }
+      }
+    }
+
+    const playlistKey = (uid && kind) ? `${uid}:${kind}` : String(uuid);
+    console.log('[BYM] playPlaylistTrailer key:', playlistKey, { uid, kind, uuid });
+
+    // 1. Приоритетный путь: нативный trailerService Яндекс Музыки
+    // Внимание: openPlaylistTrailer(a) принимает ровно одну строку формата "${uid}:${kind}"
+    // и вызывает e.modal.open(), открывая боковую шторку трейлера
+    try {
+      const svc = getTrailerService();
+      if (svc && typeof svc.openPlaylistTrailer === 'function') {
+        svc.openPlaylistTrailer(String(playlistKey));
+        return true;
+      }
+      if (svc && typeof svc.playPlaylistTrailer === 'function') {
+        await svc.playPlaylistTrailer({ uid: Number(uid) || uid, kind: Number(kind) || kind, uuid });
+        return true;
+      }
+      if (svc && typeof svc.playTrailer === 'function') {
+        await svc.playTrailer({ type: 'playlist', id: playlistKey, uid, kind, uuid });
+        return true;
+      }
+    } catch (err) {
+      console.warn('[BYM] Error playing playlist trailer via trailerService:', err);
+    }
+
+    // 2. Воспроизведение трейлера плейлиста через Sonata Core
+    const core = (typeof getSonataCore === 'function' ? getSonataCore() : null) ||
+                 (typeof window.getSonataCore === 'function' ? window.getSonataCore() : null) ||
+                 findSonataCoreFallback();
+    const player = getSafeActivePlayer();
+
+    if (core?.factory?.createContext && player) {
+      try {
+        const meta = { id: key };
+        if (uid) meta.uid = Number(uid) || uid;
+        if (kind) meta.kind = Number(kind) || kind;
+        if (uuid) meta.uuid = String(uuid);
+
+        const ctx = core.factory.createContext({
+          data: {
+            type: 'playlist',
+            trailer: true,
+            meta: meta,
+            from: 'web-playlist-trailer-default',
+            includeTracksInResponse: true,
+            interactive: true
+          }
+        });
+        const played = await safePlaySonataContext(core, player, ctx, { loadContextMeta: true });
+        if (played) return true;
+      } catch (err) {
+        console.warn('[BYM] Error playing playlist trailer via Sonata:', err);
+      }
+    }
+    return false;
+  }
+
+  async function togglePinAlbum(albumId, shouldBePinned) {
+    if (!albumId) return false;
+    const numId = Number(albumId) || albumId;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isAlbumPinned(albumId);
+    const method = isCurrentlyPinned ? 'DELETE' : 'PUT';
+
+    // Для добавления: пробуем нативный метод pinsCollection
+    if (!isCurrentlyPinned && pins && typeof pins.toggleAlbumPin === 'function') {
+      try {
+        await pins.toggleAlbumPin({ id: numId });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Native pin error, fallback to HTTP:', err);
+      }
+    }
+
+    // Для удаления (DELETE) или фоллбека: точный HTTP REST-запрос
+    try {
+      await fetch('https://api.music.yandex.ru/pin/album', {
+        method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ id: numId }),
+        credentials: 'include'
+      });
+
+      // Синхронизируем стор закрепов Яндекса, чтобы Navbar сразу обновился
+      if (pins && typeof pins.getData === 'function') {
+        pins.getData().catch(() => {});
+      }
+      return true;
+    } catch (err) {
+      console.warn('[BYM] Pin HTTP error:', err);
+      return false;
+    }
+  }
+
+  function getYmUserId() {
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym_root_model;
+    return root?.user?.account?.data?.uid ||
+           root?.user?.uid ||
+           root?.userState?.uid ||
+           window.__ym_user_id ||
+           null;
+  }
+
+  async function toggleLikeAlbum(albumId, isCurrentlyLiked) {
+    if (!albumId) return false;
+    const root = getYmRootModel();
+    const idStr = String(albumId);
+    const numId = Number(albumId) || albumId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleAlbumLike({ entityId, userId })
+    if (typeof root?.library?.toggleAlbumLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling album like via root.library.toggleAlbumLike:', albumId);
+        const res = await root.library.toggleAlbumLike({
+          entityId: idStr,
+          userId: uid
+        });
+        if (res === 'ok' || res === true) {
+          return true;
+        }
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleAlbumLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
+
+    // 1. Попытка через нативный MobX Root Model / likesCollection
+    if (likes) {
+      const toggleFn = likes.toggleAlbumLike || likes.toggleAlbum || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          console.log('[BYM] Toggling album like via MobX:', albumId);
+          await toggleFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+
+      if (isCurrentlyLiked) {
+        const removeFn = likes.removeAlbumLike || likes.removeAlbum || likes.remove;
+        if (typeof removeFn === 'function') {
+          try {
+            await removeFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
+            return true;
+          } catch (_) {}
+        }
+      } else {
+        const addFn = likes.addAlbumLike || likes.addAlbum || likes.add;
+        if (typeof addFn === 'function') {
+          try {
+            await addFn.call(likes, { id: numId, type: 'album', entityId: idStr, userId: uid });
+            return true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 2. Фоллбэк: точный сетевой REST-запрос Яндекс Музыки
+    if (!uid) return false;
+    const isLike = !isCurrentlyLiked;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/albums/add?album-id=${encodeURIComponent(idStr)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/albums/${encodeURIComponent(idStr)}/remove`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
+        },
+        credentials: 'include'
+      });
+      if (typeof root?.library?.getData === 'function') {
+        root.library.getData().catch(() => {});
+      }
+      return res.ok;
+    } catch (err) {
+      console.warn('[BYM] Like album error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikeArtist(artistId, isCurrentlyLiked) {
+    if (!artistId) return false;
+    const root = getYmRootModel();
+    const idStr = String(artistId);
+    const numId = Number(artistId) || artistId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleArtistLike({ entityId, userId })
+    if (typeof root?.library?.toggleArtistLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling artist like via root.library.toggleArtistLike:', artistId);
+        const res = await root.library.toggleArtistLike({
+          entityId: idStr,
+          userId: uid
+        });
+        if (res === 'ok' || res === true) return true;
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleArtistLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
+    if (likes) {
+      const toggleFn = likes.toggleArtistLike || likes.toggleArtist || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          await toggleFn.call(likes, { id: numId, type: 'artist', entityId: idStr, userId: uid });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 2. Фоллбэк: HTTP REST API
+    if (!uid) {
+      console.warn('[BYM] Cannot toggle artist like: UID unavailable');
+      return false;
+    }
+    const isLike = !isCurrentlyLiked;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/artists/add?artist-id=${encodeURIComponent(idStr)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/artists/${encodeURIComponent(idStr)}/remove`;
+
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
+        },
+        credentials: 'include'
+      });
+      if (typeof root?.library?.getData === 'function') {
+        root.library.getData().catch(() => {});
+      }
+      return res.ok;
+    } catch (err) {
+      console.warn('[BYM] Like artist error:', err);
+      return false;
+    }
+  }
+
+  function isPlaylistPinned(playlistId, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const pins = getPinsCollection();
+    if (!pins) return false;
+    const uuid = String(playlistObj?.playlistUuid || playlistObj?.uuid || playlistId || '');
+    const kind = playlistObj?.kind ? String(playlistObj.kind) : null;
+    const uid = playlistObj?.uid ? String(playlistObj.uid) : null;
+    const key = (uid && kind) ? `${uid}:${kind}` : null;
+
+    try {
+      if (typeof pins.isPinned === 'function') {
+        if (uuid && pins.isPinned(`playlist_item${uuid}`)) return true;
+        if (key && pins.isPinned(`playlist_item${key}`)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      if (pins.index?.has) {
+        if (uuid && pins.index.has(`playlist_item${uuid}`)) return true;
+        if (key && pins.index.has(`playlist_item${key}`)) return true;
+      }
+    } catch (_) {}
+
+    try {
+      const items = Array.from(pins.items || []);
+      return items.some(it => {
+        const itId = String(it?.data?.id || it?.data?.uuid || it?.id || it?.entityId || it?.meta?.id || '');
+        return (uuid && itId === uuid) || (key && itId === key);
+      });
+    } catch (_) {}
+
+    return false;
+  }
+
+  async function togglePinPlaylist(playlistId, shouldBePinned, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const pins = getPinsCollection();
+    const isCurrentlyPinned = typeof shouldBePinned === 'boolean' ? !shouldBePinned : isPlaylistPinned(playlistId, playlistObj);
+    const method = isCurrentlyPinned ? 'DELETE' : 'PUT';
+    const uuid = playlistObj?.playlistUuid || playlistObj?.uuid || playlistId;
+    const uid = playlistObj?.uid || window.__ym_user_id;
+    const kind = playlistObj?.kind;
+
+    if (!isCurrentlyPinned && pins && typeof pins.togglePlaylistPin === 'function') {
+      try {
+        await pins.togglePlaylistPin({ uuid, uid, kind });
+        return true;
+      } catch (err) {
+        console.warn('[BYM] Native playlist pin error, fallback to HTTP:', err);
+      }
+    }
+
+    try {
+      const bodyObj = (uid && kind) ? { uid: Number(uid) || uid, kind: Number(kind) || kind } : { uuid: String(uuid) };
+      await fetch('https://api.music.yandex.ru/pin/playlist', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj),
+        credentials: 'include'
+      });
+      if (pins && typeof pins.getData === 'function') {
+        pins.getData().catch(() => {});
+      }
+      return true;
+    } catch (err) {
+      console.warn('[BYM] Pin playlist HTTP error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikePlaylist(playlistId, isCurrentlyLiked, playlistObj) {
+    if (!playlistId && !playlistObj) return false;
+    const root = getYmRootModel();
+    const likes = getLikesCollection();
+    const uid = window.__ym_user_id || root?.user?.uid || root?.userState?.uid;
+    const plUid = playlistObj?.uid || uid;
+    const kind = playlistObj?.kind;
+    const uuid = playlistObj?.playlistUuid || playlistObj?.uuid || playlistId;
+
+    if (likes) {
+      const toggleFn = likes.togglePlaylistLike || likes.togglePlaylist || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          await toggleFn.call(likes, { uid: plUid, kind: kind, uuid });
+          return true;
+        } catch (_) {}
+      }
+    }
+
+    if (!uid || !kind) return false;
+    const action = isCurrentlyLiked ? 'remove' : 'add';
+    try {
+      const res = await fetch(`https://api.music.yandex.ru/users/${uid}/likes/playlists/${action}?owner=${plUid}&kind=${kind}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (likes && typeof likes.getData === 'function') {
+        likes.getData().catch(() => {});
+      }
+      return res.ok;
+    } catch (err) {
+      console.warn('[BYM] Like playlist error:', err);
+      return false;
+    }
+  }
+
+  async function toggleLikeTrack(trackId, isCurrentlyLiked, albumId) {
+    if (!trackId) return false;
+    if (isCurrentlyLiked === undefined) {
+      isCurrentlyLiked = typeof isTrackLiked === 'function' ? isTrackLiked(trackId) : false;
+    }
+    const root = (typeof getYmRootModel === 'function' ? getYmRootModel() : null) || window.__ym_root_model;
+    const idStr = String(trackId);
+    const numId = Number(trackId) || trackId;
+    const uid = getYmUserId();
+
+    // 0. Приоритетный путь: нативный метод root.library.toggleTrackLike({ entityId, userId, albumId })
+    if (typeof root?.library?.toggleTrackLike === 'function' && uid) {
+      try {
+        console.log('[BYM] Toggling track like via root.library.toggleTrackLike:', trackId);
+        const res = await root.library.toggleTrackLike({
+          entityId: idStr,
+          userId: uid,
+          albumId: albumId ? String(albumId) : undefined
+        });
+        if (res === 'ok' || res === true) {
+          if (typeof updateLandingPlaybackIndicators === 'function') {
+            setTimeout(updateLandingPlaybackIndicators, 60);
+          }
+          return true;
+        }
+      } catch (e) {
+        console.warn('[BYM] root.library.toggleTrackLike error, falling back:', e);
+      }
+    }
+
+    const likes = getLikesCollection();
+
+    // 1. Приоритетный путь: нативный MobX вызов через RootModel / likesCollection
+    if (likes) {
+      if (isCurrentlyLiked) {
+        const removeFn = likes.removeTrackLike || likes.removeTrack || likes.remove || likes.unlikeTrack || likes.dislikeTrack;
+        if (typeof removeFn === 'function') {
+          try {
+            await removeFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
+            return true;
+          } catch (_) {
+            try {
+              await removeFn.call(likes, idStr);
+              return true;
+            } catch (_) {}
+          }
+        }
+      } else {
+        const addFn = likes.addTrackLike || likes.addTrack || likes.add || likes.likeTrack;
+        if (typeof addFn === 'function') {
+          try {
+            await addFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
+            return true;
+          } catch (_) {
+            try {
+              await addFn.call(likes, idStr);
+              return true;
+            } catch (_) {}
+          }
+        }
+      }
+
+      const toggleFn = likes.toggleTrackLike || likes.toggleTrack || likes.toggleLike || likes.toggle;
+      if (typeof toggleFn === 'function') {
+        try {
+          console.log('[BYM] Toggling track like via MobX collection:', trackId);
+          await toggleFn.call(likes, { id: numId, type: 'track', entityId: idStr, userId: uid });
+          return true;
+        } catch (_) {
+          try {
+            await toggleFn.call(likes, idStr);
+            return true;
+          } catch (_) {}
+        }
+      }
+    }
+
+    // 2. Сервис библиотеки root.library / root.services.libraryService
+    const lib = root?.library || root?.services?.libraryService;
+    if (lib) {
+      const libToggle = lib.toggleTrackLike || lib.toggleLike || lib.likeTrack;
+      if (typeof libToggle === 'function' && uid) {
+        try {
+          await libToggle.call(lib, { entityId: idStr, userId: uid, albumId: albumId ? String(albumId) : undefined });
+          return true;
+        } catch (_) {}
+      }
+    }
+
+    // 3. Фоллбэк: точный сетевой REST API Яндекс Музыки
+    if (!uid) {
+      console.warn('[BYM] Cannot toggle track like: UID unavailable');
+      return false;
+    }
+    const isLike = !isCurrentlyLiked;
+    const targetEntity = albumId ? `${idStr}:${albumId}` : idStr;
+    const url = isLike
+      ? `https://api.music.yandex.ru/users/${uid}/likes/tracks/add?track-id=${encodeURIComponent(targetEntity)}`
+      : `https://api.music.yandex.ru/users/${uid}/likes/tracks/${encodeURIComponent(targetEntity)}/remove`;
+
+    try {
+      console.log(`[BYM] Track like REST fallback: ${url}`);
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'accept-language': 'ru',
+          'x-requested-with': 'XMLHttpRequest',
+          'x-yandex-music-client': 'YandexMusicWebNext/1.0.0',
+          'x-yandex-music-multi-auth-user-id': String(uid),
+          'x-yandex-music-without-invocation-info': '1'
+        },
+        credentials: 'include'
+      });
+
+      if (resp.ok) {
+        if (typeof root?.library?.getData === 'function') {
+          root.library.getData().catch(() => {});
+        }
+        if (typeof updateLandingPlaybackIndicators === 'function') {
+          setTimeout(updateLandingPlaybackIndicators, 60);
+        }
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn('[BYM] Like track error:', err);
+      return false;
+    }
+  }
+
+  // =========================================================================
+  // Next.js App Router & Universal SPA Navigation (Desktop Electron & Web)
+  // =========================================================================
+
+  let cachedYmRouter = null;
+
+  function getYmRouter() {
+    if (cachedYmRouter && typeof cachedYmRouter.push === 'function') {
+      return cachedYmRouter;
+    }
+    if (window.__ym_router && typeof window.__ym_router.push === 'function') {
+      cachedYmRouter = window.__ym_router;
+      return cachedYmRouter;
+    }
+    if (window.next?.router && typeof window.next.router.push === 'function') {
+      cachedYmRouter = window.next.router;
+      return cachedYmRouter;
+    }
+
+    // 1. Поиск вниз от React Root Container (самый надежный способ в Next.js 14)
+    try {
+      const rootCandidates = [document.querySelector('#__next'), document.querySelector('#root'), document.body];
+      for (const rootEl of rootCandidates) {
+        if (!rootEl) continue;
+        const cKey = Object.keys(rootEl).find(k => k.startsWith('__reactContainer$') || k.startsWith('__reactFiber$'));
+        if (cKey && rootEl[cKey]) {
+          const queue = [rootEl[cKey]];
+          let visited = 0;
+          while (queue.length > 0 && visited < 250) {
+            const node = queue.shift();
+            visited++;
+            if (!node) continue;
+            const val = node.memoizedProps?.value;
+            if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+              cachedYmRouter = val;
+              window.__ym_router = val;
+              return val;
+            }
+            if (node.child) queue.push(node.child);
+            if (node.sibling) queue.push(node.sibling);
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 2. Поиск через Webpack runtime Next.js
+    try {
+      if (typeof window !== 'undefined' && Array.isArray(window.webpackChunk_N_E)) {
+        let req = null;
+        window.webpackChunk_N_E.push([['__bym_router_probe__' + Math.random()], {}, (r) => { req = r; }]);
+        if (req && req.c) {
+          for (const mId in req.c) {
+            const exp = req.c[mId]?.exports;
+            if (!exp) continue;
+            let candidate = null;
+            if (typeof exp.publicAppRouterInstance === 'function') {
+              candidate = exp.publicAppRouterInstance();
+            } else if (exp.publicAppRouterInstance && typeof exp.publicAppRouterInstance.push === 'function') {
+              candidate = exp.publicAppRouterInstance;
+            } else if (exp.default && typeof exp.default.publicAppRouterInstance === 'function') {
+              candidate = exp.default.publicAppRouterInstance();
+            } else if (typeof exp.push === 'function' && typeof exp.replace === 'function' && (typeof exp.back === 'function' || typeof exp.prefetch === 'function')) {
+              candidate = exp;
+            }
+            if (candidate && typeof candidate.push === 'function' && typeof candidate.replace === 'function') {
+              cachedYmRouter = candidate;
+              window.__ym_router = candidate;
+              return candidate;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+
+    // 3. Поиск вверх по Fiber от нативных элементов навигации
+    try {
+      const candidateNodes = Array.from(document.querySelectorAll('nav a, aside a, [class*="Navbar"] a, [class*="Sidebar"] a, header a, button')).filter(
+        el => !el.closest('#ym-vibe-live-landing-feed') && !el.closest('#ym-vibe-landing-container')
+      );
+      for (const anchor of candidateNodes) {
+        const fiberKey = Object.keys(anchor).find(k => k.startsWith('__reactFiber$'));
+        if (!fiberKey) continue;
+        let cur = anchor[fiberKey];
+        let depth = 0;
+        while (cur && depth < 120) {
+          depth++;
+          const val = cur.memoizedProps?.value;
+          if (val && typeof val.push === 'function' && typeof val.replace === 'function') {
+            cachedYmRouter = val;
+            window.__ym_router = val;
+            return val;
+          }
+          cur = cur.return;
+        }
+      }
+    } catch (_) {}
+
+    return null;
+  }
+
+  let isNavigating = false;
+
+  function spaNavigate(url, e) {
+    if (e) {
+      try {
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+        e.preventDefault();
+        e.stopPropagation();
+      } catch (_) {}
+    }
+    if (!url || isNavigating) return;
+    isNavigating = true;
+
+    try {
+      // Очищаем URL от полного хоста/протокола, оставляя только относительный путь
+      let targetPath = String(url).trim();
+      targetPath = targetPath.replace(/^https?:\/\/music\.yandex\.(?:ru|com|by|kz)/i, '');
+      targetPath = targetPath.replace(/^music-application:\/\/desktop/i, '');
+      if (!targetPath.startsWith('/')) {
+        targetPath = '/' + targetPath;
+      }
+
+      console.log('[BYM] spaNavigate to:', targetPath);
+
+      // 1. Попытка навигации через Next.js App Router (основной, бесконфликтный путь)
+      try {
+        const router = getYmRouter();
+        if (router && typeof router.push === 'function') {
+          router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] AppRouter push error:', err);
+      }
+
+      // 2. Попытка сымитировать клик по существующей нативной ссылке в сайдбаре / навигации
+      try {
+        const selector = `nav a[href="${targetPath}"], aside a[href="${targetPath}"], [class*="Navbar"] a[href="${targetPath}"], header a[href="${targetPath}"]`;
+        const nativeLinks = document.querySelectorAll(selector);
+        for (const nl of nativeLinks) {
+          if (!nl.closest('#ym-vibe-landing-container') && !nl.closest('#ym-vibe-live-landing-feed')) {
+            nl.click();
+            return;
+          }
+        }
+        if (targetPath === '/collection' || targetPath.startsWith('/collection/')) {
+          const colLink = document.querySelector('aside a[href*="/collection"], nav a[href*="/collection"], [class*="Navbar"] a[href*="/collection"]');
+          if (colLink && !colLink.closest('#ym-vibe-live-landing-feed') && !colLink.closest('#ym-vibe-landing-container')) {
+            colLink.click();
+            return;
+          }
+        }
+      } catch (_) {}
+
+      // 3. Попытка через legacy Pages Router (если доступен)
+      try {
+        if (window.next?.router && typeof window.next.router.push === 'function') {
+          window.next.router.push(targetPath);
+          return;
+        }
+      } catch (err) {
+        console.warn('[BYM] PagesRouter push error:', err);
+      }
+
+      // 4. Резервный SPA-переход без перезагрузки документа (НЕ вызываем location.href, чтобы не ломать Electron)
+      try {
+        window.history.pushState({}, '', targetPath);
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      } catch (_) {}
+    } finally {
+      setTimeout(() => { isNavigating = false; }, 200);
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.getYmRouter = getYmRouter;
+    window.spaNavigate = spaNavigate;
+  }
+
+

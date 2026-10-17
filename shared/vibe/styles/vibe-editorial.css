@@ -1,0 +1,295 @@
+/* =========================================================================
+   BetterYandexMusic: Editorial Compilations Sections (Тренды)
+   Exact 1-to-1 Native Layout matching Yandex Music
+   ========================================================================= */
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section {
+  gap: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 16px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: none !important;
+  padding: 12px 4px 16px 4px !important;
+  margin: -12px -4px 0 -4px !important;
+  scroll-snap-type: x mandatory !important;
+  scroll-behavior: smooth !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+  list-style: none !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-vibe-feed-editorial-carousel::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section .CarouselBlock_item__DatZ2 {
+  flex-shrink: 0 !important;
+  list-style: none !important;
+  scroll-snap-align: start !important;
+  width: 172px !important;
+  min-width: 172px !important;
+  max-width: 172px !important;
+  overflow: visible !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ym-editorial-section:hover .CarouselControls_root__E_hwc {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* Playlist / Album Card Controls Overlay (Rectangular) */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_controls__Ej8Rz {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 40%, rgba(0,0,0,0.6) 100%) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.2s ease !important;
+  border-radius: var(--ym-radius-size-m, 12px) !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l:hover .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2:hover .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:hover .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN:focus-within .PlaylistCard_controls__Ej8Rz,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .laBJlJAaqEVS0i_4Ot3l.is-playing .PlaylistCard_controls__Ej8Rz {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_coverBlock__1slsN {
+  position: relative !important;
+  overflow: hidden !important;
+  aspect-ratio: 1 !important;
+  width: 100% !important;
+  border-radius: var(--ym-radius-size-m, 12px) !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .PlaylistCard_image__Li6oy {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* =========================================================================
+   ArtistCard ("Зажглись от Искры" / EDITORIAL_ARTISTS)
+   Native 1-to-1 Circular Avatar and Overlay Controls
+   ========================================================================= */
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK {
+  position: relative !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: visible !important;
+}
+
+/* Screen reader title link - hidden visually */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_srTitleLink__jzfOW {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Cover containers - strictly overflow: visible so buttons sit on top and are never clipped */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_cover__29ShU {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 !important;
+  display: block !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  box-shadow: none !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 !important;
+  display: block !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  cursor: pointer !important;
+  outline: none !important;
+}
+
+/* Only the artist avatar image has 50% circular radius */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_image__pONJx {
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: 1 !important;
+  object-fit: cover !important;
+  border-radius: var(--ym-radius-size-round, 50%) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
+  display: block !important;
+}
+
+/* Controls overlay sitting directly on top of the preview */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: var(--ym-spacer-size-m, 0.75rem) !important;
+  box-sizing: border-box !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+  background: none !important;
+}
+
+/* Dark semi-transparent circular backdrop over image only */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: var(--ym-radius-size-round, 50%) !important;
+  background-color: var(--card-controls-background, rgba(0, 0, 0, 0.48)) !important;
+  opacity: 0 !important;
+  transition: opacity 0.25s ease !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Hover and playing states */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK:hover .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2:hover .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK.is-playing .ArtistCard_controls__jsqqI,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2.is-playing .ArtistCard_controls__jsqqI {
+  pointer-events: auto !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK:hover .ArtistCard_controls__jsqqI::before,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2:hover .ArtistCard_controls__jsqqI::before,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .ArtistCard_controls__jsqqI::before,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .ArtistCard_controls__jsqqI::before,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK.is-playing .ArtistCard_controls__jsqqI::before,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2.is-playing .ArtistCard_controls__jsqqI::before {
+  opacity: 1 !important;
+}
+
+/* Sliding rows inside ArtistCard controls */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .bL0wE1Bui8zpIZbvMVL3 {
+  display: flex !important;
+  width: 100% !important;
+  opacity: 0 !important;
+  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), opacity 0.25s ease !important;
+  pointer-events: none !important;
+  overflow: visible !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .P6gOmyFtXyetUz0dqhF3 {
+  align-items: center !important;
+  justify-content: flex-end !important;
+  transform: translateY(-12px) !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .bL0wE1Bui8zpIZbvMVL3 {
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  transform: translateY(12px) !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK:hover .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK:hover .bL0wE1Bui8zpIZbvMVL3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2:hover .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2:hover .bL0wE1Bui8zpIZbvMVL3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:hover .bL0wE1Bui8zpIZbvMVL3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_coverBlock__dBL4x:focus-within .bL0wE1Bui8zpIZbvMVL3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK.is-playing .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK.is-playing .bL0wE1Bui8zpIZbvMVL3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2.is-playing .P6gOmyFtXyetUz0dqhF3,
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .CarouselBlock_item__DatZ2.is-playing .bL0wE1Bui8zpIZbvMVL3 {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+}
+
+/* Left sub-container: Trailer (top) & Play button (bottom) */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .RvWjZle1erRBXzJEF9Zj {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 8px !important;
+  overflow: visible !important;
+}
+
+/* Right sub-container: Context menu */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_controls__jsqqI .bBh7lvgdfF7bqNqlK78Q {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-left: auto !important;
+  overflow: visible !important;
+}
+
+/* Like button in 172px circular artist card: hidden to prevent edge crowding, matching native */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK .ArtistCard_likeButton__LU9TL {
+  display: none !important;
+}
+
+/* Artist info text below cover */
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK .IO4kvpDGNI2J0CHwcKSf {
+  margin-top: 10px !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_titleLink__G8Puz {
+  color: var(--ym-controls-color-primary-text-enabled_variant, #ffffff) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  line-height: 18px !important;
+  text-decoration: none !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_titleLink__G8Puz:hover {
+  text-decoration: underline !important;
+}
+
+html.ym-vibe-with-landing #ym-vibe-live-landing-feed .ArtistCard_root__x67BK .SeparatedArtists_root_variant_breakAll__34YbW span {
+  color: var(--ym-controls-color-secondary-text-enabled, rgba(255, 255, 255, 0.5)) !important;
+  font-size: 13px !important;
+  line-height: 16px !important;
+}
